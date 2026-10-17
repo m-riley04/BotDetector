@@ -1,0 +1,20 @@
+{
+  "manifest_version": 3,
+  "name": "BotDetector",
+  "version": "1.0.0",
+  "description": "A bot detection extension for identifying troll and astroturfing accounts",
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "botdetector@example.com",
+      "strict_min_version": "128.0"
+    }
+  },
+  "permissions": ["activeTab"],
+  "action": {
+    "default_title": "BotDetector",
+    "default_popup": "popup.html"
+  },
+  "background": {
+    "scripts": ["background.js"]
+  }
+}
