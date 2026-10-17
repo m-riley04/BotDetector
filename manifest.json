@@ -3,6 +3,7 @@
   "name": "BotDetector",
   "version": "1.0.0",
   "description": "A bot detection extension for identifying troll and astroturfing accounts",
+  "permissions": ["activeTab", "scripting"],
   "browser_specific_settings": {
     "gecko": {
       "id": "botdetector@example.com",
@@ -12,16 +13,18 @@
   "content_scripts": [
     {
       "matches": ["*://x.com/*", "*://*.x.com/*"],
-      "js": ["src/content.js"],
-      "run_at": "document_idle"
+      "js": ["src/content.js"]
     }
   ],
-  "permissions": ["activeTab"],
+  "web_accessible_resources": [
+    {
+      "matches": ["*://x.com/*", "*://*.x.com/*"],
+      "resources": ["src/inject.js"]
+    }
+  ],
+
   "action": {
     "default_title": "BotDetector",
     "default_popup": "popup.html"
-  },
-  "background": {
-    "scripts": ["background.js"]
   }
 }

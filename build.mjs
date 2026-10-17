@@ -7,11 +7,20 @@ await rm(outputDirectory, { recursive: true, force: true });
 await mkdir(outputDirectory, { recursive: true });
 
 await build({
-  entryPoints: ['src/popup.ts', 'src/background.ts'],
+  entryPoints: ['src/popup.ts'],
   bundle: true,
   format: 'iife',
   target: 'firefox128',
   outdir: outputDirectory,
+});
+
+await mkdir(`${outputDirectory}/src`, { recursive: true });
+await build({
+  entryPoints: ['src/content.ts', 'src/inject.ts'],
+  bundle: true,
+  format: 'iife',
+  target: 'firefox128',
+  outdir: `${outputDirectory}/src`,
 });
 
 for (const file of ['manifest.json', 'popup.html', 'popup.css']) {

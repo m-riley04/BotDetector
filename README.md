@@ -27,10 +27,17 @@ The loadable extension is generated in `dist/`.
 
 Temporary add-ons are removed when Firefox closes.
 
+## Inspect tweet React props
+
+On an X page, open Firefox's Browser Console to see the bounded React props
+snapshot logged once for each tweet. The current bot score does not use these
+props yet; inspect the available fields before choosing detection signals.
+
 ## Customize
 
 - Edit `src/popup.ts` for popup behavior.
 - Edit `src/background.ts` for extension lifecycle and background behavior.
+- Edit `src/content.ts` and `src/inject.ts` for tweet detection and React props inspection.
 - Edit `popup.html` and `popup.css` for the popup interface.
 - Update `manifest.json` when changing permissions or extension metadata.
 - Replace `firefox-typescript-template@example.com` in `manifest.json` with an
