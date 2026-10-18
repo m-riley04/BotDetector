@@ -22,11 +22,11 @@ import { ReactPropsResponse } from './react/models';
 let temp: Tweet | undefined;
 
 function getTweetDataFromReactResponse(
-  reactProps: ReactPropsResponse
+  reactProps: ReactPropsResponse,
+  targetComponentName: string = 'b' // the 'b' component seems to contain the tweet props
 ): Tweet | undefined {
-  // the 'b' component seems to contain the tweet props
   const componentProps = reactProps.props.components?.find(
-    (component) => component.name === 'b'
+    (component) => component.name === targetComponentName
   )?.props;
   const tweetProps: Tweet | undefined = isRecord(componentProps)
     ? (componentProps.tweet as Tweet) // TODO: make this safer
