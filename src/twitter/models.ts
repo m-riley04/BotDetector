@@ -17,8 +17,14 @@ interface UserDescriptionEntity {
   [k: string]: unknown;
 }
 
+interface UserUrlEntity {
+  urls: unknown[];
+  [k: string]: unknown;
+}
+
 interface UserEntities {
   description: UserDescriptionEntity;
+  url?: UserUrlEntity;
   [k: string]: unknown;
 }
 
@@ -28,47 +34,83 @@ interface UserProfessional {
   [k: string]: unknown;
 }
 
+interface UserVerificationInfoReasonDescription {
+  text: string;
+  [k: string]: unknown;
+}
+
+interface UserVerificationInfoReason {
+  description: UserVerificationInfoReasonDescription;
+  verified_since_msec: string;
+  [k: string]: unknown;
+}
+
+interface UserVerificationInfo {
+  is_identity_verified: boolean;
+  reason: UserVerificationInfoReason;
+  [k: string]: unknown;
+}
+
+interface UserBusinessAccount {
+  affiliates_count?: number;
+  [k: string]: unknown;
+}
+
+interface UserHighlightsInfo {
+  can_highlight_tweets: boolean;
+  highlighted_tweets: string;
+  [k: string]: unknown;
+}
+
 interface User {
-  name: string;
-  screen_name: string;
-  id_str: string;
-  favourites_count: number;
-  profile_banner_url: string;
-  location: string;
-  notifications: boolean;
-  possibly_sensitive: boolean;
+  blocked_by: boolean;
+  blocking?: boolean;
+  business_account?: UserBusinessAccount;
+  can_media_tag: boolean;
+  created_at: string;
+  creator_subscriptions_count?: number;
+  description: string;
   entities: UserEntities;
-  profile_description_language: string;
-  profile_image_shape: string;
-  profile_interstitial_type: string;
-  is_translator: boolean;
-  translator_type: string;
+  favourites_count: number;
+  follow_request_sent: boolean;
+  followed_by: boolean;
   followers_count: number;
+  following: boolean;
   friends_count: number;
-  media_count: number;
-  statuses_count: number;
-  url: string;
+  has_graduated_access?: boolean;
+  has_hidden_subscriptions_on_profile?: boolean;
+  highlights_info?: UserHighlightsInfo;
+  id_str: string;
   is_blue_verified: boolean;
+  is_translator: boolean;
+  live_following: boolean;
+  location: string;
+  media_count: number;
+  muting: boolean;
+  name: string;
+  notifications: boolean;
+  parody_commentary_fan_label?: string;
+  pinned_tweet_ids?: string[];
+  possibly_sensitive: boolean;
+  professional?: UserProfessional;
+  profile_banner_url: string;
+  profile_description_language: string;
+  profile_image_shape: 'Circle' | 'Square' | string;
+  profile_image_url_https: string;
+  profile_interstitial_type: string;
+  profile_sort_enabled?: boolean;
+  protected: boolean;
+  screen_name: string;
+  statuses_count: number;
   super_follow_eligible: boolean;
   super_followed_by: boolean;
   super_following: boolean;
-  verified: boolean;
+  translator_type: 'none' | string;
+  url: string;
+  user_seed_tweet_count?: number;
+  verification_info?: UserVerificationInfo;
   verified_type?: VerifiedType;
-  protected: boolean;
-  profile_image_url_https: string;
-  can_media_tag: boolean;
-  follow_request_sent: boolean;
-  description: string;
-  blocked_by: boolean;
-  blocking: boolean;
-  followed_by: boolean;
-  following: boolean;
-  live_following: boolean;
-  muting: boolean;
-  has_graduated_access: boolean;
-  created_at: string;
-  parody_commentary_fan_label: string;
-  professional?: UserProfessional;
+  verified: boolean;
   [k: string]: unknown;
 }
 
@@ -78,25 +120,33 @@ interface Views {
   [k: string]: unknown;
 }
 
+interface MediaInfo {
+  height: number;
+  width: number;
+  [k: string]: unknown;
+}
+
+interface MediaFeatures {
+  [k: string]: unknown;
+}
+
+interface MediaAvailability {
+  status: 'Available'; // TODO:
+  [k: string]: unknown;
+}
+
 interface Media {
   allow_download_status: boolean;
   display_url: string;
   expanded_url: string;
-  ext_media_availability: {
-    status: 'Available'; // TODO:
-  };
-  features: {
-    [k: string]: unknown;
-  };
+  ext_media_availability: MediaAvailability;
+  features: MediaFeatures;
   id_str: string;
   indices: number[];
   media_key: string;
   media_results: object;
   media_url_https: string;
-  original_info: {
-    height: number;
-    width: number;
-  };
+  original_info: MediaInfo;
   sizes: object;
   type: 'photo' | 'video' | 'gif'; // TODO: make sure this is right
   url: string;
@@ -117,32 +167,32 @@ interface QuotedStatusPermalink {
 export interface Tweet {
   bookmark_count: number;
   bookmarked: boolean;
+  cashtag_attachments: unknown[];
   conversation_id_str: string;
+  created_at: string;
   display_text_range: number[];
+  edit_control: EditControl;
   entities: Entities;
   extended_entities?: Entities; // TODO: idk if this is right
   favorite_count: number;
   favorited: boolean;
   full_text: string;
+  grok_analysis_button: boolean;
+  grok_annotations: GrokAnnotations;
+  has_super_follower: boolean;
   id_str: string;
   is_quote_status: boolean;
+  is_translatable: boolean;
   lang: string;
+  permalink: string;
   quote_count: number;
   quoted_status_permalink: QuotedStatusPermalink;
+  quoted_status: Tweet | null;
   reply_count: number;
   retweet_count: number;
   retweeted: boolean;
-  edit_control: EditControl;
-  is_translatable: boolean;
-  has_super_follower: boolean;
-  grok_analysis_button: boolean;
-  cashtag_attachments: unknown[];
-  grok_annotations: GrokAnnotations;
-  user: User;
-  quoted_status: Tweet | null;
-  views: Views;
   text: string;
-  created_at: string;
-  permalink: string;
+  user: User;
+  views: Views;
   [k: string]: unknown;
 }

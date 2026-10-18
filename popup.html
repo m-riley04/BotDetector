@@ -8,8 +8,63 @@
   </head>
   <body>
     <main>
-      <h1>BotDetector</h1>
-      <p>Detect troll and astroturfing accounts on Twitter (or 'X')</p>
+      <header>
+        <h1>BotDetector</h1>
+        <label class="switch" title="Enable or disable BotDetector">
+          <input id="enabled" type="checkbox" role="switch" />
+          <span class="track"></span>
+          <span class="visually-hidden">Enable BotDetector</span>
+        </label>
+      </header>
+      <p class="subtitle">
+        Detect troll and astroturfing accounts on Twitter (or 'X')
+      </p>
+      <p id="status" class="status" role="status"></p>
+
+      <section id="settings" aria-labelledby="settings-title">
+        <h2 id="settings-title">Settings</h2>
+
+        <div class="field">
+          <div class="field-header">
+            <label for="threshold">Bot threshold</label>
+            <output id="threshold-value" for="threshold"></output>
+          </div>
+          <input
+            id="threshold"
+            type="range"
+            min="10"
+            max="100"
+            step="5"
+            aria-describedby="threshold-help"
+          />
+          <p id="threshold-help" class="help">
+            Accounts scoring at or above this are marked as likely bots.
+          </p>
+        </div>
+
+        <label class="check">
+          <input id="only-likely-bots" type="checkbox" />
+          <span>
+            Only show likely bots' badges
+            <small>Hide the badge on accounts below the threshold.</small>
+          </span>
+        </label>
+
+        <label class="check">
+          <input id="hide-likely-bots" type="checkbox" />
+          <span>
+            Hide likely bots
+            <small
+              >Hide the entire post for accounts at or above the
+              threshold.</small
+            >
+          </span>
+        </label>
+
+        <button id="reset" type="button" class="secondary">
+          Reset to defaults
+        </button>
+      </section>
     </main>
     <script src="popup.js"></script>
   </body>
