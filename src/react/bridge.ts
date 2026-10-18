@@ -1,21 +1,51 @@
-import { REACT_ID_ATTRIBUTE, REACT_PROPS_REQUEST } from './constants';
+/**
+ * ReactBridge class for managing communication with React components and their props.
+ */
+class ReactBridge {
+  private reactBridgeReady = false;
+  private nextReactId = 0;
+  private requestedReactProps = new WeakSet<HTMLElement>();
 
-// region state variables
-export let reactBridgeReady = false;
-export let nextReactId = 0;
-const requestedReactProps = new WeakSet<HTMLElement>();
+  public isReady(): boolean {
+    return this.reactBridgeReady;
+  }
+
+  public markReady(): void {
+    this.reactBridgeReady = true;
+  }
+
+  public getNextReactId(): string {
+    return String(++this.nextReactId);
+  }
+
+  public hasRequestedProps(tweetElement: HTMLElement): boolean {
+    return this.requestedReactProps.has(tweetElement);
+  }
+
+  public markRequested(tweetElement: HTMLElement): void {
+    this.requestedReactProps.add(tweetElement);
+  }
+}
+
+/**
+ * The singleton instance of the ReactBridge class used for managing communication with React components and their props.
+ */
+export const reactBridge = new ReactBridge();
 
 /**
  * Loads the React props bridge by injecting a script into the document.
  * This function injects a script into the document to enable communication with React components and retrieve their props.
  * @param onLoadCallback The callback function to be executed once the React props bridge is loaded.
  */
-export function loadReactPropsBridge(onLoadCallback?: () => void): void {
+export function loadReactPropsBridge(
+  bridge: ReactBridge,
+  onLoadCallback?: () => void
+): void {
   const script = document.createElement('script');
   script.src = browser.runtime.getURL('src/inject.js');
   script.onload = () => {
     script.remove();
-    reactBridgeReady = true;
+    bridge.markReady();
     if (onLoadCallback) onLoadCallback();
   };
   script.onerror = () => {
@@ -30,12 +60,17 @@ export function loadReactPropsBridge(onLoadCallback?: () => void): void {
  * @param tweetElement The tweet element for which to request React props.
  * @returns Nothing. This sends the (synchronous) dispatch event.
  */
-export function requestReactProps(tweetElement: HTMLElement): void {
-  if (!reactBridgeReady || requestedReactProps.has(tweetElement)) return;
+export function requestReactProps(
+  bridge: ReactBridge,
+  tweetElement: HTMLElement,
+  reactIdAttribute: string,
+  reactPropsRequestId: string
+): void {
+  if (!bridge.isReady() || bridge.hasRequestedProps(tweetElement)) return;
 
-  const id = String(++nextReactId);
-  tweetElement.setAttribute(REACT_ID_ATTRIBUTE, id);
-  requestedReactProps.add(tweetElement);
+  const id = bridge.getNextReactId();
+  tweetElement.setAttribute(reactIdAttribute, id);
+  bridge.markRequested(tweetElement);
 
-  window.dispatchEvent(new CustomEvent(REACT_PROPS_REQUEST, { detail: id }));
+  window.dispatchEvent(new CustomEvent(reactPropsRequestId, { detail: id }));
 }

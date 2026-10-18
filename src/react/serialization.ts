@@ -1,18 +1,16 @@
 import { isRecord } from '../common/helpers';
-import { ReactComponentData } from './types';
+import { ReactComponentData } from './models';
+import type { SerializableValue, SerializationState } from './types';
 
-export type SerializableValue =
-  | string
-  | number
-  | boolean
-  | null
-  | SerializableValue[]
-  | { [key: string]: SerializableValue };
-
-export interface SerializationState {
-  nodes: number;
-  seen: WeakSet<object>;
+interface SerializationOptions {
+  maxNodes: number;
+  maxDepth: number;
 }
+
+const DEFAULT_SERIALIZATION_OPTIONS: SerializationOptions = {
+  maxNodes: 250,
+  maxDepth: 5,
+};
 
 /**
  * Converts an unknown value into a serializable value suitable for JSON serialization.
@@ -20,15 +18,16 @@ export interface SerializationState {
  * @param state The current serialization state, tracking seen objects and node count.
  * @param depth The current depth of the serialization recursion.
  * @returns A serializable value or undefined if the value cannot be serialized.
+ *
+ * @recursive
  */
 export function toSerializable(
   value: unknown,
   state: SerializationState,
-  depth: number
+  depth: number,
+  options: SerializationOptions = DEFAULT_SERIALIZATION_OPTIONS
 ): SerializableValue | undefined {
-  const MAX_NODES = 250; // TODO: move these out and into a config maybe?
-  const MAX_DEPTH = 5; // TODO: move these out and into a config maybe?
-
+  const { maxNodes, maxDepth } = options;
   if (
     value === null ||
     typeof value === 'boolean' ||
@@ -39,8 +38,8 @@ export function toSerializable(
   if (typeof value === 'string') return value.slice(0, 300);
   if (
     typeof value !== 'object' ||
-    depth > MAX_DEPTH ||
-    state.nodes >= MAX_NODES
+    depth > maxDepth ||
+    state.nodes >= maxNodes
   ) {
     return undefined;
   }
@@ -53,7 +52,7 @@ export function toSerializable(
     if (Array.isArray(value)) {
       return value
         .slice(0, 20)
-        .map((item) => toSerializable(item, state, depth + 1))
+        .map((item) => toSerializable(item, state, depth + 1, options))
         .filter((item): item is SerializableValue => item !== undefined);
     }
 
@@ -72,10 +71,11 @@ export function toSerializable(
       const serializable = toSerializable(
         Reflect.get(value, key),
         state,
-        depth + 1
+        depth + 1,
+        options
       );
       if (serializable !== undefined) result[key] = serializable;
-      if (state.nodes >= MAX_NODES) break;
+      if (state.nodes >= maxNodes) break;
     }
     return result;
   } finally {
@@ -88,18 +88,33 @@ interface ReactData {
   components?: ReactComponentData[];
 }
 
+interface GetReactDataOptions {
+  propsKey: string;
+  fiberKeys: string[];
+  maxDepth: number;
+}
+
+const DEFAULT_GET_REACT_DATA_OPTIONS: GetReactDataOptions = {
+  propsKey: '__reactProps$',
+  fiberKeys: ['__reactFiber$', '__reactInternalInstance$'],
+  maxDepth: 15,
+};
+
 /**
  * Gets the React data associated with a tweet element.
  * @param tweet The tweet element for which to retrieve React data.
  * @returns An object containing the serialized element props and an array of React component data, if available.
  */
-export function getReactData(tweet: HTMLElement): ReactData {
+export function getReactData(
+  tweet: HTMLElement,
+  getReactDataOptions: GetReactDataOptions = DEFAULT_GET_REACT_DATA_OPTIONS
+): ReactData {
   const keys = Object.keys(tweet);
-  const propsKey = keys.find((key) => key.startsWith('__reactProps$'));
-  const fiberKey = keys.find(
-    (key) =>
-      key.startsWith('__reactFiber$') ||
-      key.startsWith('__reactInternalInstance$')
+  const propsKey = keys.find((key) =>
+    key.startsWith(getReactDataOptions.propsKey)
+  );
+  const fiberKey = keys.find((key) =>
+    getReactDataOptions.fiberKeys.some((fiberKey) => key.startsWith(fiberKey))
   );
 
   const result: ReactData = {};
@@ -122,8 +137,7 @@ export function getReactData(tweet: HTMLElement): ReactData {
       : undefined;
     let depth = 0;
 
-    const MAX_DEPTH = 15; // TODO: move these out and into a config maybe?
-    while (fiber && depth < MAX_DEPTH) {
+    while (fiber && depth < getReactDataOptions.maxDepth) {
       const memoizedProps = fiber.memoizedProps;
       if (isRecord(memoizedProps)) {
         const type = fiber.type;

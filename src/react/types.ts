@@ -1,15 +1,12 @@
-import type { SerializableValue } from '../react/serialization';
+export type SerializableValue =
+  | string
+  | number
+  | boolean
+  | null
+  | SerializableValue[]
+  | { [key: string]: SerializableValue };
 
-export interface ReactComponentData {
-  name?: string;
-  props?: SerializableValue;
-}
-
-export interface ReactPropsData {
-  components?: ReactComponentData[];
-}
-
-export interface ReactPropsResponse {
-  id: string;
-  props: ReactPropsData;
+export interface SerializationState {
+  nodes: number;
+  seen: WeakSet<object>;
 }

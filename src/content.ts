@@ -1,12 +1,21 @@
 import { isRecord } from './common/helpers';
 import { parseReactPropsResponse } from './common/parsing';
-import type { Tweet } from './twitter/twitter';
-import { requestReactProps, loadReactPropsBridge } from './react/bridge';
-import { REACT_PROPS_RESPONSE } from './react/constants';
+import type { Tweet } from './twitter/models';
+import {
+  requestReactProps,
+  loadReactPropsBridge,
+  reactBridge,
+} from './react/bridge';
+import {
+  REACT_ID_ATTRIBUTE,
+  REACT_PROPS_REQUEST,
+  REACT_PROPS_RESPONSE,
+} from './react/constants';
 import { BOT_ELEMENT } from './common/constants';
 import { createBotElement } from './detection/visuals';
-import { BotDetectionReport, getDetectionReport } from './detection/detection';
-import { ReactPropsResponse } from './react/types';
+import type { BotDetectionReport } from './detection/models';
+import { getDetectionReport } from './detection/detection';
+import { ReactPropsResponse } from './react/models';
 
 // Temporary storage for the latest tweet data received from the React props bridge
 // TODO: this is bad imo. Fix it.
@@ -93,14 +102,19 @@ function scanTweets(): void {
 
   tweets.forEach((tweet) => {
     // get the tweet data
-    requestReactProps(tweet);
+    requestReactProps(
+      reactBridge,
+      tweet,
+      REACT_ID_ATTRIBUTE,
+      REACT_PROPS_REQUEST
+    );
     modifyTweet(tweet, temp);
   });
 }
 
 // load the react bridge and start scanning tweets once it's ready
 // basically the main runtime loop
-loadReactPropsBridge(scanTweets);
+loadReactPropsBridge(reactBridge, scanTweets);
 document.addEventListener('scrollend', scanTweets);
 
 export {};

@@ -1,7 +1,6 @@
-// TODO: need to research more of these
-type VerifiedType = 'Government' | 'Business';
+import { ProfessionalType, VerifiedType } from './types';
 
-interface TweetEditControl {
+interface EditControl {
   edit_tweet_ids: string[];
   editable_until_msecs: string;
   edits_remaining: string;
@@ -9,30 +8,27 @@ interface TweetEditControl {
   [k: string]: unknown;
 }
 
-interface TweetGrokAnnotations {
+interface GrokAnnotations {
   is_image_editable_by_grok: boolean;
   [k: string]: unknown;
 }
 
-interface TweetUserDescriptionEntity {
+interface UserDescriptionEntity {
   [k: string]: unknown;
 }
 
-interface TweetUserEntities {
-  description: TweetUserDescriptionEntity;
+interface UserEntities {
+  description: UserDescriptionEntity;
   [k: string]: unknown;
 }
 
-// TODO: research other possible professional types besides 'Business'
-type ProfessionalType = 'Business';
-
-interface TweetUserProfessional {
+interface UserProfessional {
   professional_type?: ProfessionalType;
   rest_id: string;
   [k: string]: unknown;
 }
 
-interface TweetUser {
+interface User {
   name: string;
   screen_name: string;
   id_str: string;
@@ -41,7 +37,7 @@ interface TweetUser {
   location: string;
   notifications: boolean;
   possibly_sensitive: boolean;
-  entities: TweetUserEntities;
+  entities: UserEntities;
   profile_description_language: string;
   profile_image_shape: string;
   profile_interstitial_type: string;
@@ -72,17 +68,17 @@ interface TweetUser {
   has_graduated_access: boolean;
   created_at: string;
   parody_commentary_fan_label: string;
-  professional?: TweetUserProfessional;
+  professional?: UserProfessional;
   [k: string]: unknown;
 }
 
-interface TweetViews {
+interface Views {
   count: number;
   state: string;
   [k: string]: unknown;
 }
 
-interface TweetMedia {
+interface Media {
   allow_download_status: boolean;
   display_url: string;
   expanded_url: string;
@@ -106,12 +102,12 @@ interface TweetMedia {
   url: string;
 }
 
-interface TweetEntities {
-  media?: TweetMedia[];
+interface Entities {
+  media?: Media[];
   [k: string]: unknown;
 }
 
-interface TweetQuotedStatusPermalink {
+interface QuotedStatusPermalink {
   display: string;
   expanded: string;
   url: string;
@@ -123,8 +119,8 @@ export interface Tweet {
   bookmarked: boolean;
   conversation_id_str: string;
   display_text_range: number[];
-  entities: TweetEntities;
-  extended_entities?: TweetEntities; // TODO: idk if this is right
+  entities: Entities;
+  extended_entities?: Entities; // TODO: idk if this is right
   favorite_count: number;
   favorited: boolean;
   full_text: string;
@@ -132,19 +128,19 @@ export interface Tweet {
   is_quote_status: boolean;
   lang: string;
   quote_count: number;
-  quoted_status_permalink: TweetQuotedStatusPermalink;
+  quoted_status_permalink: QuotedStatusPermalink;
   reply_count: number;
   retweet_count: number;
   retweeted: boolean;
-  edit_control: TweetEditControl;
+  edit_control: EditControl;
   is_translatable: boolean;
   has_super_follower: boolean;
   grok_analysis_button: boolean;
   cashtag_attachments: unknown[];
-  grok_annotations: TweetGrokAnnotations;
-  user: TweetUser;
+  grok_annotations: GrokAnnotations;
+  user: User;
   quoted_status: Tweet | null;
-  views: TweetViews;
+  views: Views;
   text: string;
   created_at: string;
   permalink: string;

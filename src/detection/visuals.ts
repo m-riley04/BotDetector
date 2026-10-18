@@ -1,5 +1,5 @@
 import { BOT_ELEMENT } from '../common/constants';
-import { BOT_THRESHOLD, BotDetectionReport } from './detection';
+import type { BotDetectionReport } from './models';
 
 const pct = (n: number) => `${Number((n * 100).toFixed(2))}%`;
 
@@ -79,7 +79,7 @@ export function showReportModal(report: BotDetectionReport): void {
   panel.append(table);
 
   const note = document.createElement('p');
-  note.textContent = `Marked as a bot at ${pct(BOT_THRESHOLD)} or higher.`;
+  note.textContent = `Marked as a bot at ${pct(report.isBotThreshold)} or higher.`;
   note.style.margin = '8px 0';
   note.style.color = '#555';
   panel.append(note);
