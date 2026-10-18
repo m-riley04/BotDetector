@@ -3,7 +3,7 @@
   "name": "BotDetector",
   "version": "1.0.0",
   "description": "A bot detection extension for identifying troll and astroturfing accounts",
-  "permissions": ["activeTab", "scripting", "storage"],
+  "permissions": ["activeTab", "scripting", "storage", "clipboardWrite"],
   "content_scripts": [
     {
       "matches": ["*://x.com/*", "*://*.x.com/*"],

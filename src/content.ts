@@ -1,5 +1,6 @@
 import { isRecord } from './common/helpers';
 import { parseReactPropsResponse } from './common/parsing';
+import { BOT_DETECTOR_CLOSE_OVERLAY } from './detection/constants';
 import type { Tweet } from './twitter/models';
 import {
   requestReactProps,
@@ -38,6 +39,23 @@ function getTweetDataFromReactResponse(
 
   return tweetProps;
 }
+
+// keyboard presses for manual/quick actions
+window.addEventListener('keyup', (e: KeyboardEvent) => {
+  // having trouble with this, so just to be safe
+  const isEscape = e.key === 'Escape' || e.key === 'Esc';
+
+  if (isEscape) {
+    window.dispatchEvent(new CustomEvent(BOT_DETECTOR_CLOSE_OVERLAY));
+  }
+
+  if (e.key === 'r') {
+    console.log('[BotDetector] Manual scan triggered.');
+    clearTweets();
+    temp = undefined;
+    scanTweets();
+  }
+});
 
 // Listener for the react props responses from the injected script
 window.addEventListener(REACT_PROPS_RESPONSE, (event: Event) => {
@@ -88,7 +106,11 @@ function modifyTweet(
 
   console.log(`[BotDetector] Modifying tweet with report:`, report);
 
-  tweetElement.insertBefore(createBotElement(report), tweetElement.firstChild);
+  if (!tweetData) return;
+  tweetElement.insertBefore(
+    createBotElement(report, tweetData),
+    tweetElement.firstChild
+  );
 }
 
 /**
@@ -110,6 +132,17 @@ function scanTweets(): void {
     );
     modifyTweet(tweet, temp);
   });
+}
+
+function clearTweets(): void {
+  const botElements = Array.from(document.querySelectorAll(BOT_ELEMENT));
+  botElements.forEach((el) => el.remove());
+
+  temp = undefined;
+
+  reactBridge.clearAddedTags();
+
+  console.log('[BotDetector] Cleared all bot elements.');
 }
 
 // load the react bridge and start scanning tweets once it's ready

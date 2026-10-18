@@ -25,6 +25,11 @@ class ReactBridge {
   public markRequested(tweetElement: HTMLElement): void {
     this.requestedReactProps.add(tweetElement);
   }
+
+  public clearAddedTags(): void {
+    this.requestedReactProps = new WeakSet<HTMLElement>();
+    this.nextReactId = 0;
+  }
 }
 
 /**

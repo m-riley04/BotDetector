@@ -14,6 +14,14 @@ pnpm build
 
 The loadable extension is generated in `dist/`.
 
+## Test
+
+Run the automated tests with:
+
+```sh
+pnpm test
+```
+
 ## Try it in Firefox
 
 1. Open `about:debugging#/runtime/this-firefox`.

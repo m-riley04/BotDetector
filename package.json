@@ -6,7 +6,8 @@
   "scripts": {
     "build": "node build.mjs",
     "format": "prettier --write . --config .prettierrc",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "node --test"
   },
   "devDependencies": {
     "@types/firefox-webext-browser": "^120.0.4",
