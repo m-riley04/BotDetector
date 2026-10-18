@@ -1,7 +1,4 @@
-# Firefox TypeScript Extension
-
-A minimal Firefox WebExtension starter with a TypeScript popup and background
-script. The popup demonstrates accessing the active tab after a user click.
+# BotDetector
 
 ## Requirements
 
@@ -12,8 +9,7 @@ script. The popup demonstrates accessing the active tab after a user click.
 
 ```sh
 pnpm install
-pnpm run typecheck
-pnpm run build
+pnpm build
 ```
 
 The loadable extension is generated in `dist/`.
@@ -27,18 +23,29 @@ The loadable extension is generated in `dist/`.
 
 Temporary add-ons are removed when Firefox closes.
 
-## Inspect tweet React props
+## Bot Detection Weights
 
-On an X page, open Firefox's Browser Console to see the bounded React props
-snapshot logged once for each tweet. The current bot score does not use these
-props yet; inspect the available fields before choosing detection signals.
+Potential signifiers of a twitter bot (or bot interference)
 
-## Customize
-
-- Edit `src/popup.ts` for popup behavior.
-- Edit `src/background.ts` for extension lifecycle and background behavior.
-- Edit `src/content.ts` and `src/inject.ts` for tweet detection and React props inspection.
-- Edit `popup.html` and `popup.css` for the popup interface.
-- Update `manifest.json` when changing permissions or extension metadata.
-- Replace `firefox-typescript-template@example.com` in `manifest.json` with an
-  identifier you control before publishing.
+- Account
+  - Username
+    - \>4 numbers at the end
+    - CamelCasing
+    - Random non-name words
+    - Random characters
+  - Bio
+    - Excessive emoji usage
+    - No bio whatsoever
+  - Blue checkmark
+  - Non-business accounts
+  - No profile picture
+  - Inhumane amount of posts
+  - Very small difference between followers and following
+- Content
+  - Overly generic comments
+  - Use of l33tspeak to get around filters
+  - Strange links/promos
+  - Slurs
+  - Excessive political content
+  - Quote tweets other blue-check accounts
+- Identical tweets or semi-identical tweets to others in the same thread
