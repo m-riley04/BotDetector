@@ -1,17 +1,4 @@
-import assert from 'node:assert/strict';
-import { build } from 'esbuild';
-import { test } from 'node:test';
-
-const { outputFiles } = await build({
-  entryPoints: ['src/detection/detection.ts'],
-  bundle: true,
-  format: 'esm',
-  platform: 'node',
-  write: false,
-});
-const detection = await import(
-  `data:text/javascript;base64,${Buffer.from(outputFiles[0].text).toString('base64')}`
-);
+import * as detection from '../src/detection/detection';
 
 const fixedNow = Date.parse('2025-01-15T12:00:00.000Z');
 const dayMs = 24 * 60 * 60 * 1000;
@@ -52,7 +39,7 @@ function getReport(tweet, options) {
 
 function check(report, id) {
   const result = report.checks.find((item) => item.id === id);
-  assert.ok(result, `expected check "${id}" to exist`);
+  expect(result).toBeTruthy();
   return result;
 }
 
@@ -80,36 +67,33 @@ function customOptions(weights, isBotThreshold = 0.75) {
 }
 
 test('getDetectionReport returns undefined without a tweet', () => {
-  assert.equal(getReport(undefined), undefined);
+  expect(getReport(undefined)).toBe(undefined);
 });
 
 test('a typical older account has zero risk and includes all checks', () => {
   const report = getReport(makeTweet());
 
-  assert.equal(report.chance, 0);
-  assert.equal(report.isBot, false);
-  assert.equal(report.isBotThreshold, 0.75);
-  assert.deepEqual(
-    report.checks.map(({ id }) => id),
-    [
-      'blue-check',
-      'quoted-checkmark',
-      'new-account',
-      'post-ai-account',
-      'account-creation-date',
-      'high-tweet-rate',
-      'low-followers-ratio',
-      'low-followers-following-ratio',
-      'auto-handle',
-      'onlyfans-model',
-      'ai-characters-bio',
-      'no-description',
-      'no-banner',
-    ]
-  );
-  assert.ok(
+  expect(report.chance).toBe(0);
+  expect(report.isBot).toBe(false);
+  expect(report.isBotThreshold).toBe(0.75);
+  expect(report.checks.map(({ id }) => id)).toStrictEqual([
+    'blue-check',
+    'quoted-checkmark',
+    'new-account',
+    'post-ai-account',
+    'account-creation-date',
+    'high-tweet-rate',
+    'low-followers-ratio',
+    'low-followers-following-ratio',
+    'auto-handle',
+    'onlyfans-model',
+    'ai-characters-bio',
+    'no-description',
+    'no-banner',
+  ]);
+  expect(
     report.checks.every((item) => !item.triggered && item.contribution === 0)
-  );
+  ).toBeTruthy();
 });
 
 test('invalid account dates and missing counts do not trigger age or rate checks', () => {
@@ -122,7 +106,7 @@ test('invalid account dates and missing counts do not trigger age or rate checks
     })
   );
 
-  assert.equal(report.chance, 0);
+  expect(report.chance).toBe(0);
   for (const id of [
     'new-account',
     'post-ai-account',
@@ -131,34 +115,30 @@ test('invalid account dates and missing counts do not trigger age or rate checks
     'low-followers-ratio',
     'low-followers-following-ratio',
   ]) {
-    assert.equal(
-      check(report, id).triggered,
-      false,
-      `${id} should not trigger`
-    );
+    expect(check(report, id).triggered).toBe(false);
   }
 });
 
 test('a non-business verified account triggers the blue-check score', () => {
   const verified = getReport(makeTweet({ is_blue_verified: true }));
-  assert.equal(verified.isVerified, true);
-  assert.equal(verified.isVerifiedBusiness, false);
-  assert.equal(check(verified, 'blue-check').triggered, true);
-  assert.equal(check(verified, 'blue-check').contribution, 0.4);
+  expect(verified.isVerified).toBe(true);
+  expect(verified.isVerifiedBusiness).toBe(false);
+  expect(check(verified, 'blue-check').triggered).toBe(true);
+  expect(check(verified, 'blue-check').contribution).toBe(0.4);
 
   const business = getReport(
     makeTweet({ verified: true, verified_type: 'Business' })
   );
-  assert.equal(business.isVerified, true);
-  assert.equal(business.isVerifiedBusiness, true);
-  assert.equal(check(business, 'blue-check').triggered, false);
+  expect(business.isVerified).toBe(true);
+  expect(business.isVerifiedBusiness).toBe(true);
+  expect(check(business, 'blue-check').triggered).toBe(false);
 });
 
 test('quote-checkmark only triggers for verified non-business quoted users', () => {
   const quotedReport = getReport(makeTweet({}, { is_blue_verified: true }));
-  assert.equal(quotedReport.isQuotedUserVerified, true);
-  assert.equal(quotedReport.didQuoteCheckmark, true);
-  assert.equal(check(quotedReport, 'quoted-checkmark').contribution, 0.05);
+  expect(quotedReport.isQuotedUserVerified).toBe(true);
+  expect(quotedReport.didQuoteCheckmark).toBe(true);
+  expect(check(quotedReport, 'quoted-checkmark').contribution).toBe(0.05);
 
   const businessReport = getReport(
     makeTweet(
@@ -166,76 +146,68 @@ test('quote-checkmark only triggers for verified non-business quoted users', () 
       { verified: true, professional: { professional_type: 'Business' } }
     )
   );
-  assert.equal(businessReport.isQuotedUserBusiness, true);
-  assert.equal(businessReport.didQuoteCheckmark, false);
-  assert.equal(check(businessReport, 'quoted-checkmark').triggered, false);
+  expect(businessReport.isQuotedUserBusiness).toBe(true);
+  expect(businessReport.didQuoteCheckmark).toBe(false);
+  expect(check(businessReport, 'quoted-checkmark').triggered).toBe(false);
 });
 
 test('new-account, post-AI, and calendar-date checks honor their boundaries', () => {
   const at89Days = new Date(fixedNow - 89 * dayMs).toISOString();
   const at90Days = new Date(fixedNow - 90 * dayMs).toISOString();
-  assert.equal(
+  expect(
     check(getReport(makeTweet({ created_at: at89Days })), 'new-account')
-      .triggered,
-    true
-  );
-  assert.equal(
+      .triggered
+  ).toBe(true);
+  expect(
     check(getReport(makeTweet({ created_at: at90Days })), 'new-account')
-      .triggered,
-    false
-  );
+      .triggered
+  ).toBe(false);
 
-  assert.equal(
+  expect(
     check(
       getReport(makeTweet({ created_at: '2023-01-01T00:00:00.000Z' })),
       'post-ai-account'
-    ).triggered,
-    false
-  );
-  assert.equal(
+    ).triggered
+  ).toBe(false);
+  expect(
     check(
       getReport(makeTweet({ created_at: '2023-01-02T12:00:00.000Z' })),
       'post-ai-account'
-    ).triggered,
-    true
-  );
+    ).triggered
+  ).toBe(true);
 
   for (const created_at of [
     '2020-06-01T12:00:00.000Z',
     '2020-06-30T12:00:00.000Z',
   ]) {
-    assert.equal(
+    expect(
       check(getReport(makeTweet({ created_at })), 'account-creation-date')
-        .triggered,
-      true
-    );
+        .triggered
+    ).toBe(true);
   }
-  assert.equal(
+  expect(
     check(
       getReport(makeTweet({ created_at: '2020-06-15T12:00:00.000Z' })),
       'account-creation-date'
-    ).triggered,
-    false
-  );
+    ).triggered
+  ).toBe(false);
 });
 
 test('high-tweet-rate check requires more than 100 posts per day', () => {
   const created_at = new Date(fixedNow - 10 * dayMs).toISOString();
 
-  assert.equal(
+  expect(
     check(
       getReport(makeTweet({ created_at, statuses_count: 1000 })),
       'high-tweet-rate'
-    ).triggered,
-    false
-  );
-  assert.equal(
+    ).triggered
+  ).toBe(false);
+  expect(
     check(
       getReport(makeTweet({ created_at, statuses_count: 1001 })),
       'high-tweet-rate'
-    ).triggered,
-    true
-  );
+    ).triggered
+  ).toBe(true);
 });
 
 test('follower-ratio checks honor their boundaries and separate weights', () => {
@@ -248,25 +220,23 @@ test('follower-ratio checks honor their boundaries and separate weights', () => 
     makeTweet({ followers_count: 9, friends_count: 100 }),
     options
   );
-  assert.equal(check(lowRatio, 'low-followers-ratio').triggered, true);
-  assert.equal(check(lowRatio, 'low-followers-ratio').contribution, 0.01);
+  expect(check(lowRatio, 'low-followers-ratio').triggered).toBe(true);
+  expect(check(lowRatio, 'low-followers-ratio').contribution).toBe(0.01);
 
   const exactLowBoundary = getReport(
     makeTweet({ followers_count: 10, friends_count: 100 }),
     options
   );
-  assert.equal(check(exactLowBoundary, 'low-followers-ratio').triggered, false);
+  expect(check(exactLowBoundary, 'low-followers-ratio').triggered).toBe(false);
 
   const equalRatio = getReport(
     makeTweet({ followers_count: 90, friends_count: 100 }),
     options
   );
-  assert.equal(
-    check(equalRatio, 'low-followers-following-ratio').triggered,
+  expect(check(equalRatio, 'low-followers-following-ratio').triggered).toBe(
     true
   );
-  assert.equal(
-    check(equalRatio, 'low-followers-following-ratio').contribution,
+  expect(check(equalRatio, 'low-followers-following-ratio').contribution).toBe(
     0.04
   );
 
@@ -274,32 +244,28 @@ test('follower-ratio checks honor their boundaries and separate weights', () => 
     makeTweet({ followers_count: 89, friends_count: 100 }),
     options
   );
-  assert.equal(
-    check(belowEqualBand, 'low-followers-following-ratio').triggered,
+  expect(check(belowEqualBand, 'low-followers-following-ratio').triggered).toBe(
     false
   );
   const upperEqualBoundary = getReport(
     makeTweet({ followers_count: 110, friends_count: 100 }),
     options
   );
-  assert.equal(
-    check(upperEqualBoundary, 'low-followers-following-ratio').triggered,
-    true
-  );
+  expect(
+    check(upperEqualBoundary, 'low-followers-following-ratio').triggered
+  ).toBe(true);
   const aboveEqualBand = getReport(
     makeTweet({ followers_count: 111, friends_count: 100 }),
     options
   );
-  assert.equal(
-    check(aboveEqualBand, 'low-followers-following-ratio').triggered,
+  expect(check(aboveEqualBand, 'low-followers-following-ratio').triggered).toBe(
     false
   );
   const insufficientFollowing = getReport(
     makeTweet({ followers_count: 1, friends_count: 99 }),
     options
   );
-  assert.equal(
-    check(insufficientFollowing, 'low-followers-ratio').triggered,
+  expect(check(insufficientFollowing, 'low-followers-ratio').triggered).toBe(
     false
   );
 });
@@ -313,9 +279,9 @@ test('auto-handle, empty-description, and missing-banner checks are evaluated', 
     })
   );
 
-  assert.equal(check(report, 'auto-handle').contribution, 0.15);
-  assert.equal(check(report, 'no-description').contribution, 0.05);
-  assert.equal(check(report, 'no-banner').contribution, 0.05);
+  expect(check(report, 'auto-handle').contribution).toBe(0.15);
+  expect(check(report, 'no-description').contribution).toBe(0.05);
+  expect(check(report, 'no-banner').contribution).toBe(0.05);
 });
 
 test('chance sums triggered weights, caps at one, and uses an inclusive threshold', () => {
@@ -337,15 +303,15 @@ test('chance sums triggered weights, caps at one, and uses an inclusive threshol
     )
   );
 
-  assert.equal(report.chance, 1);
-  assert.equal(report.isBot, true);
+  expect(report.chance).toBe(1);
+  expect(report.isBot).toBe(true);
 
   const belowThreshold = getReport(
     makeTweet({ is_blue_verified: true }),
     customOptions({ blueCheck: 0.5 }, 0.5001)
   );
-  assert.equal(belowThreshold.chance, 0.5);
-  assert.equal(belowThreshold.isBot, false);
+  expect(belowThreshold.chance).toBe(0.5);
+  expect(belowThreshold.isBot).toBe(false);
 });
 
 test('chance equals the threshold counts as a bot, and extreme thresholds behave', () => {
@@ -355,14 +321,14 @@ test('chance equals the threshold counts as a bot, and extreme thresholds behave
     verified,
     customOptions({ blueCheck: 0.5 }, 0.5)
   );
-  assert.equal(atThreshold.chance, 0.5);
-  assert.equal(atThreshold.isBot, true);
+  expect(atThreshold.chance).toBe(0.5);
+  expect(atThreshold.isBot).toBe(true);
 
-  assert.equal(getReport(makeTweet(), customOptions({}, 0)).isBot, true);
+  expect(getReport(makeTweet(), customOptions({}, 0)).isBot).toBe(true);
 
   const maxed = getReport(verified, customOptions({ blueCheck: 2 }, 1.01));
-  assert.equal(maxed.chance, 1);
-  assert.equal(maxed.isBot, false);
+  expect(maxed.chance).toBe(1);
+  expect(maxed.isBot).toBe(false);
 });
 
 test('default options are used when none are provided', () => {
@@ -371,13 +337,12 @@ test('default options are used when none are provided', () => {
     detection.DEFAULT_DETECTION_REPORT_OPTIONS,
   ]) {
     const report = getReport(makeTweet(), options);
-    assert.equal(report.isBotThreshold, 0.75);
-    assert.ok(
+    expect(report.isBotThreshold).toBe(0.75);
+    expect(
       report.checks.every(
         (item) => Number.isFinite(item.weight) && item.weight > 0
-      ),
-      'every check should use a defined, positive default weight'
-    );
+      )
+    ).toBeTruthy();
   }
 });
 
@@ -387,9 +352,9 @@ test('a triggered check with a zero weight adds nothing to the score', () => {
     customOptions({ blueCheck: 0 })
   );
 
-  assert.equal(check(report, 'blue-check').triggered, true);
-  assert.equal(check(report, 'blue-check').contribution, 0);
-  assert.equal(report.chance, 0);
+  expect(check(report, 'blue-check').triggered).toBe(true);
+  expect(check(report, 'blue-check').contribution).toBe(0);
+  expect(report.chance).toBe(0);
 });
 
 test('report invariants hold for a range of accounts', () => {
@@ -418,17 +383,12 @@ test('report invariants hold for a range of accounts', () => {
     );
 
     for (const item of report.checks) {
-      assert.equal(
-        item.contribution,
-        item.triggered ? item.weight : 0,
-        item.id
-      );
+      expect(item.contribution).toBe(item.triggered ? item.weight : 0);
     }
-    assert.equal(report.chance, Math.min(sum, 1));
-    assert.ok(report.chance >= 0 && report.chance <= 1);
-    assert.equal(report.isBot, report.chance >= report.isBotThreshold);
-    assert.equal(
-      new Set(report.checks.map((item) => item.id)).size,
+    expect(report.chance).toBe(Math.min(sum, 1));
+    expect(report.chance >= 0 && report.chance <= 1).toBeTruthy();
+    expect(report.isBot).toBe(report.chance >= report.isBotThreshold);
+    expect(new Set(report.checks.map((item) => item.id)).size).toBe(
       report.checks.length
     );
   }
@@ -452,19 +412,19 @@ test('an account with many red flags is capped at 100% and marked as a bot', () 
     (total, item) => total + item.contribution,
     0
   );
-  assert.ok(sum > 1, 'the raw sum should exceed 1 so the cap is exercised');
-  assert.equal(report.chance, 1);
-  assert.equal(report.isBot, true);
+  expect(sum > 1).toBeTruthy();
+  expect(report.chance).toBe(1);
+  expect(report.isBot).toBe(true);
 });
 
 test('verification flags are read from either verified or blue-verified', () => {
   const legacy = getReport(makeTweet({ verified: true }));
-  assert.equal(legacy.isVerified, true);
-  assert.equal(check(legacy, 'blue-check').triggered, true);
+  expect(legacy.isVerified).toBe(true);
+  expect(check(legacy, 'blue-check').triggered).toBe(true);
 
   const unverified = getReport(makeTweet());
-  assert.equal(unverified.isVerified, false);
-  assert.equal(check(unverified, 'blue-check').triggered, false);
+  expect(unverified.isVerified).toBe(false);
+  expect(check(unverified, 'blue-check').triggered).toBe(false);
 
   const professional = getReport(
     makeTweet({
@@ -472,30 +432,30 @@ test('verification flags are read from either verified or blue-verified', () => 
       professional: { professional_type: 'Business' },
     })
   );
-  assert.equal(professional.isVerifiedBusiness, true);
-  assert.equal(check(professional, 'blue-check').triggered, false);
+  expect(professional.isVerifiedBusiness).toBe(true);
+  expect(check(professional, 'blue-check').triggered).toBe(false);
 
   const typed = getReport(
     makeTweet({ verified: true, verified_type: 'Business' })
   );
-  assert.equal(typed.verifiedType, 'Business');
+  expect(typed.verifiedType).toBe('Business');
 });
 
 test('quote-checkmark ignores missing, unverified, and typed quoted users', () => {
   const noQuote = getReport(makeTweet());
-  assert.equal(noQuote.isQuotedUserVerified, false);
-  assert.equal(noQuote.didQuoteCheckmark, false);
-  assert.equal(noQuote.quotedUserVerifiedType, undefined);
+  expect(noQuote.isQuotedUserVerified).toBe(false);
+  expect(noQuote.didQuoteCheckmark).toBe(false);
+  expect(noQuote.quotedUserVerifiedType).toBe(undefined);
 
   const unverifiedQuote = getReport(makeTweet({}, { verified: false }));
-  assert.equal(unverifiedQuote.didQuoteCheckmark, false);
+  expect(unverifiedQuote.didQuoteCheckmark).toBe(false);
 
   const governmentQuote = getReport(
     makeTweet({}, { verified: true, verified_type: 'Government' })
   );
-  assert.equal(governmentQuote.isQuotedUserVerified, true);
-  assert.equal(governmentQuote.quotedUserVerifiedType, 'Government');
-  assert.equal(governmentQuote.didQuoteCheckmark, false);
+  expect(governmentQuote.isQuotedUserVerified).toBe(true);
+  expect(governmentQuote.quotedUserVerifiedType).toBe('Government');
+  expect(governmentQuote.didQuoteCheckmark).toBe(false);
 });
 
 test('account-creation-date handles leap years and month lengths', () => {
@@ -503,19 +463,19 @@ test('account-creation-date handles leap years and month lengths', () => {
     check(getReport(makeTweet({ created_at })), 'account-creation-date')
       .triggered;
 
-  assert.equal(triggered('2024-02-29T12:00:00.000Z'), true);
-  assert.equal(triggered('2024-02-28T12:00:00.000Z'), false);
-  assert.equal(triggered('2023-02-28T12:00:00.000Z'), true);
-  assert.equal(triggered('2023-02-27T12:00:00.000Z'), false);
-  assert.equal(triggered('2020-01-31T12:00:00.000Z'), true);
-  assert.equal(triggered('2020-04-30T12:00:00.000Z'), true);
-  assert.equal(triggered('2020-04-29T12:00:00.000Z'), false);
+  expect(triggered('2024-02-29T12:00:00.000Z')).toBe(true);
+  expect(triggered('2024-02-28T12:00:00.000Z')).toBe(false);
+  expect(triggered('2023-02-28T12:00:00.000Z')).toBe(true);
+  expect(triggered('2023-02-27T12:00:00.000Z')).toBe(false);
+  expect(triggered('2020-01-31T12:00:00.000Z')).toBe(true);
+  expect(triggered('2020-04-30T12:00:00.000Z')).toBe(true);
+  expect(triggered('2020-04-29T12:00:00.000Z')).toBe(false);
 });
 
 test('very new or future-dated accounts are treated as one day old', () => {
   const future = new Date(fixedNow + 5 * dayMs).toISOString();
   const futureReport = getReport(makeTweet({ created_at: future }));
-  assert.equal(check(futureReport, 'new-account').triggered, true);
+  expect(check(futureReport, 'new-account').triggered).toBe(true);
 
   const now = new Date(fixedNow).toISOString();
   const rate = (statuses_count) =>
@@ -523,8 +483,8 @@ test('very new or future-dated accounts are treated as one day old', () => {
       getReport(makeTweet({ created_at: now, statuses_count })),
       'high-tweet-rate'
     ).triggered;
-  assert.equal(rate(100), false);
-  assert.equal(rate(101), true);
+  expect(rate(100)).toBe(false);
+  expect(rate(101)).toBe(true);
 });
 
 test('low-followers-ratio handles zero followers and requires 100 following', () => {
@@ -534,22 +494,22 @@ test('low-followers-ratio handles zero followers and requires 100 following', ()
       'low-followers-ratio'
     ).triggered;
 
-  assert.equal(lowRatio(0, 100), true);
-  assert.equal(lowRatio(0, 99), false);
-  assert.equal(lowRatio(0, 0), false);
+  expect(lowRatio(0, 100)).toBe(true);
+  expect(lowRatio(0, 99)).toBe(false);
+  expect(lowRatio(0, 0)).toBe(false);
 });
 
 test('auto-handle only matches long digit runs at the end of the handle', () => {
   const triggered = (screen_name) =>
     check(getReport(makeTweet({ screen_name })), 'auto-handle').triggered;
 
-  assert.equal(triggered('user12345'), true);
-  assert.equal(triggered('user123456789'), true);
-  assert.equal(triggered('12345'), true);
-  assert.equal(triggered('user12345x'), false);
-  assert.equal(triggered('12345_user'), false);
-  assert.equal(triggered('plain_user'), false);
-  assert.equal(triggered(undefined), false);
+  expect(triggered('user12345')).toBe(true);
+  expect(triggered('user123456789')).toBe(true);
+  expect(triggered('12345')).toBe(true);
+  expect(triggered('user12345x')).toBe(false);
+  expect(triggered('12345_user')).toBe(false);
+  expect(triggered('plain_user')).toBe(false);
+  expect(triggered(undefined)).toBe(false);
 });
 
 test('missing description and banner trigger their checks without throwing', () => {
@@ -557,9 +517,9 @@ test('missing description and banner trigger their checks without throwing', () 
     makeTweet({ description: undefined, profile_banner_url: undefined })
   );
 
-  assert.equal(check(report, 'no-description').triggered, true);
-  assert.equal(check(report, 'no-banner').triggered, true);
-  assert.equal(check(report, 'onlyfans-model').triggered, false);
+  expect(check(report, 'no-description').triggered).toBe(true);
+  expect(check(report, 'no-banner').triggered).toBe(true);
+  expect(check(report, 'onlyfans-model').triggered).toBe(false);
 });
 
 test('onlyfans-model matches the keyword case-insensitively and uses its weight', () => {
@@ -569,13 +529,13 @@ test('onlyfans-model matches the keyword case-insensitively and uses its weight'
     'check my onlyfans link',
   ]) {
     const report = getReport(makeTweet({ description }));
-    assert.equal(check(report, 'onlyfans-model').triggered, true, description);
-    assert.equal(check(report, 'onlyfans-model').contribution, 0.3);
+    expect(check(report, 'onlyfans-model').triggered).toBe(true);
+    expect(check(report, 'onlyfans-model').contribution).toBe(0.3);
   }
 
   for (const description of ['I love football', 'only fans of the team?']) {
     const report = getReport(makeTweet({ description }));
-    assert.equal(check(report, 'onlyfans-model').triggered, false, description);
+    expect(check(report, 'onlyfans-model').triggered).toBe(false);
   }
 });
 
@@ -622,7 +582,7 @@ test('onlyfans models are detected', () => {
 
   for (const tweet of tweets) {
     const report = getReport(tweet);
-    assert.equal(check(report, 'onlyfans-model').triggered, true);
+    expect(check(report, 'onlyfans-model').triggered).toBe(true);
   }
 });
 
@@ -635,11 +595,7 @@ test('onlyfans detection avoids common false positives', () => {
   ];
   for (const user of clean) {
     const report = getReport(makeTweet(user));
-    assert.equal(
-      check(report, 'onlyfans-model').triggered,
-      false,
-      JSON.stringify(user)
-    );
+    expect(check(report, 'onlyfans-model').triggered).toBe(false);
   }
 });
 
@@ -647,14 +603,14 @@ test('government-verified accounts are not paid blue checks', () => {
   const report = getReport(
     makeTweet({ verified: true, verified_type: 'Government' })
   );
-  assert.equal(check(report, 'blue-check').triggered, false);
+  expect(check(report, 'blue-check').triggered).toBe(false);
 });
 
 test('ai-characters-bio ignores plain keyboard punctuation', () => {
   const report = getReport(
     makeTweet({ description: 'It\'s plain - text... "quoted" -> ok' })
   );
-  assert.equal(check(report, 'ai-characters-bio').triggered, false);
+  expect(check(report, 'ai-characters-bio').triggered).toBe(false);
 });
 
 test('ai characters in user bio', () => {
@@ -686,6 +642,6 @@ test('ai characters in user bio', () => {
 
   for (const tweet of tweets) {
     const report = getReport(tweet);
-    assert.equal(check(report, 'ai-characters-bio').triggered, true);
+    expect(check(report, 'ai-characters-bio').triggered).toBe(true);
   }
 });

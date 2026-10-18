@@ -7,11 +7,13 @@
     "build": "node build.mjs",
     "format": "prettier --write . --config .prettierrc",
     "typecheck": "tsc --noEmit",
-    "test": "node --test"
+    "test": "jest"
   },
   "devDependencies": {
     "@types/firefox-webext-browser": "^120.0.4",
+    "@types/jest": "^30.0.0",
     "esbuild": "^0.25.0",
+    "jest": "^30.5.2",
     "prettier": "^3.9.9",
     "typescript": "^5.8.0"
   }

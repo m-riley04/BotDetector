@@ -1,19 +1,6 @@
-import assert from 'node:assert/strict';
-import { build } from 'esbuild';
-import { test } from 'node:test';
+import * as visuals from '../src/detection/visuals';
 
 const BOT_DETECTOR_CLOSE_OVERLAY = 'BOT_DETECTOR_CLOSE_OVERLAY';
-
-const { outputFiles } = await build({
-  entryPoints: ['src/detection/visuals.ts'],
-  bundle: true,
-  format: 'esm',
-  platform: 'node',
-  write: false,
-});
-const visuals = await import(
-  `data:text/javascript;base64,${Buffer.from(outputFiles[0].text).toString('base64')}`
-);
 
 class TestElement {
   constructor(tagName) {
@@ -120,11 +107,11 @@ function cellTexts(row) {
 }
 
 test('getColorFromChance interpolates green, yellow, and red', () => {
-  assert.equal(visuals.getColorFromChance(0), 'rgb(0,255,0)');
-  assert.equal(visuals.getColorFromChance(0.25), 'rgb(128,255,0)');
-  assert.equal(visuals.getColorFromChance(0.5), 'rgb(255,255,0)');
-  assert.equal(visuals.getColorFromChance(0.75), 'rgb(255,128,0)');
-  assert.equal(visuals.getColorFromChance(1), 'rgb(255,0,0)');
+  expect(visuals.getColorFromChance(0)).toBe('rgb(0,255,0)');
+  expect(visuals.getColorFromChance(0.25)).toBe('rgb(128,255,0)');
+  expect(visuals.getColorFromChance(0.5)).toBe('rgb(255,255,0)');
+  expect(visuals.getColorFromChance(0.75)).toBe('rgb(255,128,0)');
+  expect(visuals.getColorFromChance(1)).toBe('rgb(255,0,0)');
 });
 
 test('createBotElement displays the chance and opens the report modal', () => {
@@ -133,23 +120,21 @@ test('createBotElement displays the chance and opens the report modal', () => {
   const tweet = { id_str: 'tweet-123', text: 'Example tweet' };
   const element = visuals.createBotElement(report, tweet);
 
-  assert.equal(element.tagName, 'div-botdetector');
-  assert.equal(element.style.backgroundColor, '#111827');
-  assert.equal(element.style.borderLeft, '4px solid rgb(255,143,0)');
-  assert.equal(element.style.position, 'fixed');
-  assert.equal(element.children[0].textContent, 'Bot chance 72%');
+  expect(element.tagName).toBe('div-botdetector');
+  expect(element.style.backgroundColor).toBe('#111827');
+  expect(element.style.borderLeft).toBe('4px solid rgb(255,143,0)');
+  expect(element.style.position).toBe('fixed');
+  expect(element.children[0].textContent).toBe('Bot chance 72%');
 
   const infoButton = element.children[1];
-  assert.equal(infoButton.textContent, 'Details');
+  expect(infoButton.textContent).toBe('Details');
   infoButton.onclick();
 
-  assert.equal(body.children.length, 1);
-  assert.equal(
-    body.children[0].children[0].children[0].textContent,
+  expect(body.children.length).toBe(1);
+  expect(body.children[0].children[0].children[0].textContent).toBe(
     'Bot Chance: 72% | Likely a bot'
   );
-  assert.equal(
-    body.children[0].children[0].children[3].children[0].textContent,
+  expect(body.children[0].children[0].children[3].children[0].textContent).toBe(
     'Copy tweet JSON'
   );
 });
@@ -177,9 +162,8 @@ test('the details panel copies the complete tweet as formatted JSON', async () =
     const actions = panel.children[3];
     await actions.children[0].onclick();
 
-    assert.equal(copiedText, JSON.stringify(tweet, null, 2));
-    assert.equal(
-      panel.children[4].textContent,
+    expect(copiedText).toBe(JSON.stringify(tweet, null, 2));
+    expect(panel.children[4].textContent).toBe(
       'Tweet JSON copied to clipboard.'
     );
   } finally {
@@ -213,9 +197,9 @@ test('the details panel reports clipboard errors to the user', async () => {
     const panel = body.children[0].children[0];
     await panel.children[3].children[0].onclick();
 
-    assert.match(panel.children[4].textContent, /Could not copy tweet JSON/);
-    assert.match(panel.children[4].textContent, /Permission denied/);
-    assert.equal(panel.children[4].style.color, '#b91c1c');
+    expect(panel.children[4].textContent).toMatch(/Could not copy tweet JSON/);
+    expect(panel.children[4].textContent).toMatch(/Permission denied/);
+    expect(panel.children[4].style.color).toBe('#b91c1c');
   } finally {
     if (originalNavigator) {
       Object.defineProperty(globalThis, 'navigator', originalNavigator);
@@ -259,44 +243,42 @@ test('showReportModal renders check contributions and threshold details', () => 
 
   const overlay = body.children[0];
   const panel = overlay.children[0];
-  assert.equal(
-    panel.children[0].textContent,
+  expect(panel.children[0].textContent).toBe(
     'Bot Chance: 99.99% | Probably not a bot'
   );
 
   const table = panel.children[1];
-  assert.deepEqual(cellTexts(table.children[0]), [
+  expect(cellTexts(table.children[0])).toStrictEqual([
     'Check',
     'Weight',
     'Added',
     'Total',
   ]);
-  assert.deepEqual(cellTexts(table.children[1]), [
+  expect(cellTexts(table.children[1])).toStrictEqual([
     '✔ First check',
     '60%',
     '+60%',
     '60%',
   ]);
-  assert.deepEqual(cellTexts(table.children[2]), [
+  expect(cellTexts(table.children[2])).toStrictEqual([
     '✔ Second check',
     '60%',
     '+60%',
     '100%',
   ]);
-  assert.deepEqual(cellTexts(table.children[3]), [
+  expect(cellTexts(table.children[3])).toStrictEqual([
     '✘ Third check',
     '10%',
     '-',
     '100%',
   ]);
-  assert.deepEqual(cellTexts(table.children[4]), [
+  expect(cellTexts(table.children[4])).toStrictEqual([
     'Final (capped at 100%)',
     '',
     '',
     '99.99%',
   ]);
-  assert.equal(
-    panel.children[2].textContent,
+  expect(panel.children[2].textContent).toBe(
     'Marked as a bot at 70% or higher.'
   );
 });
@@ -308,36 +290,33 @@ test('showReportModal closes from its button or backdrop, but not panel content'
   const panel = overlay.children[0];
 
   overlay.onclick({ target: panel });
-  assert.equal(body.children.length, 1);
+  expect(body.children.length).toBe(1);
 
   panel.children[3].children[0].onclick();
-  assert.equal(body.children.length, 0);
+  expect(body.children.length).toBe(0);
 
   visuals.showReportModal(makeReport({ isBot: false }));
   const secondOverlay = body.children[0];
   secondOverlay.onclick({ target: secondOverlay });
-  assert.equal(body.children.length, 0);
+  expect(body.children.length).toBe(0);
 });
 
 test('showReportModal closes on the close-overlay event and removes its listener', () => {
   const body = installDocument();
   visuals.showReportModal(makeReport());
-  assert.equal(
-    globalThis.window.listeners.get(BOT_DETECTOR_CLOSE_OVERLAY).size,
+  expect(globalThis.window.listeners.get(BOT_DETECTOR_CLOSE_OVERLAY).size).toBe(
     1
   );
 
   globalThis.window.dispatch(BOT_DETECTOR_CLOSE_OVERLAY);
-  assert.equal(body.children.length, 0);
-  assert.equal(
-    globalThis.window.listeners.get(BOT_DETECTOR_CLOSE_OVERLAY).size,
+  expect(body.children.length).toBe(0);
+  expect(globalThis.window.listeners.get(BOT_DETECTOR_CLOSE_OVERLAY).size).toBe(
     0
   );
 
   visuals.showReportModal(makeReport());
   body.children[0].children[0].children[3].children[0].onclick();
-  assert.equal(
-    globalThis.window.listeners.get(BOT_DETECTOR_CLOSE_OVERLAY).size,
+  expect(globalThis.window.listeners.get(BOT_DETECTOR_CLOSE_OVERLAY).size).toBe(
     0
   );
 });

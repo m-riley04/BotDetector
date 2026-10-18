@@ -1,59 +1,45 @@
-import assert from 'node:assert/strict';
-import { build } from 'esbuild';
-import { afterEach, mock, test } from 'node:test';
+import * as dates from '../src/common/dates';
+import * as helpers from '../src/common/helpers';
+import * as parsing from '../src/common/parsing';
+import * as serialization from '../src/react/serialization';
 
-async function load(entry) {
-  const { outputFiles } = await build({
-    entryPoints: [entry],
-    bundle: true,
-    format: 'esm',
-    platform: 'node',
-    write: false,
-  });
-  return import(
-    `data:text/javascript;base64,${Buffer.from(outputFiles[0].text).toString('base64')}`
-  );
-}
+const silence = (method) =>
+  jest.spyOn(console, method).mockImplementation(() => {});
 
-const dates = await load('src/common/dates.ts');
-const helpers = await load('src/common/helpers.ts');
-const parsing = await load('src/common/parsing.ts');
-const serialization = await load('src/react/serialization.ts');
-
-afterEach(() => mock.restoreAll());
+afterEach(() => jest.restoreAllMocks());
 
 test('getLastDayOfMonth handles month lengths and leap years', () => {
   const last = (y, m) => dates.getLastDayOfMonth(new Date(y, m, 15));
-  assert.equal(last(2025, 0), 31);
-  assert.equal(last(2025, 3), 30);
-  assert.equal(last(2025, 1), 28);
-  assert.equal(last(2024, 1), 29);
-  assert.equal(last(1900, 1), 28);
-  assert.equal(last(2000, 1), 29);
-  assert.equal(last(2025, 11), 31);
+  expect(last(2025, 0)).toBe(31);
+  expect(last(2025, 3)).toBe(30);
+  expect(last(2025, 1)).toBe(28);
+  expect(last(2024, 1)).toBe(29);
+  expect(last(1900, 1)).toBe(28);
+  expect(last(2000, 1)).toBe(29);
+  expect(last(2025, 11)).toBe(31);
 });
 
 test('isFirstOrLastDayOfMonth matches only the boundaries', () => {
   const is = (y, m, d) => dates.isFirstOrLastDayOfMonth(new Date(y, m, d));
-  assert.equal(is(2025, 5, 1), true);
-  assert.equal(is(2025, 5, 30), true);
-  assert.equal(is(2025, 5, 2), false);
-  assert.equal(is(2025, 5, 29), false);
-  assert.equal(is(2024, 1, 29), true);
-  assert.equal(is(2024, 1, 28), false);
-  assert.equal(is(2025, 1, 28), true);
+  expect(is(2025, 5, 1)).toBe(true);
+  expect(is(2025, 5, 30)).toBe(true);
+  expect(is(2025, 5, 2)).toBe(false);
+  expect(is(2025, 5, 29)).toBe(false);
+  expect(is(2024, 1, 29)).toBe(true);
+  expect(is(2024, 1, 28)).toBe(false);
+  expect(is(2025, 1, 28)).toBe(true);
 });
 
 test('isRecord accepts only plain objects', () => {
-  assert.equal(helpers.isRecord({}), true);
-  assert.equal(helpers.isRecord({ a: 1 }), true);
+  expect(helpers.isRecord({})).toBe(true);
+  expect(helpers.isRecord({ a: 1 })).toBe(true);
   for (const value of [null, undefined, [], [1], 'str', 1, true, () => {}]) {
-    assert.equal(helpers.isRecord(value), false, String(value));
+    expect(helpers.isRecord(value)).toBe(false);
   }
 });
 
 test('parseReactPropsResponse rejects invalid input', () => {
-  const error = mock.method(console, 'error', () => {});
+  const error = silence('error');
   for (const value of [
     null,
     'x',
@@ -64,28 +50,29 @@ test('parseReactPropsResponse rejects invalid input', () => {
     { id: 'a', props: [] },
     { id: 'a', props: null },
   ]) {
-    assert.equal(parsing.parseReactPropsResponse(value), undefined);
+    expect(parsing.parseReactPropsResponse(value)).toBe(undefined);
   }
-  assert.equal(error.mock.callCount(), 8);
+  expect(error).toHaveBeenCalledTimes(8);
 });
 
 test('parseReactPropsResponse handles missing and invalid components', () => {
-  const error = mock.method(console, 'error', () => {});
-  assert.deepEqual(parsing.parseReactPropsResponse({ id: 'a', props: {} }), {
-    id: 'a',
-    props: {},
-  });
-  assert.equal(error.mock.callCount(), 0);
-
-  assert.equal(
-    parsing.parseReactPropsResponse({ id: 'a', props: { components: {} } }),
-    undefined
+  const error = silence('error');
+  expect(parsing.parseReactPropsResponse({ id: 'a', props: {} })).toStrictEqual(
+    {
+      id: 'a',
+      props: {},
+    }
   );
-  assert.equal(error.mock.callCount(), 1);
+  expect(error).toHaveBeenCalledTimes(0);
+
+  expect(
+    parsing.parseReactPropsResponse({ id: 'a', props: { components: {} } })
+  ).toBe(undefined);
+  expect(error).toHaveBeenCalledTimes(1);
 });
 
 test('parseReactPropsResponse keeps valid components and skips malformed ones', () => {
-  const warn = mock.method(console, 'warn', () => {});
+  const warn = silence('warn');
   const result = parsing.parseReactPropsResponse({
     id: 'a',
     props: {
@@ -102,7 +89,7 @@ test('parseReactPropsResponse keeps valid components and skips malformed ones', 
     },
   });
 
-  assert.deepEqual(result, {
+  expect(result).toStrictEqual({
     id: 'a',
     props: {
       components: [
@@ -113,24 +100,21 @@ test('parseReactPropsResponse keeps valid components and skips malformed ones', 
       ],
     },
   });
-  assert.equal(warn.mock.callCount(), 4);
+  expect(warn).toHaveBeenCalledTimes(4);
 });
 
 const freshState = () => ({ nodes: 0, seen: new WeakSet() });
 
 test('toSerializable passes primitives through and drops unsupported values', () => {
   const to = (value) => serialization.toSerializable(value, freshState(), 0);
-  assert.equal(to(null), null);
-  assert.equal(to(true), true);
-  assert.equal(to(42), 42);
-  assert.equal(to('hi'), 'hi');
-  assert.equal(to(undefined), undefined);
-  assert.equal(
-    to(() => 1),
-    undefined
-  );
-  assert.equal(to(Symbol('s')), undefined);
-  assert.equal(to('a'.repeat(500)).length, 300);
+  expect(to(null)).toBe(null);
+  expect(to(true)).toBe(true);
+  expect(to(42)).toBe(42);
+  expect(to('hi')).toBe('hi');
+  expect(to(undefined)).toBe(undefined);
+  expect(to(() => 1)).toBe(undefined);
+  expect(to(Symbol('s'))).toBe(undefined);
+  expect(to('a'.repeat(500)).length).toBe(300);
 });
 
 test('toSerializable serializes nested objects and arrays', () => {
@@ -139,7 +123,7 @@ test('toSerializable serializes nested objects and arrays', () => {
     freshState(),
     0
   );
-  assert.deepEqual(result, { a: 1, b: [1, 'x'], c: { d: null } });
+  expect(result).toStrictEqual({ a: 1, b: [1, 'x'], c: { d: null } });
 });
 
 test('toSerializable skips React internals and truncates large collections', () => {
@@ -148,45 +132,45 @@ test('toSerializable skips React internals and truncates large collections', () 
     freshState(),
     0
   );
-  assert.deepEqual(skipped, { keep: 1 });
+  expect(skipped).toStrictEqual({ keep: 1 });
 
   const array = serialization.toSerializable(
     Array.from({ length: 50 }, (_, i) => i),
     freshState(),
     0
   );
-  assert.equal(array.length, 20);
+  expect(array.length).toBe(20);
 
   const object = serialization.toSerializable(
     Object.fromEntries(Array.from({ length: 60 }, (_, i) => [`k${i}`, i])),
     freshState(),
     0
   );
-  assert.equal(Object.keys(object).length, 40);
+  expect(Object.keys(object).length).toBe(40);
 });
 
 test('toSerializable marks circular references but allows shared siblings', () => {
   const circular = { name: 'loop' };
   circular.self = circular;
-  assert.deepEqual(serialization.toSerializable(circular, freshState(), 0), {
-    name: 'loop',
-    self: '[Circular]',
-  });
+  expect(serialization.toSerializable(circular, freshState(), 0)).toStrictEqual(
+    {
+      name: 'loop',
+      self: '[Circular]',
+    }
+  );
 
   const shared = { v: 1 };
-  assert.deepEqual(
-    serialization.toSerializable({ a: shared, b: shared }, freshState(), 0),
-    { a: { v: 1 }, b: { v: 1 } }
-  );
+  expect(
+    serialization.toSerializable({ a: shared, b: shared }, freshState(), 0)
+  ).toStrictEqual({ a: { v: 1 }, b: { v: 1 } });
 });
 
 test('toSerializable respects depth and node limits', () => {
   const options = { maxNodes: 250, maxDepth: 2 };
   const deep = { l1: { l2: { l3: { l4: 1 } } } };
-  assert.deepEqual(
-    serialization.toSerializable(deep, freshState(), 0, options),
-    { l1: { l2: {} } }
-  );
+  expect(
+    serialization.toSerializable(deep, freshState(), 0, options)
+  ).toStrictEqual({ l1: { l2: {} } });
 
   const limited = serialization.toSerializable(
     { a: { x: 1 }, b: { x: 1 }, c: { x: 1 } },
@@ -194,7 +178,7 @@ test('toSerializable respects depth and node limits', () => {
     0,
     { maxNodes: 2, maxDepth: 5 }
   );
-  assert.ok(Object.keys(limited).length < 3);
+  expect(Object.keys(limited).length < 3).toBeTruthy();
 });
 
 test('getReactData reads props and fiber components, with "b" first', () => {
@@ -216,8 +200,8 @@ test('getReactData reads props and fiber components, with "b" first', () => {
   };
 
   const data = serialization.getReactData(element);
-  assert.deepEqual(data.elementProps, { tweet: { id: '1' } });
-  assert.deepEqual(data.components, [
+  expect(data.elementProps).toStrictEqual({ tweet: { id: '1' } });
+  expect(data.components).toStrictEqual([
     { name: 'b', props: { z: 2 } },
     { name: 'div', props: { a: 1 } },
     { name: 'Shown', props: { q: 3 } },
@@ -225,7 +209,7 @@ test('getReactData reads props and fiber components, with "b" first', () => {
 });
 
 test('getReactData returns an empty result without React keys', () => {
-  assert.deepEqual(serialization.getReactData({ other: 1 }), {});
+  expect(serialization.getReactData({ other: 1 })).toStrictEqual({});
 });
 
 test('getReactData stops walking the fiber chain at maxDepth', () => {
@@ -237,5 +221,5 @@ test('getReactData stops walking the fiber chain at maxDepth', () => {
     { __reactFiber$x: fiber },
     { propsKey: '__reactProps$', fiberKeys: ['__reactFiber$'], maxDepth: 3 }
   );
-  assert.equal(data.components.length, 3);
+  expect(data.components.length).toBe(3);
 });
