@@ -9,7 +9,8 @@
     ],
     "types": [
       "firefox-webext-browser",
-      "jest"
+      "jest",
+      "node"
     ],
     "strict": true,
     "noEmit": true,

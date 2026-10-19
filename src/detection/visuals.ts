@@ -1,9 +1,17 @@
 import { BOT_ELEMENT } from '../common/constants';
+import type { ListAction, ListStatus } from '../common/settings';
 import type { Tweet } from '../twitter/models';
 import { BOT_DETECTOR_CLOSE_OVERLAY } from './constants';
 import type { BotDetectionReport } from './models';
 
 const pct = (n: number) => `${Number((n * 100).toFixed(2))}%`;
+const signedPct = (n: number) => `${n < 0 ? '-' : '+'}${pct(Math.abs(n))}`;
+
+/** Lets the modal change the user's allowlist/blocklist for the post's author. */
+export interface ReportModalOptions {
+  listStatus: ListStatus;
+  onListAction: (action: ListAction) => void | Promise<void>;
+}
 
 function styleButton(button: HTMLButtonElement): void {
   button.style.border = '1px solid #374151';
@@ -33,7 +41,8 @@ function row(cells: string[], style = ''): HTMLTableRowElement {
  */
 export function showReportModal(
   report: BotDetectionReport,
-  tweet?: Tweet
+  tweet?: Tweet,
+  options?: ReportModalOptions
 ): void {
   const overlay = document.createElement('div');
   overlay.style.position = 'fixed';
@@ -90,22 +99,26 @@ export function showReportModal(
 
   let running = 0;
   for (const c of report.checks) {
-    running += c.contribution;
+    running = Math.min(Math.max(running + c.contribution, 0), 1);
     table.append(
       row(
         [
           `${c.triggered ? '✔' : '✘'} ${c.label}`,
           pct(c.weight),
-          c.triggered ? `+${pct(c.contribution)}` : '-',
-          pct(Math.min(running, 1)),
+          c.triggered ? signedPct(c.contribution) : '-',
+          pct(running),
         ],
-        c.triggered ? 'background:#fff1f2;color:#881337;' : 'color:#6b7280;'
+        !c.triggered
+          ? 'color:#6b7280;'
+          : c.contribution < 0
+            ? 'background:#ecfdf5;color:#065f46;'
+            : 'background:#fff1f2;color:#881337;'
       )
     );
   }
   table.append(
     row(
-      ['Final (capped at 100%)', '', '', pct(report.chance)],
+      ['Final (kept between 0% and 100%)', '', '', pct(report.chance)],
       'font-weight:600;border-top:2px solid #d1d5db;color:#111827;'
     )
   );
@@ -130,13 +143,48 @@ export function showReportModal(
   close.onclick = () => closeOverlayHandler();
   actions.append(close);
   panel.append(actions);
-  if (tweet) addCopyTweetButton(panel, tweet);
+  if (tweet && options) {
+    addListButtons(actions, close, options, closeOverlayHandler);
+  }
+  if (tweet) addCopyTweetButton(panel, tweet, report);
 
   overlay.append(panel);
   document.body.append(overlay);
 }
 
-function addCopyTweetButton(panel: HTMLElement, tweet: Tweet): void {
+function addListButtons(
+  actions: HTMLElement,
+  before: HTMLElement,
+  options: ReportModalOptions,
+  close: () => void
+): void {
+  const entries: [string, ListAction, boolean][] = [
+    ['Mark as human', 'allow', options.listStatus !== 'allowed'],
+    ['Always hide', 'block', options.listStatus !== 'blocked'],
+    ['Remove from lists', 'clear', options.listStatus !== 'none'],
+  ];
+  for (const [label, action, show] of entries) {
+    if (!show) continue;
+    const button = document.createElement('button');
+    button.textContent = label;
+    button.setAttribute('type', 'button');
+    styleButton(button);
+    button.onclick = async () => {
+      try {
+        await options.onListAction(action);
+      } finally {
+        close();
+      }
+    };
+    actions.insertBefore(button, before);
+  }
+}
+
+function addCopyTweetButton(
+  panel: HTMLElement,
+  tweet: Tweet,
+  report?: BotDetectionReport
+): void {
   const actions = panel.lastElementChild;
   if (!actions) return;
 
@@ -152,22 +200,32 @@ function addCopyTweetButton(panel: HTMLElement, tweet: Tweet): void {
   status.style.font = '13px/1.4 system-ui, sans-serif';
   status.style.color = '#047857';
 
-  copyButton.onclick = async () => {
+  const copier = (label: string, data: unknown) => async () => {
     try {
       if (!navigator.clipboard?.writeText) {
         throw new Error('Clipboard access is unavailable in this page.');
       }
-      await navigator.clipboard.writeText(JSON.stringify(tweet, null, 2));
-      status.textContent = 'Tweet JSON copied to clipboard.';
+      await navigator.clipboard.writeText(JSON.stringify(data, null, 2));
+      status.textContent = `${label} JSON copied to clipboard.`;
       status.style.color = '#047857';
     } catch (error) {
-      status.textContent = `Could not copy tweet JSON: ${
+      status.textContent = `Could not copy ${label.toLowerCase()} JSON: ${
         error instanceof Error ? error.message : String(error)
       }`;
       status.style.color = '#b91c1c';
     }
   };
 
+  copyButton.onclick = copier('Tweet', tweet);
+
+  if (report) {
+    const reportButton = document.createElement('button');
+    reportButton.textContent = 'Copy report JSON';
+    reportButton.setAttribute('type', 'button');
+    styleButton(reportButton);
+    reportButton.onclick = copier('Report', report);
+    actions.insertBefore(reportButton, actions.firstElementChild);
+  }
   actions.insertBefore(copyButton, actions.firstElementChild);
   panel.append(status);
 }
@@ -204,7 +262,8 @@ export function getColorFromChance(chance: number): string {
  */
 export function createBotElement(
   report: BotDetectionReport,
-  tweet: Tweet
+  tweet: Tweet,
+  options?: ReportModalOptions
 ): HTMLElement {
   const bg = document.createElement(BOT_ELEMENT);
   bg.setAttribute('aria-label', `Bot detection: ${pct(report.chance)} chance`);
@@ -239,7 +298,7 @@ export function createBotElement(
   styleButton(infoButton);
   infoButton.style.padding = '5px 9px';
   infoButton.style.fontSize = '12px';
-  infoButton.onclick = () => showReportModal(report, tweet);
+  infoButton.onclick = () => showReportModal(report, tweet, options);
   bg.append(text, infoButton);
 
   return bg;

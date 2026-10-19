@@ -1,4 +1,4 @@
-import type { Settings } from '../common/settings';
+import type { ListStatus, Settings } from '../common/settings';
 import type { BotDetectionReport } from './models';
 
 /**
@@ -15,9 +15,38 @@ export type TweetAction = 'hide' | 'badge' | 'none';
  */
 export function getTweetAction(
   report: BotDetectionReport,
-  settings: Settings
+  settings: Settings,
+  listStatus: ListStatus = 'none'
 ): TweetAction {
   if (!settings.enabled) return 'none';
+  if (listStatus === 'blocked') return 'hide';
   if (report.isBot) return settings.hideLikelyBots ? 'hide' : 'badge';
   return settings.onlyShowLikelyBotsBadges ? 'none' : 'badge';
+}
+
+/**
+ * Applies the user's allowlist/blocklist on top of a computed report by adding a
+ * manual check, so the badge and modal explain why the result was overridden.
+ */
+export function applyListOverride(
+  report: BotDetectionReport,
+  status: ListStatus
+): BotDetectionReport {
+  if (status === 'none') return report;
+  const blocked = status === 'blocked';
+  return {
+    ...report,
+    chance: blocked ? 1 : 0,
+    isBot: blocked,
+    checks: [
+      ...report.checks,
+      {
+        id: blocked ? 'manual-blocklist' : 'manual-allowlist',
+        label: blocked ? 'On your blocklist' : 'On your allowlist',
+        weight: blocked ? 1 : -1,
+        triggered: true,
+        contribution: blocked ? 1 : -1,
+      },
+    ],
+  };
 }

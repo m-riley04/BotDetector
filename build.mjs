@@ -16,7 +16,7 @@ await build({
 
 await mkdir(`${outputDirectory}/src`, { recursive: true });
 await build({
-  entryPoints: ['src/content.ts', 'src/inject.ts'],
+  entryPoints: ['src/content.ts', 'src/inject.ts', 'src/background.ts'],
   bundle: true,
   format: 'iife',
   target: 'firefox128',

@@ -1,0 +1,21 @@
+{
+  "_note": "Synthetic fixture: not a real account. A long-time paid subscriber who is clearly human.",
+  "id_str": "9000000000000000005",
+  "full_text": "Anyone else watching the match tonight?",
+  "lang": "en",
+  "user": {
+    "id_str": "200002",
+    "created_at": "2014-01-20T08:30:00.000Z",
+    "screen_name": "dana_k",
+    "name": "Dana Kowalski",
+    "description": "Football, coffee and bad puns",
+    "is_blue_verified": true,
+    "verified": false,
+    "statuses_count": 9000,
+    "followers_count": 1200,
+    "friends_count": 900,
+    "favourites_count": 20000,
+    "media_count": 300,
+    "profile_banner_url": "https://example.test/banner.jpg"
+  }
+}

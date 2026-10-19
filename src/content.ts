@@ -15,21 +15,38 @@ import {
 import { BOT_ELEMENT } from './common/constants';
 import { createBotElement } from './detection/visuals';
 import type { BotDetectionReport } from './detection/models';
-import {
-  DEFAULT_DETECTION_REPORT_OPTIONS,
-  getDetectionReport,
-} from './detection/detection';
+import { getDetectionReport } from './detection/detection';
+import { buildDetectionOptions } from './detection/options';
+import { ReportCache } from './detection/cache';
+import { DuplicateTextTracker } from './detection/duplicates';
+import { LinkExpander } from './detection/linkExpander';
 import {
   DEFAULT_SETTINGS,
   SETTINGS_KEY,
+  applyListAction,
+  getListStatus,
   loadSettings,
   sanitizeSettings,
+  saveSettings,
+  type ListAction,
   type Settings,
 } from './common/settings';
+import { isContentRequest, type PageStats } from './common/messages';
 import { ReactPropsResponse } from './react/models';
-import { getTweetAction } from './detection/visibility';
+import { applyListOverride, getTweetAction } from './detection/visibility';
 
 const HIDDEN_ATTRIBUTE = 'data-botdetector-hidden';
+// marks every post flagged as a likely bot, whether it is hidden or badged
+const BOT_ATTRIBUTE = 'data-botdetector-bot';
+// a hidden post the user chose to reveal; it stays visible with a badge
+const REVEALED_ATTRIBUTE = 'data-botdetector-revealed';
+
+const reportCache = new ReportCache();
+const duplicateTracker = new DuplicateTextTracker();
+const linkExpander = new LinkExpander((request) =>
+  browser.runtime.sendMessage(request)
+);
+const reportByElement = new WeakMap<HTMLElement, BotDetectionReport>();
 
 // Temporary storage for the latest tweet data received from the React props bridge
 // TODO: this is bad imo. Fix it.
@@ -70,6 +87,8 @@ window.addEventListener('keyup', (e: KeyboardEvent) => {
 
   if (e.key === 'r') {
     console.log('[BotDetector] Manual scan triggered.');
+    reportCache.clear();
+    duplicateTracker.clear();
     clearTweets();
     temp = undefined;
     scanTweets();
@@ -113,12 +132,29 @@ function modifyTweet(
   tweetData: Tweet,
   report: BotDetectionReport
 ): void {
-  console.log(`[BotDetector] Modifying tweet with report:`, report);
+  const handle = tweetData.user?.screen_name;
 
   tweetElement.insertBefore(
-    createBotElement(report, tweetData),
+    createBotElement(report, tweetData, {
+      listStatus: getListStatus(handle, settings),
+      onListAction: (action) => updateList(handle, action),
+    }),
     tweetElement.firstChild
   );
+}
+
+// storage.onChanged then re-scans with the new lists
+async function updateList(
+  handle: string | undefined,
+  action: ListAction
+): Promise<void> {
+  if (!handle) return;
+  try {
+    const current = await loadSettings();
+    await saveSettings(applyListAction(current, handle, action));
+  } catch (error) {
+    console.error('[BotDetector] Could not update the lists.', error);
+  }
 }
 
 // hidden with CSS rather than removed, because React owns these elements
@@ -135,6 +171,40 @@ function showHiddenTweets(): void {
       tweet.removeAttribute(HIDDEN_ATTRIBUTE);
     });
 }
+
+// shows every hidden post again, with a badge so it's clear why it was hidden
+function revealHiddenTweets(): void {
+  document
+    .querySelectorAll<HTMLElement>(`[${HIDDEN_ATTRIBUTE}]`)
+    .forEach((tweet) => {
+      tweet.style.removeProperty('display');
+      tweet.removeAttribute(HIDDEN_ATTRIBUTE);
+      tweet.setAttribute(REVEALED_ATTRIBUTE, 'true');
+
+      const tweetData = tweetDataByElement.get(tweet);
+      const report = reportByElement.get(tweet);
+      if (tweetData && report && !tweet.querySelector(BOT_ELEMENT)) {
+        modifyTweet(tweet, tweetData, report);
+      }
+    });
+}
+
+function getStats(): PageStats {
+  const count = (selector: string) =>
+    document.querySelectorAll(selector).length;
+  return {
+    hidden: count(`[${HIDDEN_ATTRIBUTE}]`),
+    flagged: count(`[${BOT_ATTRIBUTE}]`),
+    badges: count(BOT_ELEMENT),
+  };
+}
+
+// answers the popup's requests
+browser.runtime.onMessage.addListener((message: unknown) => {
+  if (!isContentRequest(message)) return undefined;
+  if (message.type === 'show-hidden') revealHiddenTweets();
+  return Promise.resolve(getStats());
+});
 
 /**
  * Scans all tweets on the page and applies bot detection modifications.
@@ -166,23 +236,61 @@ function scanTweets(): void {
       return;
 
     const tweetData = tweetDataByElement.get(tweet);
-    const report: BotDetectionReport | undefined = getDetectionReport(
-      tweetData,
-      {
-        ...DEFAULT_DETECTION_REPORT_OPTIONS,
-        isBotThreshold: settings.threshold,
-      }
-    );
-    if (!tweetData || !report) {
+    if (!tweetData) {
       console.warn(
         `[BotDetector] No detection report available for tweet: skipping.`
       );
       return;
     }
 
-    const action = getTweetAction(report, settings);
+    let rawReport = reportCache.get(tweetData);
+    if (!rawReport) {
+      rawReport = getDetectionReport(
+        tweetData,
+        buildDetectionOptions(
+          settings,
+          duplicateTracker.record(tweetData),
+          linkExpander.links
+        )
+      );
+      if (rawReport) reportCache.set(tweetData, rawReport);
+    }
+    if (!rawReport) {
+      console.warn(
+        `[BotDetector] No detection report available for tweet: skipping.`
+      );
+      return;
+    }
+
+    const listStatus = getListStatus(tweetData.user?.screen_name, settings);
+    const report = applyListOverride(rawReport, listStatus);
+    reportByElement.set(tweet, report);
+
+    const action = getTweetAction(report, settings, listStatus);
+    if (action !== 'none' && report.isBot) {
+      tweet.setAttribute(BOT_ATTRIBUTE, 'true');
+    }
     if (action === 'hide') hideTweet(tweet);
     else if (action === 'badge') modifyTweet(tweet, tweetData, report);
+  });
+
+  expandProfileLinks();
+}
+
+/** Resolves t.co profile links in the background, then rescans so the new destinations count. */
+function expandProfileLinks(): void {
+  const urls = Array.from(
+    document.querySelectorAll<HTMLElement>('article[data-testid="tweet"]')
+  )
+    .map((tweet) => tweetDataByElement.get(tweet)?.user?.url)
+    .filter((url) => linkExpander.needs(url));
+  if (urls.length === 0) return;
+
+  void linkExpander.expand(urls).then((learned) => {
+    if (!learned) return;
+    reportCache.clear();
+    clearTweets();
+    scanTweets();
   });
 }
 
@@ -190,6 +298,12 @@ function clearTweets(): void {
   const botElements = Array.from(document.querySelectorAll(BOT_ELEMENT));
   botElements.forEach((el) => el.remove());
   showHiddenTweets();
+  document
+    .querySelectorAll(`[${BOT_ATTRIBUTE}], [${REVEALED_ATTRIBUTE}]`)
+    .forEach((el) => {
+      el.removeAttribute(BOT_ATTRIBUTE);
+      el.removeAttribute(REVEALED_ATTRIBUTE);
+    });
 
   temp = undefined;
 
@@ -203,6 +317,7 @@ browser.storage.onChanged.addListener((changes, area) => {
   if (area !== 'local' || !(SETTINGS_KEY in changes)) return;
 
   settings = sanitizeSettings(changes[SETTINGS_KEY].newValue);
+  reportCache.clear();
   clearTweets();
   scanTweets();
 });

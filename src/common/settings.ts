@@ -7,19 +7,100 @@ export interface Settings {
   threshold: number;
   onlyShowLikelyBotsBadges: boolean;
   hideLikelyBots: boolean;
+
+  /** Lowercase handles (without @) that are always treated as human. */
+  allowlist: string[];
+  /** Lowercase handles (without @) that are always hidden. */
+  blocklist: string[];
+
+  /** Check keys (see CHECK_DEFINITIONS) that are switched off. */
+  disabledChecks: string[];
+  /** Per-check weight overrides keyed by check key. */
+  checkWeights: Record<string, number>;
+  /** Extra scam keywords on top of the built-in list. */
+  scamKeywords: string[];
 }
+
+export type ListName = 'allowlist' | 'blocklist';
+export type ListStatus = 'allowed' | 'blocked' | 'none';
+export type ListAction = 'allow' | 'block' | 'clear';
 
 export const SETTINGS_KEY = 'settings';
 
 export const MIN_THRESHOLD = 0.1;
 export const MAX_THRESHOLD = 1;
+export const MIN_WEIGHT = -1;
+export const MAX_WEIGHT = 1;
+
+const MAX_LIST_SIZE = 1000;
+const MAX_KEYWORDS = 100;
+const MAX_KEYWORD_LENGTH = 50;
+const HANDLE_PATTERN = /^[a-z0-9_]{1,15}$/;
+const KEY_PATTERN = /^[A-Za-z]{1,40}$/;
 
 export const DEFAULT_SETTINGS: Settings = {
   enabled: true,
   threshold: 0.75,
   onlyShowLikelyBotsBadges: false,
   hideLikelyBots: false,
+  allowlist: [],
+  blocklist: [],
+  disabledChecks: [],
+  checkWeights: {},
+  scamKeywords: [],
 };
+
+/**
+ * Normalizes a handle ("@Some_User") to its stored form ("some_user").
+ * @returns The handle, or undefined if it isn't a valid X handle.
+ */
+export function normalizeHandle(value: unknown): string | undefined {
+  if (typeof value !== 'string') return undefined;
+  const handle = value.trim().replace(/^@/, '').toLowerCase();
+  return HANDLE_PATTERN.test(handle) ? handle : undefined;
+}
+
+function sanitizeList<T>(
+  value: unknown,
+  normalize: (item: unknown) => T | undefined,
+  max: number
+): T[] {
+  if (!Array.isArray(value)) return [];
+  const result = new Set<T>();
+  for (const item of value) {
+    const normalized = normalize(item);
+    if (normalized !== undefined) result.add(normalized);
+    if (result.size >= max) break;
+  }
+  return [...result];
+}
+
+function normalizeKeyword(value: unknown): string | undefined {
+  if (typeof value !== 'string') return undefined;
+  const keyword = value.trim().toLowerCase();
+  return keyword.length > 0 && keyword.length <= MAX_KEYWORD_LENGTH
+    ? keyword
+    : undefined;
+}
+
+function normalizeKey(value: unknown): string | undefined {
+  return typeof value === 'string' && KEY_PATTERN.test(value)
+    ? value
+    : undefined;
+}
+
+function sanitizeWeights(value: unknown): Record<string, number> {
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) {
+    return {};
+  }
+  const result: Record<string, number> = {};
+  for (const [key, weight] of Object.entries(value)) {
+    if (!KEY_PATTERN.test(key)) continue;
+    if (typeof weight !== 'number' || !Number.isFinite(weight)) continue;
+    result[key] = Math.min(Math.max(weight, MIN_WEIGHT), MAX_WEIGHT);
+  }
+  return result;
+}
 
 /**
  * Builds a valid Settings object from untrusted stored data,
@@ -36,6 +117,14 @@ export function sanitizeSettings(value: unknown): Settings {
       ? Math.min(Math.max(raw.threshold, MIN_THRESHOLD), MAX_THRESHOLD)
       : DEFAULT_SETTINGS.threshold;
 
+  const blocklist = sanitizeList(raw.blocklist, normalizeHandle, MAX_LIST_SIZE);
+  // a handle can't be on both lists; blocking wins
+  const allowlist = sanitizeList(
+    raw.allowlist,
+    normalizeHandle,
+    MAX_LIST_SIZE
+  ).filter((handle) => !blocklist.includes(handle));
+
   return {
     enabled:
       typeof raw.enabled === 'boolean' ? raw.enabled : DEFAULT_SETTINGS.enabled,
@@ -48,7 +137,84 @@ export function sanitizeSettings(value: unknown): Settings {
       typeof raw.hideLikelyBots === 'boolean'
         ? raw.hideLikelyBots
         : DEFAULT_SETTINGS.hideLikelyBots,
+    allowlist,
+    blocklist,
+    disabledChecks: sanitizeList(raw.disabledChecks, normalizeKey, 200),
+    checkWeights: sanitizeWeights(raw.checkWeights),
+    scamKeywords: sanitizeList(
+      raw.scamKeywords,
+      normalizeKeyword,
+      MAX_KEYWORDS
+    ),
   };
+}
+
+/**
+ * Parses a list typed into the popup: one handle per line, or separated by commas/spaces.
+ * Invalid entries are dropped.
+ */
+export function parseHandleList(text: string): string[] {
+  return sanitizeList(text.split(/[\s,]+/), normalizeHandle, MAX_LIST_SIZE);
+}
+
+/** Parses a keyword list typed into the popup: one keyword or phrase per line, or comma separated. */
+export function parseKeywordList(text: string): string[] {
+  return sanitizeList(text.split(/[\n,]+/), normalizeKeyword, MAX_KEYWORDS);
+}
+
+export function getListStatus(
+  handle: string | undefined,
+  settings: Settings
+): ListStatus {
+  const normalized = normalizeHandle(handle);
+  if (!normalized) return 'none';
+  if (settings.blocklist.includes(normalized)) return 'blocked';
+  if (settings.allowlist.includes(normalized)) return 'allowed';
+  return 'none';
+}
+
+/**
+ * Returns new settings with the handle moved onto the allowlist or blocklist, or off both.
+ */
+export function applyListAction(
+  settings: Settings,
+  handle: string,
+  action: ListAction
+): Settings {
+  const normalized = normalizeHandle(handle);
+  if (!normalized) return settings;
+
+  const allowlist = settings.allowlist.filter((item) => item !== normalized);
+  const blocklist = settings.blocklist.filter((item) => item !== normalized);
+  if (action === 'allow') allowlist.push(normalized);
+  if (action === 'block') blocklist.push(normalized);
+
+  return sanitizeSettings({ ...settings, allowlist, blocklist });
+}
+
+/** Serializes settings for backup or sharing. */
+export function exportSettings(settings: Settings): string {
+  return JSON.stringify(sanitizeSettings(settings), null, 2);
+}
+
+/**
+ * Parses exported settings.
+ * @returns The sanitized settings, or undefined if the text isn't a JSON object.
+ */
+export function parseImportedSettings(text: string): Settings | undefined {
+  try {
+    const parsed: unknown = JSON.parse(text);
+    if (
+      typeof parsed !== 'object' ||
+      parsed === null ||
+      Array.isArray(parsed)
+    ) {
+      return undefined;
+    }
+    return sanitizeSettings(parsed);
+  } catch {
+    return undefined;
+  }
 }
 
 export async function loadSettings(): Promise<Settings> {

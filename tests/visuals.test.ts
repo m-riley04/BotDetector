@@ -305,7 +305,7 @@ test('showReportModal renders check contributions and threshold details', () => 
     '100%',
   ]);
   expect(cellTexts(table.children[4])).toStrictEqual([
-    'Final (capped at 100%)',
+    'Final (kept between 0% and 100%)',
     '',
     '',
     '99.99%',
@@ -345,4 +345,112 @@ test('showReportModal closes on the close-overlay event and removes its listener
   visuals.showReportModal(makeReport());
   body.children[0].children[0].children[3].children[0].onclick();
   expect(testWindow().listeners.get(BOT_DETECTOR_CLOSE_OVERLAY)?.size).toBe(0);
+});
+
+test('the details panel offers copying the report next to the tweet', async () => {
+  const body = installDocument();
+  const report = makeReport();
+  let copiedText = '';
+  const originalNavigator = Object.getOwnPropertyDescriptor(
+    globalThis,
+    'navigator'
+  );
+  Object.defineProperty(globalThis, 'navigator', {
+    configurable: true,
+    value: {
+      clipboard: {
+        writeText: async (text: string) => {
+          copiedText = text;
+        },
+      },
+    },
+  });
+
+  try {
+    visuals.showReportModal(report, makeTweet({ id_str: 'tweet-1' }));
+    const panel = body.children[0].children[0];
+    const actions = panel.children[3];
+    expect(actions.children.map((b) => b.textContent)).toStrictEqual([
+      'Copy tweet JSON',
+      'Copy report JSON',
+      'Close',
+    ]);
+
+    await actions.children[1].onclick();
+    expect(copiedText).toBe(JSON.stringify(report, null, 2));
+    expect(panel.children[4].textContent).toBe(
+      'Report JSON copied to clipboard.'
+    );
+  } finally {
+    if (originalNavigator) {
+      Object.defineProperty(globalThis, 'navigator', originalNavigator);
+    } else {
+      delete g.navigator;
+    }
+  }
+});
+
+test('list buttons reflect the status, call back and close the modal', async () => {
+  const body = installDocument();
+  const actions: string[] = [];
+  const open = (listStatus: 'none' | 'allowed' | 'blocked') => {
+    body.children.length = 0;
+    visuals.showReportModal(makeReport(), makeTweet({ id_str: 't' }), {
+      listStatus,
+      onListAction: (action) => {
+        actions.push(action);
+      },
+    });
+    return body.children[0].children[0].children[3];
+  };
+  const labels = (bar: TestElement) => bar.children.map((b) => b.textContent);
+
+  expect(labels(open('none'))).toStrictEqual([
+    'Copy tweet JSON',
+    'Copy report JSON',
+    'Mark as human',
+    'Always hide',
+    'Close',
+  ]);
+  expect(labels(open('allowed'))).toContain('Remove from lists');
+  expect(labels(open('allowed'))).not.toContain('Mark as human');
+  expect(labels(open('blocked'))).not.toContain('Always hide');
+
+  const bar = open('none');
+  await bar.children[3].onclick();
+  expect(actions).toStrictEqual(['block']);
+  expect(body.children.length).toBe(0);
+});
+
+test('trust signals are shown as negative contributions', () => {
+  const body = installDocument();
+  visuals.showReportModal(
+    makeReport({
+      chance: 0.1,
+      checks: [
+        {
+          id: 'a',
+          label: 'Bad',
+          weight: 0.3,
+          triggered: true,
+          contribution: 0.3,
+        },
+        {
+          id: 'b',
+          label: 'Trusted',
+          weight: -0.2,
+          triggered: true,
+          contribution: -0.2,
+        },
+      ],
+    })
+  );
+  const table = body.children[0].children[0].children[1];
+  expect(cellTexts(table.children[2])).toStrictEqual([
+    '✔ Trusted',
+    '-20%',
+    '-20%',
+    '10%',
+  ]);
+  expect(table.children[2].style.cssText).toMatch(/#065f46/);
 });
