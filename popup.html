@@ -65,6 +65,61 @@
           Reset to defaults
         </button>
       </section>
+
+      <section id="page" aria-labelledby="page-title">
+        <h2 id="page-title">This page</h2>
+        <p id="stats" class="help">Open x.com to see results.</p>
+        <button id="show-hidden" type="button" class="secondary" disabled>
+          Show hidden posts
+        </button>
+      </section>
+
+      <section id="lists" aria-labelledby="lists-title">
+        <h2 id="lists-title">Lists</h2>
+        <div class="field">
+          <label for="allowlist">Always treat as human</label>
+          <textarea id="allowlist" rows="3" spellcheck="false"></textarea>
+        </div>
+        <div class="field">
+          <label for="blocklist">Always hide</label>
+          <textarea id="blocklist" rows="3" spellcheck="false"></textarea>
+          <p class="help">One @handle per line.</p>
+        </div>
+      </section>
+
+      <details id="checks-section">
+        <summary>Detection checks</summary>
+        <p class="help">
+          Turn checks off or change how much each adds. Negative weights lower
+          the score.
+        </p>
+        <div id="checks"></div>
+        <div class="field">
+          <label for="scam-keywords">Extra scam keywords</label>
+          <textarea id="scam-keywords" rows="3" spellcheck="false"></textarea>
+          <p class="help">One word or phrase per line.</p>
+        </div>
+        <button id="reset-checks" type="button" class="secondary">
+          Reset checks
+        </button>
+      </details>
+
+      <details id="backup-section">
+        <summary>Backup</summary>
+        <div class="field">
+          <label for="backup">Settings JSON</label>
+          <textarea id="backup" rows="5" spellcheck="false"></textarea>
+        </div>
+        <div class="row">
+          <button id="copy-settings" type="button" class="secondary">
+            Copy
+          </button>
+          <button id="import-settings" type="button" class="secondary">
+            Apply pasted JSON
+          </button>
+        </div>
+        <p id="backup-status" class="help" role="status"></p>
+      </details>
     </main>
     <script src="popup.js"></script>
   </body>
