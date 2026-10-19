@@ -1,6 +1,8 @@
+import type { Settings } from '../src/common/settings';
+import type { BotDetectionReport } from '../src/detection/models';
 import { getTweetAction } from '../src/detection/visibility';
 
-const settings = (overrides = {}) => ({
+const settings = (overrides: Partial<Settings> = {}): Settings => ({
   enabled: true,
   threshold: 0.75,
   onlyShowLikelyBotsBadges: false,
@@ -8,8 +10,9 @@ const settings = (overrides = {}) => ({
   ...overrides,
 });
 
-const bot = { isBot: true };
-const human = { isBot: false };
+// getTweetAction only reads isBot
+const bot = { isBot: true } as BotDetectionReport;
+const human = { isBot: false } as BotDetectionReport;
 
 test('by default every analyzed tweet gets a badge', () => {
   expect(getTweetAction(bot, settings())).toBe('badge');

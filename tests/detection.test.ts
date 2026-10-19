@@ -1,9 +1,16 @@
 import * as detection from '../src/detection/detection';
+import type { BotDetectionReport } from '../src/detection/models';
+import type { Tweet } from '../src/twitter/models';
+
+type TweetUser = Tweet['user'];
+type DetectionOptions = typeof detection.DEFAULT_DETECTION_REPORT_OPTIONS;
 
 const fixedNow = Date.parse('2025-01-15T12:00:00.000Z');
 const dayMs = 24 * 60 * 60 * 1000;
 
-function makeUser(overrides = {}) {
+// Fixtures only set the fields the detector reads. Overrides are intentionally loose so
+// tests can pass `undefined` for fields the API may omit.
+function makeUser(overrides: Record<string, unknown> = {}): TweetUser {
   return {
     created_at: '2020-06-15T12:00:00.000Z',
     screen_name: 'ordinary_user',
@@ -17,33 +24,44 @@ function makeUser(overrides = {}) {
     description: 'A profile description',
     profile_banner_url: 'https://example.test/banner.jpg',
     ...overrides,
-  };
+  } as unknown as TweetUser;
 }
 
-function makeTweet(userOverrides = {}, quotedUser) {
+function makeTweet(
+  userOverrides: Record<string, unknown> = {},
+  quotedUser?: Record<string, unknown>
+): Tweet {
   return {
     user: makeUser(userOverrides),
     quoted_status: quotedUser ? { user: makeUser(quotedUser) } : null,
-  };
+  } as unknown as Tweet;
 }
 
-function getReport(tweet, options) {
+function getReport(
+  tweet: Tweet,
+  options?: DetectionOptions
+): BotDetectionReport {
   const originalNow = Date.now;
   Date.now = () => fixedNow;
   try {
-    return detection.getDetectionReport(tweet, options);
+    const report = detection.getDetectionReport(tweet, options);
+    if (!report) throw new Error('expected a detection report');
+    return report;
   } finally {
     Date.now = originalNow;
   }
 }
 
-function check(report, id) {
+function check(report: BotDetectionReport, id: string) {
   const result = report.checks.find((item) => item.id === id);
-  expect(result).toBeTruthy();
+  if (!result) throw new Error(`expected check "${id}" to exist`);
   return result;
 }
 
-function customOptions(weights, isBotThreshold = 0.75) {
+function customOptions(
+  weights: Partial<DetectionOptions['weights']>,
+  isBotThreshold = 0.75
+): DetectionOptions {
   return {
     weights: {
       blueCheck: 0,
@@ -59,6 +77,7 @@ function customOptions(weights, isBotThreshold = 0.75) {
       postAiAccount: 0,
       noDescription: 0,
       noBanner: 0,
+      excessivePromo: 0,
       ...weights,
     },
     isBotThreshold,
@@ -67,7 +86,7 @@ function customOptions(weights, isBotThreshold = 0.75) {
 }
 
 test('getDetectionReport returns undefined without a tweet', () => {
-  expect(getReport(undefined)).toBe(undefined);
+  expect(detection.getDetectionReport(undefined)).toBe(undefined);
 });
 
 test('a typical older account has zero risk and includes all checks', () => {
@@ -87,6 +106,7 @@ test('a typical older account has zero risk and includes all checks', () => {
     'low-followers-following-ratio',
     'auto-handle',
     'onlyfans-model',
+    'excessive-promo',
     'ai-characters-bio',
     'no-description',
     'no-banner',
@@ -459,7 +479,7 @@ test('quote-checkmark ignores missing, unverified, and typed quoted users', () =
 });
 
 test('account-creation-date handles leap years and month lengths', () => {
-  const triggered = (created_at) =>
+  const triggered = (created_at: string) =>
     check(getReport(makeTweet({ created_at })), 'account-creation-date')
       .triggered;
 
@@ -478,7 +498,7 @@ test('very new or future-dated accounts are treated as one day old', () => {
   expect(check(futureReport, 'new-account').triggered).toBe(true);
 
   const now = new Date(fixedNow).toISOString();
-  const rate = (statuses_count) =>
+  const rate = (statuses_count: number) =>
     check(
       getReport(makeTweet({ created_at: now, statuses_count })),
       'high-tweet-rate'
@@ -488,7 +508,7 @@ test('very new or future-dated accounts are treated as one day old', () => {
 });
 
 test('low-followers-ratio handles zero followers and requires 100 following', () => {
-  const lowRatio = (followers_count, friends_count) =>
+  const lowRatio = (followers_count: number, friends_count: number) =>
     check(
       getReport(makeTweet({ followers_count, friends_count })),
       'low-followers-ratio'
@@ -500,7 +520,7 @@ test('low-followers-ratio handles zero followers and requires 100 following', ()
 });
 
 test('auto-handle only matches long digit runs at the end of the handle', () => {
-  const triggered = (screen_name) =>
+  const triggered = (screen_name: string | undefined) =>
     check(getReport(makeTweet({ screen_name })), 'auto-handle').triggered;
 
   expect(triggered('user12345')).toBe(true);
@@ -522,6 +542,39 @@ test('missing description and banner trigger their checks without throwing', () 
   expect(check(report, 'onlyfans-model').triggered).toBe(false);
 });
 
+test('excessive-promo matches accounts that excessively promote content', () => {
+  const tweets = [
+    makeTweet({
+      location: '👉🏽',
+    }),
+    makeTweet({
+      location: '👉',
+    }),
+    makeTweet({
+      location: 'It’s free👉🏽',
+    }),
+    makeTweet({
+      location: 'Click here 👉',
+    }),
+    makeTweet({
+      location: 'Link 👉',
+    }),
+    makeTweet({
+      location: 'OF👉',
+    }),
+    makeTweet({
+      location: '👉🏽👉🏽👉🏽',
+    }),
+    makeTweet({
+      location: '👉🏽👉👉🏽👉🏽',
+    }),
+  ];
+  for (const tweet of tweets) {
+    const report = getReport(tweet);
+    expect(check(report, 'excessive-promo').triggered).toBe(true);
+  }
+});
+
 test('onlyfans-model matches the keyword case-insensitively and uses its weight', () => {
   for (const description of [
     'OnlyFans',
@@ -530,7 +583,7 @@ test('onlyfans-model matches the keyword case-insensitively and uses its weight'
   ]) {
     const report = getReport(makeTweet({ description }));
     expect(check(report, 'onlyfans-model').triggered).toBe(true);
-    expect(check(report, 'onlyfans-model').contribution).toBe(0.3);
+    expect(check(report, 'onlyfans-model').contribution).toBe(0.2);
   }
 
   for (const description of ['I love football', 'only fans of the team?']) {
@@ -562,21 +615,6 @@ test('onlyfans models are detected', () => {
     }),
     makeTweet({
       description: 'subscribe at fansly.com/jane',
-    }),
-    makeTweet({
-      location: 'It’s free👉🏽',
-    }),
-    makeTweet({
-      location: '👉🏽',
-    }),
-    makeTweet({
-      location: '👉',
-    }),
-    makeTweet({
-      location: '👉🏽👉🏽👉🏽',
-    }),
-    makeTweet({
-      location: '👉🏽👉👉🏽👉🏽',
     }),
   ];
 

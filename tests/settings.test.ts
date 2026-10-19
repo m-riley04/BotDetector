@@ -1,20 +1,21 @@
 import * as settings from '../src/common/settings';
 
-function installStorage(initial = {}) {
-  const store = { ...initial };
-  globalThis.browser = {
-    storage: {
-      local: {
-        get: async (key) => (key in store ? { [key]: store[key] } : {}),
-        set: async (values) => Object.assign(store, values),
+function installStorage(initial: Record<string, unknown> = {}) {
+  const store: Record<string, unknown> = { ...initial };
+  const storage = {
+    local: {
+      get: async (key: string) => (key in store ? { [key]: store[key] } : {}),
+      set: async (values: Record<string, unknown>) => {
+        Object.assign(store, values);
       },
     },
   };
+  (globalThis as unknown as { browser: unknown }).browser = { storage };
   return store;
 }
 
 afterEach(() => {
-  delete globalThis.browser;
+  delete (globalThis as { browser?: unknown }).browser;
 });
 
 test('sanitizeSettings falls back to defaults for missing or invalid data', () => {

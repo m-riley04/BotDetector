@@ -1,32 +1,38 @@
+import type { BotDetectionReport } from '../src/detection/models';
 import * as visuals from '../src/detection/visuals';
+import type { Tweet } from '../src/twitter/models';
 
 const BOT_DETECTOR_CLOSE_OVERLAY = 'BOT_DETECTOR_CLOSE_OVERLAY';
 
+type Handler = (event?: { target: unknown }) => unknown;
+
 class TestElement {
-  constructor(tagName) {
+  tagName: string;
+  children: TestElement[] = [];
+  style: Record<string, string> = {};
+  textContent = '';
+  parentElement: TestElement | null = null;
+  onclick: Handler = () => undefined;
+  attributes: Record<string, string> = {};
+
+  constructor(tagName: string) {
     this.tagName = tagName;
-    this.children = [];
-    this.style = {};
-    this.textContent = '';
-    this.parentElement = null;
-    this.onclick = null;
-    this.attributes = {};
   }
 
-  append(...elements) {
+  append(...elements: TestElement[]) {
     for (const element of elements) {
       element.parentElement = this;
       this.children.push(element);
     }
   }
 
-  setAttribute(name, value) {
+  setAttribute(name: string, value: string) {
     this.attributes[name] = value;
   }
 
-  insertBefore(element, reference) {
+  insertBefore(element: TestElement, reference: TestElement | null) {
     element.parentElement = this;
-    const index = this.children.indexOf(reference);
+    const index = reference ? this.children.indexOf(reference) : -1;
     this.children.splice(
       index === -1 ? this.children.length : index,
       0,
@@ -34,11 +40,11 @@ class TestElement {
     );
   }
 
-  get firstElementChild() {
+  get firstElementChild(): TestElement | null {
     return this.children[0] ?? null;
   }
 
-  get lastElementChild() {
+  get lastElementChild(): TestElement | null {
     return this.children.at(-1) ?? null;
   }
 
@@ -51,28 +57,48 @@ class TestElement {
   }
 }
 
+// The stubs stand in for the browser globals, so they're installed through loose views of globalThis.
+const g = globalThis as unknown as {
+  document?: unknown;
+  window?: unknown;
+  navigator?: unknown;
+};
+
+interface TestWindow {
+  listeners: Map<string, Set<() => void>>;
+  dispatch: (type: string) => void;
+}
+
+const testWindow = () => g.window as TestWindow;
+const asTest = (element: unknown) => element as TestElement;
+const makeTweet = (fields: Record<string, unknown>) =>
+  fields as unknown as Tweet;
+
 function installDocument() {
   const body = new TestElement('body');
-  globalThis.document = {
+  g.document = {
     body,
-    createElement: (tagName) => new TestElement(tagName),
+    createElement: (tagName: string) => new TestElement(tagName),
   };
 
-  const listeners = new Map();
-  globalThis.window = {
+  const listeners = new Map<string, Set<() => void>>();
+  g.window = {
     listeners,
-    addEventListener: (type, listener) => {
+    addEventListener: (type: string, listener: () => void) => {
       if (!listeners.has(type)) listeners.set(type, new Set());
-      listeners.get(type).add(listener);
+      listeners.get(type)?.add(listener);
     },
-    removeEventListener: (type, listener) =>
+    removeEventListener: (type: string, listener: () => void) =>
       listeners.get(type)?.delete(listener),
-    dispatch: (type) => listeners.get(type)?.forEach((listener) => listener()),
+    dispatch: (type: string) =>
+      listeners.get(type)?.forEach((listener) => listener()),
   };
   return body;
 }
 
-function makeReport(overrides = {}) {
+function makeReport(
+  overrides: Partial<BotDetectionReport> = {}
+): BotDetectionReport {
   return {
     chance: 0.72,
     checks: [
@@ -102,7 +128,7 @@ function makeReport(overrides = {}) {
   };
 }
 
-function cellTexts(row) {
+function cellTexts(row: TestElement) {
   return row.children.map((cell) => cell.textContent);
 }
 
@@ -117,8 +143,8 @@ test('getColorFromChance interpolates green, yellow, and red', () => {
 test('createBotElement displays the chance and opens the report modal', () => {
   const body = installDocument();
   const report = makeReport();
-  const tweet = { id_str: 'tweet-123', text: 'Example tweet' };
-  const element = visuals.createBotElement(report, tweet);
+  const tweet = makeTweet({ id_str: 'tweet-123', text: 'Example tweet' });
+  const element = asTest(visuals.createBotElement(report, tweet));
 
   expect(element.tagName).toBe('div-botdetector');
   expect(element.style.backgroundColor).toBe('#111827');
@@ -141,11 +167,11 @@ test('createBotElement displays the chance and opens the report modal', () => {
 
 test('the details panel copies the complete tweet as formatted JSON', async () => {
   const body = installDocument();
-  const tweet = {
+  const tweet = makeTweet({
     id_str: 'tweet-456',
     text: 'A test tweet',
     user: { screen_name: 'tester' },
-  };
+  });
   let copiedText = '';
   const originalNavigator = Object.getOwnPropertyDescriptor(
     globalThis,
@@ -153,7 +179,13 @@ test('the details panel copies the complete tweet as formatted JSON', async () =
   );
   Object.defineProperty(globalThis, 'navigator', {
     configurable: true,
-    value: { clipboard: { writeText: async (text) => (copiedText = text) } },
+    value: {
+      clipboard: {
+        writeText: async (text: string) => {
+          copiedText = text;
+        },
+      },
+    },
   });
 
   try {
@@ -170,7 +202,7 @@ test('the details panel copies the complete tweet as formatted JSON', async () =
     if (originalNavigator) {
       Object.defineProperty(globalThis, 'navigator', originalNavigator);
     } else {
-      delete globalThis.navigator;
+      delete g.navigator;
     }
   }
 });
@@ -193,7 +225,7 @@ test('the details panel reports clipboard errors to the user', async () => {
   });
 
   try {
-    visuals.showReportModal(makeReport(), { id_str: 'tweet-789' });
+    visuals.showReportModal(makeReport(), makeTweet({ id_str: 'tweet-789' }));
     const panel = body.children[0].children[0];
     await panel.children[3].children[0].onclick();
 
@@ -204,7 +236,7 @@ test('the details panel reports clipboard errors to the user', async () => {
     if (originalNavigator) {
       Object.defineProperty(globalThis, 'navigator', originalNavigator);
     } else {
-      delete globalThis.navigator;
+      delete g.navigator;
     }
   }
 });
@@ -304,19 +336,13 @@ test('showReportModal closes from its button or backdrop, but not panel content'
 test('showReportModal closes on the close-overlay event and removes its listener', () => {
   const body = installDocument();
   visuals.showReportModal(makeReport());
-  expect(globalThis.window.listeners.get(BOT_DETECTOR_CLOSE_OVERLAY).size).toBe(
-    1
-  );
+  expect(testWindow().listeners.get(BOT_DETECTOR_CLOSE_OVERLAY)?.size).toBe(1);
 
-  globalThis.window.dispatch(BOT_DETECTOR_CLOSE_OVERLAY);
+  testWindow().dispatch(BOT_DETECTOR_CLOSE_OVERLAY);
   expect(body.children.length).toBe(0);
-  expect(globalThis.window.listeners.get(BOT_DETECTOR_CLOSE_OVERLAY).size).toBe(
-    0
-  );
+  expect(testWindow().listeners.get(BOT_DETECTOR_CLOSE_OVERLAY)?.size).toBe(0);
 
   visuals.showReportModal(makeReport());
   body.children[0].children[0].children[3].children[0].onclick();
-  expect(globalThis.window.listeners.get(BOT_DETECTOR_CLOSE_OVERLAY).size).toBe(
-    0
-  );
+  expect(testWindow().listeners.get(BOT_DETECTOR_CLOSE_OVERLAY)?.size).toBe(0);
 });

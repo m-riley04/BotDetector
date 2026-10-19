@@ -8,13 +8,15 @@
       "DOM"
     ],
     "types": [
-      "firefox-webext-browser"
+      "firefox-webext-browser",
+      "jest"
     ],
     "strict": true,
     "noEmit": true,
     "skipLibCheck": true
   },
   "include": [
-    "src/**/*.ts"
+    "src/**/*.ts",
+    "tests/**/*.ts"
   ]
 }

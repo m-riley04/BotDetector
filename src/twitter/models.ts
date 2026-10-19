@@ -164,6 +164,11 @@ interface QuotedStatusPermalink {
   [k: string]: unknown;
 }
 
+interface QuickPromoteEligibility {
+  eligible: 'IneligibleNotVerified' | string;
+  [k: string]: unknown;
+}
+
 export interface Tweet {
   bookmark_count: number;
   bookmarked: boolean;
@@ -181,10 +186,17 @@ export interface Tweet {
   grok_annotations: GrokAnnotations;
   has_super_follower: boolean;
   id_str: string;
+  in_reply_to_screen_name?: string;
+  in_reply_to_status_id_str?: string;
+  in_reply_to_user?: User;
+  in_reply_to_user_id_str?: string;
   is_quote_status: boolean;
   is_translatable: boolean;
   lang: string;
   permalink: string;
+  possibly_sensitive?: boolean;
+  possibly_sensitive_editable?: boolean;
+  quick_promote_eligibility?: QuickPromoteEligibility;
   quote_count: number;
   quoted_status_permalink: QuotedStatusPermalink;
   quoted_status: Tweet | null;

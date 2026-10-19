@@ -3,13 +3,14 @@ import * as helpers from '../src/common/helpers';
 import * as parsing from '../src/common/parsing';
 import * as serialization from '../src/react/serialization';
 
-const silence = (method) =>
+const silence = (method: 'error' | 'warn') =>
   jest.spyOn(console, method).mockImplementation(() => {});
 
 afterEach(() => jest.restoreAllMocks());
 
 test('getLastDayOfMonth handles month lengths and leap years', () => {
-  const last = (y, m) => dates.getLastDayOfMonth(new Date(y, m, 15));
+  const last = (y: number, m: number) =>
+    dates.getLastDayOfMonth(new Date(y, m, 15));
   expect(last(2025, 0)).toBe(31);
   expect(last(2025, 3)).toBe(30);
   expect(last(2025, 1)).toBe(28);
@@ -20,7 +21,8 @@ test('getLastDayOfMonth handles month lengths and leap years', () => {
 });
 
 test('isFirstOrLastDayOfMonth matches only the boundaries', () => {
-  const is = (y, m, d) => dates.isFirstOrLastDayOfMonth(new Date(y, m, d));
+  const is = (y: number, m: number, d: number) =>
+    dates.isFirstOrLastDayOfMonth(new Date(y, m, d));
   expect(is(2025, 5, 1)).toBe(true);
   expect(is(2025, 5, 30)).toBe(true);
   expect(is(2025, 5, 2)).toBe(false);
@@ -103,10 +105,13 @@ test('parseReactPropsResponse keeps valid components and skips malformed ones', 
   expect(warn).toHaveBeenCalledTimes(4);
 });
 
+const asElement = (value: unknown) => value as HTMLElement;
+
 const freshState = () => ({ nodes: 0, seen: new WeakSet() });
 
 test('toSerializable passes primitives through and drops unsupported values', () => {
-  const to = (value) => serialization.toSerializable(value, freshState(), 0);
+  const to = (value: unknown) =>
+    serialization.toSerializable(value, freshState(), 0);
   expect(to(null)).toBe(null);
   expect(to(true)).toBe(true);
   expect(to(42)).toBe(42);
@@ -114,7 +119,7 @@ test('toSerializable passes primitives through and drops unsupported values', ()
   expect(to(undefined)).toBe(undefined);
   expect(to(() => 1)).toBe(undefined);
   expect(to(Symbol('s'))).toBe(undefined);
-  expect(to('a'.repeat(500)).length).toBe(300);
+  expect((to('a'.repeat(500)) as string).length).toBe(300);
 });
 
 test('toSerializable serializes nested objects and arrays', () => {
@@ -139,18 +144,18 @@ test('toSerializable skips React internals and truncates large collections', () 
     freshState(),
     0
   );
-  expect(array.length).toBe(20);
+  expect(array as unknown[]).toHaveLength(20);
 
   const object = serialization.toSerializable(
     Object.fromEntries(Array.from({ length: 60 }, (_, i) => [`k${i}`, i])),
     freshState(),
     0
   );
-  expect(Object.keys(object).length).toBe(40);
+  expect(Object.keys(object as object)).toHaveLength(40);
 });
 
 test('toSerializable marks circular references but allows shared siblings', () => {
-  const circular = { name: 'loop' };
+  const circular: Record<string, unknown> = { name: 'loop' };
   circular.self = circular;
   expect(serialization.toSerializable(circular, freshState(), 0)).toStrictEqual(
     {
@@ -178,7 +183,7 @@ test('toSerializable respects depth and node limits', () => {
     0,
     { maxNodes: 2, maxDepth: 5 }
   );
-  expect(Object.keys(limited).length < 3).toBeTruthy();
+  expect(Object.keys(limited as object).length).toBeLessThan(3);
 });
 
 test('getReactData reads props and fiber components, with "b" first', () => {
@@ -199,7 +204,7 @@ test('getReactData reads props and fiber components, with "b" first', () => {
     },
   };
 
-  const data = serialization.getReactData(element);
+  const data = serialization.getReactData(asElement(element));
   expect(data.elementProps).toStrictEqual({ tweet: { id: '1' } });
   expect(data.components).toStrictEqual([
     { name: 'b', props: { z: 2 } },
@@ -209,17 +214,17 @@ test('getReactData reads props and fiber components, with "b" first', () => {
 });
 
 test('getReactData returns an empty result without React keys', () => {
-  expect(serialization.getReactData({ other: 1 })).toStrictEqual({});
+  expect(serialization.getReactData(asElement({ other: 1 }))).toStrictEqual({});
 });
 
 test('getReactData stops walking the fiber chain at maxDepth', () => {
-  let fiber;
+  let fiber: unknown;
   for (let i = 0; i < 10; i++) {
     fiber = { type: 'div', memoizedProps: { i }, return: fiber };
   }
   const data = serialization.getReactData(
-    { __reactFiber$x: fiber },
+    asElement({ __reactFiber$x: fiber }),
     { propsKey: '__reactProps$', fiberKeys: ['__reactFiber$'], maxDepth: 3 }
   );
-  expect(data.components.length).toBe(3);
+  expect(data.components).toHaveLength(3);
 });
