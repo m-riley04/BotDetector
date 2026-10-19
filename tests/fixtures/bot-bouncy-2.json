@@ -1,0 +1,149 @@
+{
+  "_expanded_links": { "https://t.co/qjpTdosItb": "https://bouncy.ai/" },
+  "_note": "Synthetic fixture: a real account posting 'cosplays' (but primarily adult content). Had a lot of the signals, but was not being marked for those signals whatsoever. Also advertising 'bouncy.ai'",
+  "bookmark_count": 0,
+  "bookmarked": false,
+  "conversation_id_str": "2111762678096056429",
+  "display_text_range": [17, 59],
+  "entities": {
+    "user_mentions": [
+      {
+        "id_str": "1001051671693332480",
+        "indices": [0, 16],
+        "name": "nicole",
+        "screen_name": "cupidschok3hold"
+      }
+    ]
+  },
+  "favorite_count": 0,
+  "favorited": false,
+  "full_text": "@cupidschok3hold Every time everyone is tweeting my mind 🥲🤣",
+  "id_str": "2111844321108652375",
+  "in_reply_to_status_id_str": "2111762678096056429",
+  "is_quote_status": false,
+  "lang": "en",
+  "quote_count": 0,
+  "reply_count": 0,
+  "retweet_count": 0,
+  "retweeted": false,
+  "edit_control": {
+    "edit_tweet_ids": ["2111844321108652375"],
+    "editable_until_msecs": "1792341496000",
+    "edits_remaining": "5",
+    "is_edit_eligible": false
+  },
+  "is_translatable": false,
+  "has_birdwatch_notes": false,
+  "has_super_follower": false,
+  "quick_promote_eligibility": {
+    "eligibility": "IneligibleNotVerified"
+  },
+  "grok_analysis_button": true,
+  "cashtag_attachments": [],
+  "grok_annotations": {},
+  "user": {
+    "name": "Monoki",
+    "screen_name": "monokichangf",
+    "id_str": "2004951375369940992",
+    "favourites_count": 1118,
+    "profile_banner_url": "https://pbs.twimg.com/profile_banners/2004951375369940992/1768498727",
+    "location": "more here →",
+    "notifications": false,
+    "pinned_tweet_ids_str": ["2106805519105343788"],
+    "possibly_sensitive": false,
+    "professional": {
+      "category": [],
+      "professional_type": "Creator",
+      "rest_id": "2011814065442869378"
+    },
+    "entities": {
+      "description": {},
+      "url": {
+        "urls": []
+      }
+    },
+    "profile_image_shape": "Circle",
+    "profile_interstitial_type": "",
+    "is_translator": false,
+    "translator_type": "none",
+    "followers_count": 12935,
+    "friends_count": 10,
+    "media_count": 673,
+    "statuses_count": 7355,
+    "url": "https://t.co/qjpTdosItb",
+    "is_blue_verified": true,
+    "super_follow_eligible": false,
+    "super_followed_by": false,
+    "super_following": false,
+    "verified": false,
+    "protected": false,
+    "profile_image_url_https": "https://pbs.twimg.com/profile_images/2011855521029013504/nJ2Cu0Cb_normal.jpg",
+    "can_media_tag": true,
+    "follow_request_sent": false,
+    "description": "Nana • Kuromi • Persona • Silent Hill 💜\nINTP 5w4",
+    "blocked_by": false,
+    "blocking": false,
+    "followed_by": false,
+    "following": false,
+    "live_following": false,
+    "muting": false,
+    "has_graduated_access": true,
+    "created_at": "2025-12-27T16:24:19.000Z",
+    "parody_commentary_fan_label": "None"
+  },
+  "in_reply_to_user": {
+    "name": "nicole",
+    "screen_name": "cupidschok3hold",
+    "id_str": "1001051671693332480",
+    "favourites_count": 103091,
+    "profile_banner_url": "https://pbs.twimg.com/profile_banners/1001051671693332480/1783814678",
+    "location": "she/her 24",
+    "notifications": false,
+    "pinned_tweet_ids_str": ["2043350796482527666"],
+    "possibly_sensitive": false,
+    "entities": {
+      "description": {},
+      "url": {
+        "urls": []
+      }
+    },
+    "profile_description_language": "en",
+    "profile_image_shape": "Circle",
+    "profile_interstitial_type": "",
+    "is_translator": false,
+    "translator_type": "none",
+    "followers_count": 1785,
+    "friends_count": 1425,
+    "media_count": 8214,
+    "statuses_count": 44760,
+    "url": "https://t.co/KPceZhXKvh",
+    "is_blue_verified": false,
+    "super_follow_eligible": false,
+    "super_followed_by": false,
+    "super_following": false,
+    "verified": false,
+    "protected": false,
+    "profile_image_url_https": "https://pbs.twimg.com/profile_images/1773744793304088576/ZeM1v-Sc_normal.jpg",
+    "can_media_tag": false,
+    "follow_request_sent": false,
+    "description": "playing hate my life simulator\ni love movies and music\nCOYS | 1644 |",
+    "blocked_by": false,
+    "blocking": false,
+    "followed_by": false,
+    "following": false,
+    "live_following": false,
+    "muting": false,
+    "has_graduated_access": true,
+    "created_at": "2018-05-28T10:44:51.000Z",
+    "parody_commentary_fan_label": "None"
+  },
+  "views": {
+    "count": 43785,
+    "state": "EnabledWithCount"
+  },
+  "text": "@cupidschok3hold Every time everyone is tweeting my mind 🥲🤣",
+  "created_at": "2026-10-18T15:38:16.000Z",
+  "in_reply_to_user_id_str": "1001051671693332480",
+  "in_reply_to_screen_name": "cupidschok3hold",
+  "permalink": "/monokichangf/status/2111844321108652375"
+}

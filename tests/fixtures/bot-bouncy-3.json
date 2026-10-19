@@ -1,0 +1,158 @@
+{
+  "_expanded_links": { "https://t.co/RgYLjv9H0L": "https://bouncy.ai/" },
+  "_note": "Synthetic fixture: a real account posting adult content while advertising a 'bouncy.ai' link.",
+  "bookmark_count": 1,
+  "bookmarked": false,
+  "conversation_id_str": "2111762678096056429",
+  "display_text_range": [17, 290],
+  "entities": {
+    "user_mentions": [
+      {
+        "id_str": "1001051671693332480",
+        "indices": [0, 16],
+        "name": "nicole",
+        "screen_name": "cupidschok3hold"
+      }
+    ]
+  },
+  "favorite_count": 9,
+  "favorited": false,
+  "full_text": "@cupidschok3hold the betrayal of finding out private isn't actually private, hell is generous honestly i had a similar meltdown when i realized a guy i was seeing had three accounts just to lurk without getting caught, felt so used i almost deleted my whole phone.. now everything i post is",
+  "id_str": "2111852020978094503",
+  "in_reply_to_status_id_str": "2111762678096056429",
+  "is_quote_status": false,
+  "lang": "en",
+  "quote_count": 0,
+  "reply_count": 0,
+  "retweet_count": 0,
+  "retweeted": false,
+  "edit_control": {
+    "edit_tweet_ids": ["2111852020978094503"],
+    "editable_until_msecs": "1792343332000",
+    "edits_remaining": "5",
+    "is_edit_eligible": false
+  },
+  "is_translatable": false,
+  "has_birdwatch_notes": false,
+  "has_super_follower": false,
+  "note_tweet": {
+    "id": "Tm90ZVR3ZWV0OjIxMTE4NTIwMjA5MTA5NzI5Mjg=",
+    "is_expandable": true,
+    "text": "the betrayal of finding out private isn't actually private, hell is generous honestly i had a similar meltdown when i realized a guy i was seeing had three accounts just to lurk without getting caught, felt so used i almost deleted my whole phone.. now everything i post is intentional, no hiding, no",
+    "entity_set": {
+      "hashtags": [],
+      "smarttags": [],
+      "symbols": [],
+      "urls": [],
+      "user_mentions": []
+    },
+    "richtext_tags": [],
+    "inline_media": []
+  },
+  "quick_promote_eligibility": {
+    "eligibility": "IneligibleNotVerified"
+  },
+  "grok_analysis_button": true,
+  "cashtag_attachments": [],
+  "grok_annotations": {},
+  "user": {
+    "name": "Luna",
+    "screen_name": "Lil_Luna_IRLz",
+    "id_str": "1776115487836971008",
+    "favourites_count": 63836,
+    "profile_banner_url": "https://pbs.twimg.com/profile_banners/1776115487836971008/1772671893",
+    "location": "yes I have one ♡ →",
+    "notifications": false,
+    "pinned_tweet_ids_str": ["2053254073231585677"],
+    "possibly_sensitive": false,
+    "entities": {
+      "description": {},
+      "url": {
+        "urls": []
+      }
+    },
+    "profile_image_shape": "Circle",
+    "profile_interstitial_type": "",
+    "is_translator": false,
+    "translator_type": "none",
+    "followers_count": 45784,
+    "friends_count": 168,
+    "media_count": 894,
+    "statuses_count": 25327,
+    "url": "https://t.co/RgYLjv9H0L",
+    "is_blue_verified": true,
+    "super_follow_eligible": false,
+    "super_followed_by": false,
+    "super_following": false,
+    "verified": false,
+    "protected": false,
+    "profile_image_url_https": "https://pbs.twimg.com/profile_images/1980371135117082624/hKdd73ft_normal.jpg",
+    "can_media_tag": true,
+    "follow_request_sent": false,
+    "description": "luna’s personal account, cat lover and pikachu stan. 🤍🫶",
+    "blocked_by": false,
+    "blocking": false,
+    "followed_by": false,
+    "following": false,
+    "live_following": false,
+    "muting": false,
+    "has_graduated_access": true,
+    "created_at": "2024-04-05T05:14:02.000Z",
+    "parody_commentary_fan_label": "None"
+  },
+  "in_reply_to_user": {
+    "name": "nicole",
+    "screen_name": "cupidschok3hold",
+    "id_str": "1001051671693332480",
+    "favourites_count": 103091,
+    "profile_banner_url": "https://pbs.twimg.com/profile_banners/1001051671693332480/1783814678",
+    "location": "she/her 24",
+    "notifications": false,
+    "pinned_tweet_ids_str": ["2043350796482527666"],
+    "possibly_sensitive": false,
+    "entities": {
+      "description": {},
+      "url": {
+        "urls": []
+      }
+    },
+    "profile_description_language": "en",
+    "profile_image_shape": "Circle",
+    "profile_interstitial_type": "",
+    "is_translator": false,
+    "translator_type": "none",
+    "followers_count": 1785,
+    "friends_count": 1425,
+    "media_count": 8214,
+    "statuses_count": 44760,
+    "url": "https://t.co/KPceZhXKvh",
+    "is_blue_verified": false,
+    "super_follow_eligible": false,
+    "super_followed_by": false,
+    "super_following": false,
+    "verified": false,
+    "protected": false,
+    "profile_image_url_https": "https://pbs.twimg.com/profile_images/1773744793304088576/ZeM1v-Sc_normal.jpg",
+    "can_media_tag": false,
+    "follow_request_sent": false,
+    "description": "playing hate my life simulator\ni love movies and music\nCOYS | 1644 |",
+    "blocked_by": false,
+    "blocking": false,
+    "followed_by": false,
+    "following": false,
+    "live_following": false,
+    "muting": false,
+    "has_graduated_access": true,
+    "created_at": "2018-05-28T10:44:51.000Z",
+    "parody_commentary_fan_label": "None"
+  },
+  "views": {
+    "count": 23711,
+    "state": "EnabledWithCount"
+  },
+  "text": "@cupidschok3hold the betrayal of finding out private isn't actually private, hell is generous honestly i had a similar meltdown when i realized a guy i was seeing had three accounts just to lurk without getting caught, felt so used i almost deleted my whole phone.. now everything i post is",
+  "created_at": "2026-10-18T16:08:52.000Z",
+  "in_reply_to_user_id_str": "1001051671693332480",
+  "in_reply_to_screen_name": "cupidschok3hold",
+  "permalink": "/Lil_Luna_IRLz/status/2111852020978094503"
+}

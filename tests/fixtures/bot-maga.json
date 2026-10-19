@@ -1,0 +1,95 @@
+{
+  "_expect_checks": ["blue-check", "display-name-spam"],
+  "_note": "Synthetic fixture: a real account I found for MAGA. It wasn't being marked as a bot when it has posted the same message every single day with extremist views.",
+  "bookmark_count": 0,
+  "bookmarked": false,
+  "conversation_id_str": "2111160164267253907",
+  "display_text_range": [0, 168],
+  "entities": {},
+  "favorite_count": 0,
+  "favorited": false,
+  "full_text": "Today is 10/16/2026 and Joseph McCarthy was right about the communist threat to the USA in 1950 and the Islamocommunist and their enablers are more of a threat today.🇺🇸",
+  "id_str": "2111160164267253907",
+  "is_quote_status": false,
+  "lang": "en",
+  "quote_count": 0,
+  "reply_count": 0,
+  "retweet_count": 0,
+  "retweeted": false,
+  "edit_control": {
+    "edit_tweet_ids": ["2111160164267253907"],
+    "editable_until_msecs": "1792178381000",
+    "edits_remaining": "5",
+    "is_edit_eligible": true
+  },
+  "is_translatable": false,
+  "has_super_follower": false,
+  "quick_promote_eligibility": {
+    "eligibility": "IneligibleNotVerified"
+  },
+  "grok_analysis_button": true,
+  "cashtag_attachments": [],
+  "grok_annotations": {},
+  "user": {
+    "name": "Beau Titanium 🎯🗽🤦‍♂️",
+    "screen_name": "BeauTitanium",
+    "id_str": "1633843611556249603",
+    "favourites_count": 88568,
+    "profile_banner_url": "https://pbs.twimg.com/profile_banners/1633843611556249603/1692534031",
+    "business_account": {},
+    "creator_subscriptions_count": 0,
+    "is_profile_translatable": false,
+    "location": "",
+    "notifications": false,
+    "possibly_sensitive": false,
+    "entities": {
+      "description": {}
+    },
+    "profile_description_language": "en",
+    "profile_image_shape": "Circle",
+    "profile_interstitial_type": "",
+    "profile_sort_enabled": true,
+    "is_translator": false,
+    "translator_type": "none",
+    "followers_count": 4233,
+    "friends_count": 3630,
+    "media_count": 964,
+    "statuses_count": 25584,
+    "url": "",
+    "user_seed_tweet_count": 0,
+    "highlights_info": {
+      "can_highlight_tweets": true,
+      "highlighted_tweets": "0"
+    },
+    "verification_info": {
+      "is_identity_verified": false,
+      "reason": {
+        "description": {
+          "text": "This account is verified. Learn more"
+        },
+        "verified_since_msec": "1689506067044"
+      }
+    },
+    "is_blue_verified": true,
+    "has_hidden_subscriptions_on_profile": false,
+    "super_follow_eligible": false,
+    "super_followed_by": false,
+    "super_following": false,
+    "verified": false,
+    "protected": false,
+    "profile_image_url_https": "https://pbs.twimg.com/profile_images/1952047043591000064/iFIKwNPR_normal.jpg",
+    "can_media_tag": true,
+    "follow_request_sent": false,
+    "description": "Third World Culture + Diversity + Tolerance = Destruction. Toxic empathy is real and destructive. The price of free stuff is your freedom.",
+    "blocked_by": false,
+    "blocking": false,
+    "followed_by": false
+  },
+  "views": {
+    "count": 99,
+    "state": "EnabledWithCount"
+  },
+  "text": "Today is 10/16/2026 and Joseph McCarthy was right about the communist threat to the USA in 1950 and the Islamocommunist and their enablers are more of a threat today.🇺🇸",
+  "created_at": "2026-10-16T18:19:41.000Z",
+  "permalink": "/BeauTitanium/status/2111160164267253907"
+}

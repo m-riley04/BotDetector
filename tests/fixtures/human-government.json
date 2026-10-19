@@ -1,0 +1,22 @@
+{
+  "_note": "Synthetic fixture: not a real account.",
+  "id_str": "9000000000000000006",
+  "full_text": "Our office is closed on Monday for the public holiday.",
+  "lang": "en",
+  "user": {
+    "id_str": "200003",
+    "created_at": "2013-03-02T08:30:00.000Z",
+    "screen_name": "city_council",
+    "name": "City Council",
+    "description": "Official account of the City Council",
+    "is_blue_verified": true,
+    "verified": true,
+    "verified_type": "Government",
+    "statuses_count": 15000,
+    "followers_count": 80000,
+    "friends_count": 50,
+    "favourites_count": 300,
+    "media_count": 2500,
+    "profile_banner_url": "https://example.test/banner.jpg"
+  }
+}

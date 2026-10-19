@@ -1,0 +1,99 @@
+{
+  "_expect_checks": ["crypto-promo"],
+  "_note": "Synthetic fixture: a real account I found for crypto. SUPER old, but the username changed in 2024. Probably an account that got hacked/sold.",
+  "bookmark_count": 2,
+  "bookmarked": false,
+  "conversation_id_str": "1868785323561594889",
+  "display_text_range": [0, 221],
+  "entities": {},
+  "favorite_count": 152,
+  "favorited": false,
+  "full_text": "🟧🟧🟧\n🟧       🟧\n🟧🟧🧡\n🟧       🟧\n🟧🟧🟧\n\n🧡\n🟧\n🟧\n🟧\n🟧\n\n🟧🧡🟧\n     🟧\n     🟧\n     🟧\n     🟧\n\n     🧡🧡\n🟧\n🟧\n🟧\n     🧡🧡\n\n     🧡🧡\n🟧          🟧\n🟧          🟧\n🟧          🟧\n     🧡🧡\n\n🧡\n🟧\n🟧\n🟧\n🟧\n\n🟧          🟧\n🟧🧡    🟧\n🟧    🧡🟧\n🟧          🟧\n🟧          🟧",
+  "id_str": "1868785323561594889",
+  "is_quote_status": false,
+  "lang": "art",
+  "quote_count": 3,
+  "reply_count": 20,
+  "retweet_count": 12,
+  "retweeted": false,
+  "edit_control": {
+    "edit_tweet_ids": ["1868785323561594889"],
+    "editable_until_msecs": "1734391716000",
+    "edits_remaining": "5",
+    "is_edit_eligible": false
+  },
+  "is_translatable": false,
+  "has_super_follower": false,
+  "quick_promote_eligibility": {
+    "eligibility": "IneligibleNotVerified"
+  },
+  "grok_analysis_button": true,
+  "cashtag_attachments": [],
+  "grok_annotations": {},
+  "user": {
+    "name": "The G of Crypto",
+    "screen_name": "TheGofCrypto",
+    "id_str": "38987000",
+    "favourites_count": 25292,
+    "profile_banner_url": "https://pbs.twimg.com/profile_banners/38987000/1722908165",
+    "business_account": {},
+    "creator_subscriptions_count": 0,
+    "is_profile_translatable": false,
+    "location": "California, USA",
+    "notifications": false,
+    "pinned_tweet_ids_str": ["1868785323561594889"],
+    "possibly_sensitive": false,
+    "professional": {
+      "category": [],
+      "professional_type": "Business",
+      "rest_id": "1778619301244891496"
+    },
+    "entities": {
+      "description": {}
+    },
+    "profile_description_language": "en",
+    "profile_image_shape": "Circle",
+    "profile_interstitial_type": "",
+    "profile_sort_enabled": true,
+    "is_translator": false,
+    "translator_type": "none",
+    "followers_count": 1647,
+    "friends_count": 1434,
+    "media_count": 1792,
+    "statuses_count": 5598,
+    "url": "",
+    "user_seed_tweet_count": 0,
+    "highlights_info": {
+      "can_highlight_tweets": true,
+      "highlighted_tweets": "5"
+    },
+    "verification_info": {
+      "is_identity_verified": false,
+      "reason": {
+        "description": {
+          "text": "This account is verified. Learn more"
+        },
+        "verified_since_msec": "1723666249693"
+      }
+    },
+    "is_blue_verified": true,
+    "has_hidden_subscriptions_on_profile": false,
+    "super_follow_eligible": false,
+    "super_followed_by": false,
+    "super_following": false,
+    "verified": false,
+    "protected": false,
+    "profile_image_url_https": "https://pbs.twimg.com/profile_images/2006794498496765952/wsqGF61e_normal.jpg",
+    "can_media_tag": true,
+    "follow_request_sent": false,
+    "description": "Bitcoin believer: 🧡₿ 📈🚀🐂🇺🇸🦅 Sound money revolutionary, Stacking sats for the long term. The future is orange. Preparing for hyperbitcoinization.",
+    "blocked_by": false
+  },
+  "views": {
+    "count": 5706,
+    "state": "EnabledWithCount"
+  },
+  "text": "🟧🟧🟧\n🟧       🟧\n🟧🟧🧡\n🟧       🟧\n🟧🟧🟧\n\n🧡\n🟧\n🟧\n🟧\n🟧\n\n🟧🧡🟧\n     🟧\n     🟧\n     🟧\n     🟧\n\n     🧡🧡\n🟧\n🟧\n🟧\n     🧡🧡\n\n     🧡🧡\n🟧          🟧\n🟧          🟧\n🟧          🟧\n     🧡🧡\n\n🧡\n🟧\n🟧\n🟧\n🟧\n\n🟧          🟧\n🟧🧡    🟧\n🟧    🧡🟧\n🟧          🟧\n🟧          🟧",
+  "created_at": "2024-12-16T22:28:36.000Z",
+  "permalink": "/TheGofCrypto/status/1868785323561594889"
+}

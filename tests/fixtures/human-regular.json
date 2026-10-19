@@ -1,0 +1,22 @@
+{
+  "_note": "Synthetic fixture: not a real account.",
+  "id_str": "9000000000000000004",
+  "full_text": "Finally finished restoring my old bike. Photos in the thread.",
+  "lang": "en",
+  "user": {
+    "id_str": "200001",
+    "created_at": "2012-04-09T08:30:00.000Z",
+    "screen_name": "sam_builds",
+    "name": "Sam Carter",
+    "description": "Woodworker and cyclist from Leeds",
+    "is_blue_verified": false,
+    "verified": false,
+    "statuses_count": 12000,
+    "followers_count": 5000,
+    "friends_count": 800,
+    "favourites_count": 40000,
+    "media_count": 900,
+    "profile_banner_url": "https://example.test/banner.jpg",
+    "profile_image_url_https": "https://pbs.twimg.com/profile_images/1/photo.jpg"
+  }
+}

@@ -1,0 +1,146 @@
+{
+  "_expanded_links": {
+    "https://t.co/jjrVkveFdJ": "https://bouncy.ai/nyankatsumi"
+  },
+  "_note": "Synthetic fixture: a real account posting adult content 'cosplays' while also advertising a 'bouncy' link. None of the onlyfans/promo signals were detected.",
+  "bookmark_count": 6,
+  "bookmarked": false,
+  "conversation_id_str": "2111762678096056429",
+  "display_text_range": [17, 73],
+  "entities": {
+    "user_mentions": [
+      {
+        "id_str": "1001051671693332480",
+        "indices": [0, 16],
+        "name": "nicole",
+        "screen_name": "cupidschok3hold"
+      }
+    ]
+  },
+  "favorite_count": 47,
+  "favorited": false,
+  "full_text": "@cupidschok3hold i must be a top stalker cause why do i already know this",
+  "id_str": "2111851713107779885",
+  "in_reply_to_status_id_str": "2111762678096056429",
+  "is_quote_status": false,
+  "lang": "en",
+  "quote_count": 0,
+  "reply_count": 1,
+  "retweet_count": 0,
+  "retweeted": false,
+  "edit_control": {
+    "edit_tweet_ids": ["2111851713107779885"],
+    "editable_until_msecs": "1792343259000",
+    "edits_remaining": "5",
+    "is_edit_eligible": false
+  },
+  "is_translatable": false,
+  "has_birdwatch_notes": false,
+  "has_super_follower": false,
+  "quick_promote_eligibility": {
+    "eligibility": "IneligibleNotVerified"
+  },
+  "grok_analysis_button": true,
+  "cashtag_attachments": [],
+  "grok_annotations": {},
+  "user": {
+    "name": "Katsumi Tori 💓",
+    "screen_name": "Nyan_Katsumi",
+    "id_str": "1593612031885824000",
+    "favourites_count": 1580,
+    "profile_banner_url": "https://pbs.twimg.com/profile_banners/1593612031885824000/1746813220",
+    "location": "❤️‍🔥VIP 👉",
+    "notifications": false,
+    "pinned_tweet_ids_str": ["2110046997743120565"],
+    "possibly_sensitive": false,
+    "entities": {
+      "description": {},
+      "url": {
+        "urls": []
+      }
+    },
+    "profile_image_shape": "Circle",
+    "profile_interstitial_type": "",
+    "is_translator": false,
+    "translator_type": "none",
+    "followers_count": 81673,
+    "friends_count": 42,
+    "media_count": 910,
+    "statuses_count": 5443,
+    "url": "https://t.co/jjrVkveFdJ",
+    "is_blue_verified": true,
+    "super_follow_eligible": false,
+    "super_followed_by": false,
+    "super_following": false,
+    "verified": false,
+    "protected": false,
+    "profile_image_url_https": "https://pbs.twimg.com/profile_images/1878932123018493952/OoHxgtyh_normal.jpg",
+    "can_media_tag": true,
+    "follow_request_sent": false,
+    "description": "Official Katsumi_Tori page! Cosplayer girl who loves anime and gaming💖 Support me, uwu 💕",
+    "blocked_by": false,
+    "blocking": false,
+    "followed_by": false,
+    "following": false,
+    "live_following": false,
+    "muting": false,
+    "has_graduated_access": true,
+    "created_at": "2022-11-18T14:29:51.000Z",
+    "parody_commentary_fan_label": "None"
+  },
+  "in_reply_to_user": {
+    "name": "nicole",
+    "screen_name": "cupidschok3hold",
+    "id_str": "1001051671693332480",
+    "favourites_count": 103091,
+    "profile_banner_url": "https://pbs.twimg.com/profile_banners/1001051671693332480/1783814678",
+    "location": "she/her 24",
+    "notifications": false,
+    "pinned_tweet_ids_str": ["2043350796482527666"],
+    "possibly_sensitive": false,
+    "entities": {
+      "description": {},
+      "url": {
+        "urls": []
+      }
+    },
+    "profile_description_language": "en",
+    "profile_image_shape": "Circle",
+    "profile_interstitial_type": "",
+    "is_translator": false,
+    "translator_type": "none",
+    "followers_count": 1785,
+    "friends_count": 1425,
+    "media_count": 8214,
+    "statuses_count": 44760,
+    "url": "https://t.co/KPceZhXKvh",
+    "is_blue_verified": false,
+    "super_follow_eligible": false,
+    "super_followed_by": false,
+    "super_following": false,
+    "verified": false,
+    "protected": false,
+    "profile_image_url_https": "https://pbs.twimg.com/profile_images/1773744793304088576/ZeM1v-Sc_normal.jpg",
+    "can_media_tag": false,
+    "follow_request_sent": false,
+    "description": "playing hate my life simulator\ni love movies and music\nCOYS | 1644 |",
+    "blocked_by": false,
+    "blocking": false,
+    "followed_by": false,
+    "following": false,
+    "live_following": false,
+    "muting": false,
+    "has_graduated_access": true,
+    "created_at": "2018-05-28T10:44:51.000Z",
+    "parody_commentary_fan_label": "None"
+  },
+  "views": {
+    "count": 59648,
+    "state": "EnabledWithCount"
+  },
+  "text": "@cupidschok3hold i must be a top stalker cause why do i already know this",
+  "created_at": "2026-10-18T16:07:39.000Z",
+  "in_reply_to_user_id_str": "1001051671693332480",
+  "in_reply_to_screen_name": "cupidschok3hold",
+  "permalink": "/Nyan_Katsumi/status/2111851713107779885"
+}

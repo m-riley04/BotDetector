@@ -1,0 +1,19 @@
+{
+  "_note": "Synthetic fixture: not a real account.",
+  "id_str": "9000000000000000002",
+  "full_text": "Guaranteed profit, join the airdrop now",
+  "lang": "en",
+  "user": {
+    "id_str": "100002",
+    "created_at": "2024-12-20T10:00:00.000Z",
+    "screen_name": "crypto_guru88213",
+    "name": "Crypto Guru",
+    "description": "Free AIRDROP. Join t.me/cryptoguru_signals",
+    "is_blue_verified": false,
+    "verified": false,
+    "statuses_count": 90,
+    "followers_count": 3,
+    "friends_count": 800,
+    "profile_image_url_https": "https://abs.twimg.com/sticky/default_profile_images/default_profile_normal.png"
+  }
+}
