@@ -97,7 +97,13 @@ interface GetReactDataOptions {
 const DEFAULT_GET_REACT_DATA_OPTIONS: GetReactDataOptions = {
   propsKey: '__reactProps$',
   fiberKeys: ['__reactFiber$', '__reactInternalInstance$'],
-  maxDepth: 15,
+  maxDepth: 50,
+};
+
+// The tweet prop is large and deeply nested, so it gets its own, bigger budget
+const TWEET_SERIALIZATION_OPTIONS: SerializationOptions = {
+  maxNodes: 3000,
+  maxDepth: 10,
 };
 
 /**
@@ -130,6 +136,9 @@ export function getReactData(
       name?: string;
       props: Record<string, unknown>;
     }> = [];
+    let tweetComponent:
+      | { name?: string; tweet: unknown }
+      | undefined;
     let fiber: Record<string, unknown> | undefined = isRecord(
       Reflect.get(tweet, fiberKey)
     )
@@ -153,21 +162,46 @@ export function getReactData(
           name = type;
         }
 
-        pendingComponents.push({
-          ...(name === undefined ? {} : { name }),
-          props: memoizedProps,
-        });
+        if (!tweetComponent && isRecord(memoizedProps.tweet)) {
+          tweetComponent = {
+            ...(name === undefined ? {} : { name }),
+            tweet: memoizedProps.tweet,
+          };
+        } else {
+          pendingComponents.push({
+            ...(name === undefined ? {} : { name }),
+            props: memoizedProps,
+          });
+        }
       }
 
       fiber = isRecord(fiber.return) ? fiber.return : undefined;
       depth += 1;
     }
 
-    pendingComponents.sort(
-      (left, right) => Number(right.name === 'b') - Number(left.name === 'b')
-    );
-
     const components: ReactComponentData[] = [];
+
+    if (tweetComponent) {
+      const tweetState: SerializationState = {
+        nodes: 0,
+        seen: new WeakSet(),
+      };
+      const tweet = toSerializable(
+        tweetComponent.tweet,
+        tweetState,
+        0,
+        TWEET_SERIALIZATION_OPTIONS
+      );
+      if (tweet !== undefined) {
+        components.push({
+          ...(tweetComponent.name === undefined
+            ? {}
+            : { name: tweetComponent.name }),
+          props: { tweet },
+        });
+      }
+    }
+
     for (const component of pendingComponents) {
       const props = toSerializable(component.props, state, 0);
       components.push({

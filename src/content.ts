@@ -60,11 +60,16 @@ let settings: Settings = DEFAULT_SETTINGS;
 
 function getTweetDataFromReactResponse(
   reactProps: ReactPropsResponse,
-  targetComponentName: string = 'b' // the 'b' component seems to contain the tweet props
+  targetComponentName: string = 'Tweet' // fallback; the name is unstable, so prefer matching on the 'tweet' prop
 ): Tweet | undefined {
-  const componentProps = reactProps.props.components?.find(
-    (component) => component.name === targetComponentName
+  const components = reactProps.props.components ?? [];
+  const componentProps = (
+    components.find(
+      (component) =>
+        isRecord(component.props) && isRecord(component.props.tweet)
+    ) ?? components.find((component) => component.name === targetComponentName)
   )?.props;
+
   const tweetProps: Tweet | undefined = isRecord(componentProps)
     ? (componentProps.tweet as Tweet) // TODO: make this safer
     : undefined;
@@ -213,8 +218,8 @@ browser.runtime.onMessage.addListener((message: unknown) => {
 function scanTweets(): void {
   if (!settings.enabled) return;
 
-  const tweets = Array.from(document.querySelectorAll('article')).filter(
-    (tweet) => tweet.getAttribute('data-testid') === 'tweet'
+  const tweets = Array.from(document.querySelectorAll('div')).filter(
+    (tweet) => tweet.getAttribute('data-testid') === 'cellInnerDiv'
   );
 
   tweets.forEach((tweet) => {
@@ -238,7 +243,7 @@ function scanTweets(): void {
     const tweetData = tweetDataByElement.get(tweet);
     if (!tweetData) {
       console.warn(
-        `[BotDetector] No detection report available for tweet: skipping.`
+        `[BotDetector] No detection report cached for tweet: skipping.`
       );
       return;
     }

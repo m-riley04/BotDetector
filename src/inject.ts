@@ -11,9 +11,16 @@ window.addEventListener(REACT_PROPS_REQUEST, (event: Event) => {
   const id = (event as CustomEvent<unknown>).detail;
   if (typeof id !== 'string' || !/^\d+$/.test(id)) return;
 
-  const tweet = document.querySelector<HTMLElement>(
-    `article[${REACT_ID_ATTRIBUTE}="${id}"]`
+  const tagged = document.querySelector<HTMLElement>(
+    `[${REACT_ID_ATTRIBUTE}="${id}"]`
   );
+  if (!tagged) return;
+
+  // the tagged element is the timeline cell; the tweet fiber chain starts at the article inside it
+  const tweet =
+    tagged.tagName === 'ARTICLE'
+      ? tagged
+      : tagged.querySelector<HTMLElement>('article');
   if (!tweet) return;
 
   const props = getReactData(tweet);
