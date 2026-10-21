@@ -199,7 +199,7 @@ export interface Tweet {
   quick_promote_eligibility?: QuickPromoteEligibility;
   quote_count: number;
   quoted_status_permalink: QuotedStatusPermalink;
-  quoted_status: Tweet | null;
+  quoted_status?: Tweet;
   reply_count: number;
   retweet_count: number;
   retweeted: boolean;

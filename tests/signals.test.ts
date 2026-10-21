@@ -1,5 +1,5 @@
 import * as signals from '../src/detection/signals';
-import type { Tweet } from '../src/twitter/models';
+import type { Tweet } from '../src/adapters/twitter/models';
 
 const tweet = (fields: Record<string, unknown> = {}): Tweet =>
   ({ user: {}, ...fields }) as unknown as Tweet;

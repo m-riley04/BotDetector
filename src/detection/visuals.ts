@@ -1,6 +1,6 @@
 import { BOT_ELEMENT } from '../common/constants';
 import type { ListAction, ListStatus } from '../common/settings';
-import type { Tweet } from '../twitter/models';
+import type { Tweet } from '../adapters/twitter/models';
 import { BOT_DETECTOR_CLOSE_OVERLAY } from './constants';
 import type { BotDetectionReport } from './models';
 

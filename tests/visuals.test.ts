@@ -1,6 +1,6 @@
 import type { BotDetectionReport } from '../src/detection/models';
 import * as visuals from '../src/detection/visuals';
-import type { Tweet } from '../src/twitter/models';
+import type { Tweet } from '../src/adapters/twitter/models';
 
 const BOT_DETECTOR_CLOSE_OVERLAY = 'BOT_DETECTOR_CLOSE_OVERLAY';
 

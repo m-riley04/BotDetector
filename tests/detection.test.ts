@@ -1,6 +1,6 @@
 import * as detection from '../src/detection/detection';
 import type { BotDetectionReport } from '../src/detection/models';
-import type { Tweet } from '../src/twitter/models';
+import type { Tweet } from '../src/adapters/twitter/models';
 
 type TweetUser = Tweet['user'];
 type DetectionOptions = typeof detection.DEFAULT_DETECTION_REPORT_OPTIONS;

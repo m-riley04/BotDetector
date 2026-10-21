@@ -4,7 +4,7 @@ import {
   DEFAULT_DETECTION_REPORT_OPTIONS,
   getDetectionReport,
 } from '../src/detection/detection';
-import type { Tweet } from '../src/twitter/models';
+import type { Tweet } from '../src/adapters/twitter/models';
 
 // Raw tweet objects in the same format as the "Copy tweet JSON" button.
 // To add a real example, paste the copied JSON into tests/fixtures/bot-*.json or human-*.json.

@@ -1,4 +1,4 @@
-import type { Tweet } from '../twitter/models';
+import type { Tweet } from '../adapters/twitter/models';
 
 type TweetUser = Tweet['user'];
 

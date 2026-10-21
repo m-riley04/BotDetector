@@ -8,7 +8,7 @@ import { buildDetectionOptions } from '../src/detection/options';
 import type { BotDetectionReport } from '../src/detection/models';
 import { isContentRequest } from '../src/common/messages';
 import { DEFAULT_SETTINGS, sanitizeSettings } from '../src/common/settings';
-import type { Tweet } from '../src/twitter/models';
+import type { Tweet } from '../src/adapters/twitter/models';
 
 const tweet = (id: string, text = '', userId = 'u1'): Tweet =>
   ({

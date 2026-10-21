@@ -1,4 +1,4 @@
-import type { Tweet } from '../twitter/models';
+import type { Tweet } from '../adapters/twitter/models';
 import { getTweetText } from './signals';
 
 const MIN_LENGTH = 20;

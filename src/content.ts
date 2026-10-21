@@ -1,7 +1,7 @@
 import { isRecord } from './common/helpers';
 import { parseReactPropsResponse } from './common/parsing';
 import { BOT_DETECTOR_CLOSE_OVERLAY } from './detection/constants';
-import type { Tweet } from './twitter/models';
+import type { Tweet } from './adapters/twitter/models';
 import {
   requestReactProps,
   loadReactPropsBridge,

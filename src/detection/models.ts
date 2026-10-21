@@ -1,4 +1,4 @@
-import { Tweet } from '../twitter/models';
+import { Tweet } from '../adapters/twitter/models';
 
 /**
  * A single weighted check. Every check is always present in the report;

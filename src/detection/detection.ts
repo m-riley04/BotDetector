@@ -1,5 +1,5 @@
 import { isFirstOrLastDayOfMonth } from '../common/dates';
-import type { Tweet } from '../twitter/models';
+import type { Tweet } from '../adapters/twitter/models';
 import { BotCheck, BotDetectionReport } from './models';
 import {
   ADULT_PROMO_DOMAINS,

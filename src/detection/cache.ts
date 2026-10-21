@@ -1,4 +1,4 @@
-import type { Tweet } from '../twitter/models';
+import type { Tweet } from '../adapters/twitter/models';
 import type { BotDetectionReport } from './models';
 
 const DEFAULT_MAX_ENTRIES = 2000;
