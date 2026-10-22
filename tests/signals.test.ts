@@ -2,7 +2,14 @@ import * as signals from '../src/detection/signals';
 import { Post } from '../src/social-media/models';
 
 const post = (fields: Record<string, unknown> = {}): Post =>
-  ({ user: {}, ...fields }) as unknown as Post;
+  ({
+    id: 'post',
+    content: { text: fields.full_text },
+    inReplyToPostId: fields.in_reply_to_status_id_str,
+    language: fields.lang,
+    user: fields.user ?? {},
+    ...fields,
+  }) as unknown as Post;
 
 test('countEmoji and hasSpamName', () => {
   expect(signals.countEmoji('hi 🔥🔥 there 😀')).toBe(3);
@@ -109,8 +116,8 @@ test('hasMentionHashtagStuffing ignores leading reply mentions', () => {
 });
 
 test('hasLanguageMismatch compares post and bio languages', () => {
-  const t = (lang?: string, bio?: string) =>
-    post({ lang, user: { profile_description_language: bio } });
+  const t = (language?: string, bioLanguage?: string) =>
+    post({ language, user: { bioLanguage } });
 
   expect(signals.hasLanguageMismatch(t('en', 'ja'))).toBe(true);
   expect(signals.hasLanguageMismatch(t('en', 'en'))).toBe(false);
@@ -197,7 +204,7 @@ describe('profile links', () => {
   });
 
   test('an adult link marks the profile as OnlyFans-style', () => {
-    const profile = user({ description: 'hi', name: 'Sam' });
+    const profile = user({ bio: 'hi', displayName: 'Sam' });
     expect(signals.looksLikeOnlyFans(profile)).toBe(false);
     expect(signals.looksLikeOnlyFans(profile, ['https://bouncy.ai/x'])).toBe(
       true
@@ -207,17 +214,16 @@ describe('profile links', () => {
 
 test('getUsernameChanges reads the About data', () => {
   const user = (about: unknown) =>
-    ({ about_profile: about }) as unknown as Post['user'];
+    ({ about }) as unknown as Post['user'];
 
   expect(
     signals.getUsernameChanges(
       user({
-        username_changes: { count: '2', last_changed_at_msec: '1700000000000' },
+        usernameChanges: 2,
+        lastUsernameChange: new Date(1700000000000),
       })
     )
   ).toEqual({ count: 2, lastChangedMs: 1700000000000 });
   expect(signals.getUsernameChanges(user(undefined))).toBeUndefined();
-  expect(
-    signals.getUsernameChanges(user({ username_changes: { count: '0' } }))
-  ).toBeUndefined();
+  expect(signals.getUsernameChanges(user({ usernameChanges: 0 }))).toBeUndefined();
 });

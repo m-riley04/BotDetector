@@ -24,7 +24,7 @@ pnpm test
 
 Tests are TypeScript and run with Jest. `pnpm typecheck` type-checks the source and the tests.
 
-`tests/fixtures/` holds raw tweet objects (the same JSON the **Copy tweet JSON** button produces). Files named `bot-*.json` must be flagged and `human-*.json` must not, using the default weights. A bot fixture can instead list `"_expect_checks": ["onlyfans-model", ...]` (ids that must trigger) and `"_expanded_links": {"https://t.co/...": "https://destination"}` (what the t.co link resolves to). The fixture clock is pinned to 2026-10-18. The bundled ones are synthetic; drop in real captures to grow the regression corpus.
+`tests/fixtures/` holds raw tweet objects (the same JSON the **Copy tweet JSON** button produces). The tests validate and convert each capture through the Twitter adapter before scoring it, so fixtures exercise the same normalized `Post` model as the extension. Files named `bot-*.json` must be flagged and `human-*.json` must not, using the default weights. A bot fixture can instead list `"_expect_checks": ["onlyfans-model", ...]` (ids that must trigger) and `"_expanded_links": {"https://t.co/...": "https://destination"}` (what the t.co link resolves to). The fixture clock is pinned to 2026-10-18. The bundled ones are synthetic; drop in real captures to grow the regression corpus.
 
 ## Features
 

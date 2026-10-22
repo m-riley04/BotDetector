@@ -1,9 +1,14 @@
 import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { isRecord } from '../src/common/helpers';
 import {
   DEFAULT_DETECTION_REPORT_OPTIONS,
   getDetectionReport,
 } from '../src/detection/detection';
+import {
+  convertTweetToGenericPost,
+  isTwitterTweet,
+} from '../src/adapters/twitter/converters';
 import { Post } from '../src/social-media/models';
 
 // Raw post objects in the same format as the "Copy post JSON" button.
@@ -16,15 +21,33 @@ const fixedNow = Date.parse('2026-10-18T22:00:00.000Z');
 interface Fixture {
   post: Post;
   expandedLinks: Record<string, string>;
+  expectedChecks?: string[];
 }
 
 function loadFixture(name: string): Fixture {
-  const raw = JSON.parse(
-    readFileSync(join(directory, name), 'utf8')
-  ) as Post & {
-    _expanded_links?: Record<string, string>;
+  const raw: unknown = JSON.parse(readFileSync(join(directory, name), 'utf8'));
+  if (!isTwitterTweet(raw)) {
+    throw new Error(`invalid Twitter post fixture: ${name}`);
+  }
+
+  const post = convertTweetToGenericPost(raw);
+  if (!post) throw new Error(`could not convert Twitter post fixture: ${name}`);
+
+  return {
+    post,
+    expandedLinks: isRecord(raw._expanded_links)
+      ? Object.fromEntries(
+          Object.entries(raw._expanded_links).filter(
+            (entry): entry is [string, string] => typeof entry[1] === 'string'
+          )
+        )
+      : {},
+    expectedChecks: Array.isArray(raw._expect_checks)
+      ? raw._expect_checks.filter(
+          (check): check is string => typeof check === 'string'
+        )
+      : undefined,
   };
-  return { post: raw, expandedLinks: raw._expanded_links ?? {} };
 }
 
 function scoreFixture(name: string) {
@@ -51,14 +74,12 @@ test('the fixture corpus has both bots and humans', () => {
 
 describe.each(files)('%s', (name) => {
   const report = scoreFixture(name);
-  const expected = loadFixture(name).post as unknown as {
-    _expect_checks?: string[];
-  };
+  const { expectedChecks } = loadFixture(name);
 
   if (name.startsWith('bot-')) {
     // Fixtures may list the obvious signals that must fire instead of reaching the threshold.
-    if (expected._expect_checks) {
-      test.each(expected._expect_checks)('triggers %s', (id) => {
+    if (expectedChecks) {
+      test.each(expectedChecks)('triggers %s', (id) => {
         expect(report.checks.find((c) => c.id === id)?.triggered).toBe(true);
       });
     } else {

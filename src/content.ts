@@ -34,8 +34,10 @@ import { isContentRequest, type PageStats } from './common/messages';
 import { ReactPropsResponse } from './react/models';
 import { applyListOverride, getTweetAction } from './detection/visibility';
 import { Post } from './social-media/models';
-import { convertTweetToGenericPost } from './adapters/twitter/converters';
-import { Tweet } from './adapters/twitter/models';
+import {
+  convertTweetToGenericPost,
+  isTwitterTweet,
+} from './adapters/twitter/converters';
 
 const HIDDEN_ATTRIBUTE = 'data-botdetector-hidden';
 // marks every post flagged as a likely bot, whether it is hidden or badged
@@ -72,10 +74,8 @@ function getPostDataFromReactResponse(
     ) ?? components.find((component) => component.name === targetComponentName)
   )?.props;
 
-  const tweetProps: Tweet | undefined = isRecord(componentProps)
-    ? (componentProps.tweet as Tweet) // TODO: make this safer
-    : undefined;
-  if (!tweetProps) {
+  const tweetProps = isRecord(componentProps) ? componentProps.tweet : undefined;
+  if (!isTwitterTweet(tweetProps)) {
     console.warn(`[BotDetector] No tweet props found for ${reactProps.id}`);
     return;
   }

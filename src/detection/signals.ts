@@ -106,7 +106,7 @@ export function collectProfileLinks(
   };
 
   add(user.url);
-  for (const entry of user.links.urls) {
+  for (const entry of user.links?.urls ?? []) {
     add(entry);
   }
   return links;
@@ -204,10 +204,16 @@ export interface UsernameChanges {
 export function getUsernameChanges(
   user: PostUser
 ): UsernameChanges | undefined {
-  const lastChangedMs = toNumber(user.about?.lastUsernameChange);
+  const lastChanged = user.about?.lastUsernameChange;
+  const lastChangedMs =
+    lastChanged instanceof Date
+      ? lastChanged.getTime()
+      : toNumber(lastChanged);
   const count =
     toNumber(user.about?.usernameChanges) ?? (lastChangedMs ? 1 : 0);
-  return count > 0 || lastChangedMs ? { count, lastChangedMs } : undefined;
+  return count > 0 || (lastChangedMs !== undefined && lastChangedMs > 0)
+    ? { count, lastChangedMs }
+    : undefined;
 }
 
 const AI_CHARACTERS = /[—–…‘’“”→←↑↓]/;

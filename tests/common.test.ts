@@ -186,7 +186,7 @@ test('toSerializable respects depth and node limits', () => {
   expect(Object.keys(limited as object).length).toBeLessThan(3);
 });
 
-test('getReactData reads props and fiber components, with "b" first', () => {
+test('getReactData reads props and fiber components in traversal order', () => {
   const element = {
     __reactProps$abc: { tweet: { id: '1' } },
     __reactFiber$abc: {
@@ -207,8 +207,8 @@ test('getReactData reads props and fiber components, with "b" first', () => {
   const data = serialization.getReactData(asElement(element));
   expect(data.elementProps).toStrictEqual({ tweet: { id: '1' } });
   expect(data.components).toStrictEqual([
-    { name: 'b', props: { z: 2 } },
     { name: 'div', props: { a: 1 } },
+    { name: 'b', props: { z: 2 } },
     { name: 'Shown', props: { q: 3 } },
   ]);
 });

@@ -216,8 +216,14 @@ export const CHECK_KEYS = Object.keys(CHECK_DEFINITIONS) as CheckKey[];
 /**
  * @returns True if the user's verification is organizational (Business or Government) rather than a paid blue check.
  */
-function isOfficialVerification(user: Post['user'] | undefined): boolean {
-  return (user?.labels.isBusiness || user?.labels.isGovernment) ?? false;
+function isOfficialProfile(user: Post['user'] | undefined): boolean {
+  return Boolean(user?.labels.isBusiness || user?.labels.isGovernment);
+}
+
+function isOfficiallyVerified(user: Post['user'] | undefined): boolean {
+  return (
+    user?.labels.isVerified === true && isOfficialProfile(user)
+  );
 }
 
 /**
@@ -302,7 +308,6 @@ export function getDetectionReport(
   const quotedUser = post.repost?.user;
 
   const isVerified = (user.labels.isVerified || user.labels.isPlus) ?? false;
-  const isVerifiedBusiness = user.labels.isBusiness;
   const isQuotedUserVerified =
     (quotedUser?.labels.isVerified || quotedUser?.labels.isPlus) ?? false;
   const isQuotedUserBusiness = quotedUser?.labels.isBusiness;
@@ -315,11 +320,10 @@ export function getDetectionReport(
   const ageDays = Number.isNaN(createdMs)
     ? undefined
     : Math.max((Date.now() - createdMs) / dayMs, 1);
-  const statuses = user.stats.postStats.posts ?? 0;
-  const tweetsPerDay = ageDays !== undefined ? statuses / ageDays : 0;
-  const followers = user.stats.followers ?? 0;
-  const following = user.stats.following ?? 0;
-  const likes = user.stats.postStats.likesGiven ?? 0;
+  const statuses = user.stats.postStats.posts;
+  const followers = user.stats.followers;
+  const following = user.stats.following;
+  const likes = user.stats.postStats.likesGiven;
 
   const check = (key: CheckKey, triggered: boolean): BotCheck =>
     makeCheck(
@@ -333,7 +337,7 @@ export function getDetectionReport(
   const checks: BotCheck[] = [
     check(
       'blueCheck',
-      isVerified && !isOfficialVerification(user) // NOTE: this was a verification_type check first. Make sure this doesn't break anything
+      isVerified && !isOfficialProfile(user)
     ),
     check('quotedCheckmark', didQuoteCheckmark),
     check('newAccount', ageDays !== undefined && ageDays < 90),
@@ -346,11 +350,24 @@ export function getDetectionReport(
       'accountCreationDate',
       ageDays !== undefined && isAccountCreationOnFirstOrLastDay(user)
     ),
-    check('highTweetRate', tweetsPerDay > 100),
-    check('lowFollowersRatio', following >= 100 && followers / following < 0.1),
+    check(
+      'highTweetRate',
+      ageDays !== undefined &&
+        isNumber(statuses) &&
+        statuses / ageDays > 100
+    ),
+    check(
+      'lowFollowersRatio',
+      isNumber(followers) &&
+        isNumber(following) &&
+        following >= 100 &&
+        followers / following < 0.1
+    ),
     check(
       'lowFollowerFollowingRatio',
-      following >= 100 &&
+      isNumber(followers) &&
+        isNumber(following) &&
+        following >= 100 &&
         followers / following >= 0.9 &&
         followers / following <= 1.1
     ),
@@ -367,7 +384,9 @@ export function getDetectionReport(
     ),
     check(
       'lopsidedFollowing',
-      !isOfficialVerification(user) && // NOTE: this was a verification_type check first. Make sure this doesn't break anything
+      !isOfficialProfile(user) &&
+        isNumber(followers) &&
+        isNumber(following) &&
         hasLopsidedFollowing(followers, following)
     ),
     check(
@@ -393,10 +412,15 @@ export function getDetectionReport(
     check(
       'engagementMismatch',
       isNumber(likes) &&
-        ((statuses >= 1000 && likes < 10) ||
+        ((isNumber(statuses) && statuses >= 1000 && likes < 10) ||
           (ageDays !== undefined && likes / ageDays > 500))
     ),
-    check('noMedia', user.stats.postStats.media === 0 && statuses >= 1000),
+    check(
+      'noMedia',
+      user.stats.postStats.media === 0 &&
+        isNumber(statuses) &&
+        statuses >= 1000
+    ),
     check(
       'spamLinks',
       hasSpamLinks(user.bio, user.location, user.url, user.displayName) ||
@@ -418,12 +442,14 @@ export function getDetectionReport(
       'establishedAccount',
       ageDays !== undefined &&
         ageDays >= 4 * YEAR_DAYS &&
-        followers >= 100 &&
-        statuses >= 500
+      isNumber(followers) &&
+      followers >= 100 &&
+      isNumber(statuses) &&
+      statuses >= 500
     ),
     check(
       'officialVerified',
-      isVerified && isOfficialVerification(user) // NOTE: this was a verification_type check first. Make sure this doesn't break anything
+      isOfficiallyVerified(user)
     ),
   ];
 

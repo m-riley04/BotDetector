@@ -14,7 +14,7 @@ interface UserPostStats {
 }
 
 interface UserStatistics {
-  followers: number;
+  followers?: number;
   following?: number;
   subscriptionsReceived?: number;
   subscriptionsGiven?: number;

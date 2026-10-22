@@ -68,54 +68,60 @@ interface UserHighlightsInfo {
 }
 
 interface User {
-  blocked_by: boolean;
+  blocked_by?: boolean;
   blocking?: boolean;
   business_account?: UserBusinessAccount;
-  can_media_tag: boolean;
-  created_at: string;
+  can_media_tag?: boolean;
+  created_at?: string;
   creator_subscriptions_count?: number;
-  description: string;
-  entities: UserEntities;
-  favourites_count: number;
-  follow_request_sent: boolean;
-  followed_by: boolean;
-  followers_count: number;
-  following: boolean;
-  friends_count: number;
+  description?: string;
+  entities?: UserEntities;
+  favourites_count?: number;
+  follow_request_sent?: boolean;
+  followed_by?: boolean;
+  followers_count?: number;
+  following?: boolean;
+  friends_count?: number;
   has_graduated_access?: boolean;
   has_hidden_subscriptions_on_profile?: boolean;
   highlights_info?: UserHighlightsInfo;
   id_str: string;
-  is_blue_verified: boolean;
-  is_translator: boolean;
-  live_following: boolean;
-  location: string;
-  media_count: number;
-  muting: boolean;
-  name: string;
-  notifications: boolean;
+  is_blue_verified?: boolean;
+  is_translator?: boolean;
+  live_following?: boolean;
+  location?: string;
+  media_count?: number;
+  muting?: boolean;
+  name?: string;
+  notifications?: boolean;
   parody_commentary_fan_label?: string;
   pinned_tweet_ids?: string[];
-  possibly_sensitive: boolean;
+  possibly_sensitive?: boolean;
   professional?: UserProfessional;
-  profile_banner_url: string;
-  profile_description_language: string;
-  profile_image_shape: 'Circle' | 'Square' | string;
-  profile_image_url_https: string;
-  profile_interstitial_type: string;
+  profile_banner_url?: string;
+  profile_description_language?: string;
+  profile_image_shape?: 'Circle' | 'Square' | string;
+  profile_image_url_https?: string;
+  profile_interstitial_type?: string;
   profile_sort_enabled?: boolean;
-  protected: boolean;
-  screen_name: string;
-  statuses_count: number;
-  super_follow_eligible: boolean;
-  super_followed_by: boolean;
-  super_following: boolean;
-  translator_type: 'none' | string;
-  url: string;
+  protected?: boolean;
+  screen_name?: string;
+  statuses_count?: number;
+  super_follow_eligible?: boolean;
+  super_followed_by?: boolean;
+  super_following?: boolean;
+  translator_type?: 'none' | string;
+  url?: string;
   user_seed_tweet_count?: number;
   verification_info?: UserVerificationInfo;
   verified_type?: VerifiedType;
-  verified: boolean;
+  verified?: boolean;
+  about_profile?: {
+    username_changes?: {
+      count?: number | string;
+      last_changed_at_msec?: number | string;
+    };
+  };
   [k: string]: unknown;
 }
 
@@ -141,20 +147,20 @@ interface MediaAvailability {
 }
 
 interface Media {
-  allow_download_status: boolean;
-  display_url: string;
-  expanded_url: string;
-  ext_media_availability: MediaAvailability;
-  features: MediaFeatures;
-  id_str: string;
-  indices: number[];
-  media_key: string;
-  media_results: object;
-  media_url_https: string;
-  original_info: MediaInfo;
-  sizes: object;
-  type: 'photo' | 'video' | 'gif'; // TODO: make sure this is right
-  url: string;
+  allow_download_status?: boolean;
+  display_url?: string;
+  expanded_url?: string;
+  ext_media_availability?: MediaAvailability;
+  features?: MediaFeatures;
+  id_str?: string;
+  indices?: number[];
+  media_key?: string;
+  media_results?: object;
+  media_url_https?: string;
+  original_info?: MediaInfo;
+  sizes?: object;
+  type?: 'photo' | 'video' | 'animated_gif' | 'gif';
+  url?: string;
 }
 
 interface Entities {
@@ -175,41 +181,41 @@ interface QuickPromoteEligibility {
 }
 
 export interface Tweet {
-  bookmark_count: number;
-  bookmarked: boolean;
-  cashtag_attachments: unknown[];
-  conversation_id_str: string;
-  created_at: string;
-  display_text_range: number[];
-  edit_control: EditControl;
-  entities: Entities;
+  bookmark_count?: number;
+  bookmarked?: boolean;
+  cashtag_attachments?: unknown[];
+  conversation_id_str?: string;
+  created_at?: string;
+  display_text_range?: number[];
+  edit_control?: EditControl;
+  entities?: Entities;
   extended_entities?: Entities; // TODO: idk if this is right
-  favorite_count: number;
-  favorited: boolean;
-  full_text: string;
-  grok_analysis_button: boolean;
-  grok_annotations: GrokAnnotations;
-  has_super_follower: boolean;
+  favorite_count?: number;
+  favorited?: boolean;
+  full_text?: string;
+  grok_analysis_button?: boolean;
+  grok_annotations?: GrokAnnotations;
+  has_super_follower?: boolean;
   id_str: string;
   in_reply_to_screen_name?: string;
   in_reply_to_status_id_str?: string;
   in_reply_to_user?: User;
   in_reply_to_user_id_str?: string;
-  is_quote_status: boolean;
-  is_translatable: boolean;
-  lang: string;
-  permalink: string;
+  is_quote_status?: boolean;
+  is_translatable?: boolean;
+  lang?: string;
+  permalink?: string;
   possibly_sensitive?: boolean;
   possibly_sensitive_editable?: boolean;
   quick_promote_eligibility?: QuickPromoteEligibility;
-  quote_count: number;
-  quoted_status_permalink: QuotedStatusPermalink;
+  quote_count?: number;
+  quoted_status_permalink?: QuotedStatusPermalink;
   quoted_status?: Tweet;
-  reply_count: number;
-  retweet_count: number;
-  retweeted: boolean;
-  text: string;
+  reply_count?: number;
+  retweet_count?: number;
+  retweeted?: boolean;
+  text?: string;
   user: User;
-  views: Views;
+  views?: Views;
   [k: string]: unknown;
 }
