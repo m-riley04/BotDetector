@@ -1,10 +1,14 @@
-/** Request sent from the content script to the background script. */
+/**
+ * Request sent from the content script to the background script.
+ */
 export interface ExpandLinksRequest {
   type: 'expand-links';
   urls: string[];
 }
 
-/** Maps each t.co link to its destination. Links that couldn't be expanded are left out. */
+/**
+ * Maps each t.co link to its destination. Links that couldn't be expanded are left out.
+ */
 export type ExpandedLinks = Record<string, string>;
 
 export const MAX_LINKS_PER_REQUEST = 20;
@@ -87,7 +91,9 @@ export async function expandTcoUrl(
   }
 }
 
-/** Expands several links at once, ignoring anything that isn't a t.co link. */
+/**
+ * Expands several links at once, ignoring anything that isn't a t.co link.
+ */
 export async function expandTcoUrls(
   urls: unknown[],
   fetchFn: FetchLike

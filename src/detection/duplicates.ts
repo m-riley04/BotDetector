@@ -1,12 +1,13 @@
-import type { Tweet } from '../adapters/twitter/models';
-import { getTweetText } from './signals';
+import type { Post } from '../social-media/models';
 
 const MIN_LENGTH = 20;
 const MAX_TRACKED_TEXTS = 5000;
 
-/** Lowercases and strips links, leading reply mentions and extra whitespace. */
-export function normalizeTweetText(text: string): string {
-  return text
+/**
+ * Lowercases and strips links, leading reply mentions and extra whitespace.
+ */
+export function normalizePostText(text: string | undefined): string {
+  return (text ?? '')
     .toLowerCase()
     .replace(/https?:\/\/\S+/g, '')
     .replace(/^(?:\s*@\w+)+/, '')
@@ -25,11 +26,11 @@ export class DuplicateTextTracker {
    * Records a post and returns how many distinct posts share its text.
    * Recording the same post again doesn't change the count. Short texts are never duplicates.
    */
-  record(tweet: Tweet): number {
-    const text = normalizeTweetText(getTweetText(tweet));
+  record(post: Post): number {
+    const text = normalizePostText(post.content.text);
     if (text.length < MIN_LENGTH) return 1;
 
-    const id = typeof tweet.id_str === 'string' ? tweet.id_str : undefined;
+    const id = typeof post.id === 'string' ? post.id : undefined;
     if (id === undefined) return 1;
 
     if (this.idsByText.size >= MAX_TRACKED_TEXTS && !this.idsByText.has(text)) {

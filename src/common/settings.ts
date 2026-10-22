@@ -8,16 +8,29 @@ export interface Settings {
   onlyShowLikelyBotsBadges: boolean;
   hideLikelyBots: boolean;
 
-  /** Lowercase handles (without @) that are always treated as human. */
+  /**
+   * Lowercase handles (without @) that are always treated as human.
+   */
   allowlist: string[];
-  /** Lowercase handles (without @) that are always hidden. */
+
+  /**
+   * Lowercase handles (without @) that are always hidden.
+   */
   blocklist: string[];
 
-  /** Check keys (see CHECK_DEFINITIONS) that are switched off. */
+  /**
+   * Check keys (see CHECK_DEFINITIONS) that are switched off.
+   */
   disabledChecks: string[];
-  /** Per-check weight overrides keyed by check key. */
+
+  /**
+   * Per-check weight overrides keyed by check key.
+   */
   checkWeights: Record<string, number>;
-  /** Extra scam keywords on top of the built-in list. */
+
+  /**
+   * Extra scam keywords on top of the built-in list.
+   */
   scamKeywords: string[];
 }
 
@@ -157,7 +170,9 @@ export function parseHandleList(text: string): string[] {
   return sanitizeList(text.split(/[\s,]+/), normalizeHandle, MAX_LIST_SIZE);
 }
 
-/** Parses a keyword list typed into the popup: one keyword or phrase per line, or comma separated. */
+/**
+ * Parses a keyword list typed into the popup: one keyword or phrase per line, or comma separated.
+ */
 export function parseKeywordList(text: string): string[] {
   return sanitizeList(text.split(/[\n,]+/), normalizeKeyword, MAX_KEYWORDS);
 }
@@ -192,7 +207,9 @@ export function applyListAction(
   return sanitizeSettings({ ...settings, allowlist, blocklist });
 }
 
-/** Serializes settings for backup or sharing. */
+/**
+ * Serializes settings for backup or sharing.
+ */
 export function exportSettings(settings: Settings): string {
   return JSON.stringify(sanitizeSettings(settings), null, 2);
 }

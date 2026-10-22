@@ -1,6 +1,6 @@
 import type { BotDetectionReport } from '../src/detection/models';
 import * as visuals from '../src/detection/visuals';
-import type { Tweet } from '../src/adapters/twitter/models';
+import { Post } from '../src/social-media/models';
 
 const BOT_DETECTOR_CLOSE_OVERLAY = 'BOT_DETECTOR_CLOSE_OVERLAY';
 
@@ -71,8 +71,7 @@ interface TestWindow {
 
 const testWindow = () => g.window as TestWindow;
 const asTest = (element: unknown) => element as TestElement;
-const makeTweet = (fields: Record<string, unknown>) =>
-  fields as unknown as Tweet;
+const makePost = (fields: Record<string, unknown>) => fields as unknown as Post;
 
 function installDocument() {
   const body = new TestElement('body');
@@ -117,11 +116,6 @@ function makeReport(
         contribution: 0,
       },
     ],
-    isVerified: false,
-    isVerifiedBusiness: false,
-    isQuotedUserVerified: false,
-    isQuotedUserBusiness: false,
-    didQuoteCheckmark: false,
     isBot: true,
     isBotThreshold: 0.7,
     ...overrides,
@@ -143,8 +137,11 @@ test('getColorFromChance interpolates green, yellow, and red', () => {
 test('createBotElement displays the chance and opens the report modal', () => {
   const body = installDocument();
   const report = makeReport();
-  const tweet = makeTweet({ id_str: 'tweet-123', text: 'Example tweet' });
-  const element = asTest(visuals.createBotElement(report, tweet));
+  const post = makePost({
+    id: 'post-123',
+    content: { text: 'Example post' },
+  });
+  const element = asTest(visuals.createBotElement(report, post));
 
   expect(element.tagName).toBe('div-botdetector');
   expect(element.style.backgroundColor).toBe('#111827');
@@ -161,15 +158,15 @@ test('createBotElement displays the chance and opens the report modal', () => {
     'Bot Chance: 72% | Likely a bot'
   );
   expect(body.children[0].children[0].children[3].children[0].textContent).toBe(
-    'Copy tweet JSON'
+    'Copy post JSON'
   );
 });
 
-test('the details panel copies the complete tweet as formatted JSON', async () => {
+test('the details panel copies the complete post as formatted JSON', async () => {
   const body = installDocument();
-  const tweet = makeTweet({
-    id_str: 'tweet-456',
-    text: 'A test tweet',
+  const post = makePost({
+    id: 'post-456',
+    content: { text: 'A test post' },
     user: { screen_name: 'tester' },
   });
   let copiedText = '';
@@ -189,14 +186,14 @@ test('the details panel copies the complete tweet as formatted JSON', async () =
   });
 
   try {
-    visuals.showReportModal(makeReport(), tweet);
+    visuals.showReportModal(makeReport(), post);
     const panel = body.children[0].children[0];
     const actions = panel.children[3];
     await actions.children[0].onclick();
 
-    expect(copiedText).toBe(JSON.stringify(tweet, null, 2));
+    expect(copiedText).toBe(JSON.stringify(post, null, 2));
     expect(panel.children[4].textContent).toBe(
-      'Tweet JSON copied to clipboard.'
+      'Post JSON copied to clipboard.'
     );
   } finally {
     if (originalNavigator) {
@@ -225,11 +222,11 @@ test('the details panel reports clipboard errors to the user', async () => {
   });
 
   try {
-    visuals.showReportModal(makeReport(), makeTweet({ id_str: 'tweet-789' }));
+    visuals.showReportModal(makeReport(), makePost({ id: 'post-789' }));
     const panel = body.children[0].children[0];
     await panel.children[3].children[0].onclick();
 
-    expect(panel.children[4].textContent).toMatch(/Could not copy tweet JSON/);
+    expect(panel.children[4].textContent).toMatch(/Could not copy post JSON/);
     expect(panel.children[4].textContent).toMatch(/Permission denied/);
     expect(panel.children[4].style.color).toBe('#b91c1c');
   } finally {
@@ -347,7 +344,7 @@ test('showReportModal closes on the close-overlay event and removes its listener
   expect(testWindow().listeners.get(BOT_DETECTOR_CLOSE_OVERLAY)?.size).toBe(0);
 });
 
-test('the details panel offers copying the report next to the tweet', async () => {
+test('the details panel offers copying the report next to the post', async () => {
   const body = installDocument();
   const report = makeReport();
   let copiedText = '';
@@ -367,11 +364,11 @@ test('the details panel offers copying the report next to the tweet', async () =
   });
 
   try {
-    visuals.showReportModal(report, makeTweet({ id_str: 'tweet-1' }));
+    visuals.showReportModal(report, makePost({ id: 'post-1' }));
     const panel = body.children[0].children[0];
     const actions = panel.children[3];
     expect(actions.children.map((b) => b.textContent)).toStrictEqual([
-      'Copy tweet JSON',
+      'Copy post JSON',
       'Copy report JSON',
       'Close',
     ]);
@@ -395,7 +392,7 @@ test('list buttons reflect the status, call back and close the modal', async () 
   const actions: string[] = [];
   const open = (listStatus: 'none' | 'allowed' | 'blocked') => {
     body.children.length = 0;
-    visuals.showReportModal(makeReport(), makeTweet({ id_str: 't' }), {
+    visuals.showReportModal(makeReport(), makePost({ id: 't' }), {
       listStatus,
       onListAction: (action) => {
         actions.push(action);
@@ -406,7 +403,7 @@ test('list buttons reflect the status, call back and close the modal', async () 
   const labels = (bar: TestElement) => bar.children.map((b) => b.textContent);
 
   expect(labels(open('none'))).toStrictEqual([
-    'Copy tweet JSON',
+    'Copy post JSON',
     'Copy report JSON',
     'Mark as human',
     'Always hide',

@@ -17,8 +17,13 @@ interface UserDescriptionEntity {
   [k: string]: unknown;
 }
 
+interface UserUrlEntityEntry {
+  expanded_url?: string;
+  url?: string;
+}
+
 interface UserUrlEntity {
-  urls: unknown[];
+  urls: UserUrlEntityEntry[];
   [k: string]: unknown;
 }
 

@@ -1,4 +1,5 @@
 import type { Tweet } from '../adapters/twitter/models';
+import { Post } from '../social-media/models';
 import type { BotDetectionReport } from './models';
 
 const DEFAULT_MAX_ENTRIES = 2000;
@@ -13,22 +14,22 @@ export class ReportCache {
 
   constructor(private readonly maxEntries = DEFAULT_MAX_ENTRIES) {}
 
-  private static key(tweet: Tweet): string | undefined {
-    const userId = tweet.user?.id_str;
-    const tweetId = tweet.id_str;
-    if (typeof userId !== 'string' || typeof tweetId !== 'string') {
+  private static key(post: Post): string | undefined {
+    const userId = post.user?.id;
+    const postId = post.id;
+    if (typeof userId !== 'string' || typeof postId !== 'string') {
       return undefined;
     }
-    return `${userId}:${tweetId}`;
+    return `${userId}:${postId}`;
   }
 
-  get(tweet: Tweet): BotDetectionReport | undefined {
-    const key = ReportCache.key(tweet);
+  get(post: Post): BotDetectionReport | undefined {
+    const key = ReportCache.key(post);
     return key === undefined ? undefined : this.reports.get(key);
   }
 
-  set(tweet: Tweet, report: BotDetectionReport): void {
-    const key = ReportCache.key(tweet);
+  set(post: Post, report: BotDetectionReport): void {
+    const key = ReportCache.key(post);
     if (key === undefined) return;
 
     this.reports.delete(key);

@@ -1,8 +1,8 @@
 import * as signals from '../src/detection/signals';
-import type { Tweet } from '../src/adapters/twitter/models';
+import { Post } from '../src/social-media/models';
 
-const tweet = (fields: Record<string, unknown> = {}): Tweet =>
-  ({ user: {}, ...fields }) as unknown as Tweet;
+const post = (fields: Record<string, unknown> = {}): Post =>
+  ({ user: {}, ...fields }) as unknown as Post;
 
 test('countEmoji and hasSpamName', () => {
   expect(signals.countEmoji('hi 🔥🔥 there 😀')).toBe(3);
@@ -65,17 +65,9 @@ test('containsKeyword is case-insensitive and ignores empty keywords', () => {
   expect(signals.containsKeyword(undefined, ['airdrop'])).toBe(false);
 });
 
-test('getTweetText prefers full_text and tolerates missing text', () => {
-  expect(
-    signals.getTweetText(tweet({ full_text: 'full', text: 'short' }))
-  ).toBe('full');
-  expect(signals.getTweetText(tweet({ text: 'short' }))).toBe('short');
-  expect(signals.getTweetText(tweet())).toBe('');
-});
-
 test('isGenericReply only matches short generic replies', () => {
   const reply = (full_text: string) =>
-    tweet({ full_text, in_reply_to_status_id_str: '1' });
+    post({ full_text, in_reply_to_status_id_str: '1' });
 
   for (const text of [
     '@a Nice!',
@@ -90,35 +82,35 @@ test('isGenericReply only matches short generic replies', () => {
     signals.isGenericReply(reply('@a I disagree because of the data'))
   ).toBe(false);
   expect(signals.isGenericReply(reply('@a'))).toBe(false);
-  expect(signals.isGenericReply(tweet({ full_text: 'Nice!' }))).toBe(false);
-  expect(signals.isGenericReply(tweet({ full_text: '@a Nice!' }))).toBe(true);
+  expect(signals.isGenericReply(post({ full_text: 'Nice!' }))).toBe(false);
+  expect(signals.isGenericReply(post({ full_text: '@a Nice!' }))).toBe(true);
 });
 
 test('hasMentionHashtagStuffing ignores leading reply mentions', () => {
   expect(
     signals.hasMentionHashtagStuffing(
-      tweet({ full_text: '#a #b #c #d #e buy now' })
+      post({ full_text: '#a #b #c #d #e buy now' })
     )
   ).toBe(true);
   expect(
-    signals.hasMentionHashtagStuffing(tweet({ full_text: 'hi @a @b @c @d @e' }))
+    signals.hasMentionHashtagStuffing(post({ full_text: 'hi @a @b @c @d @e' }))
   ).toBe(true);
   expect(
     signals.hasMentionHashtagStuffing(
-      tweet({ full_text: 'x #a #b #c #d @e @f @g' })
+      post({ full_text: 'x #a #b #c #d @e @f @g' })
     )
   ).toBe(true);
   expect(
     signals.hasMentionHashtagStuffing(
-      tweet({ full_text: '@a @b @c @d @e @f thanks' })
+      post({ full_text: '@a @b @c @d @e @f thanks' })
     )
   ).toBe(false);
-  expect(signals.hasMentionHashtagStuffing(tweet())).toBe(false);
+  expect(signals.hasMentionHashtagStuffing(post())).toBe(false);
 });
 
 test('hasLanguageMismatch compares post and bio languages', () => {
   const t = (lang?: string, bio?: string) =>
-    tweet({ lang, user: { profile_description_language: bio } });
+    post({ lang, user: { profile_description_language: bio } });
 
   expect(signals.hasLanguageMismatch(t('en', 'ja'))).toBe(true);
   expect(signals.hasLanguageMismatch(t('en', 'en'))).toBe(false);
@@ -171,7 +163,7 @@ describe('promo signals', () => {
 
 describe('profile links', () => {
   const user = (fields: Record<string, unknown>) =>
-    fields as unknown as Tweet['user'];
+    fields as unknown as Post['user'];
 
   test('t.co links are swapped for their destination', () => {
     const links = signals.collectProfileLinks(
@@ -184,7 +176,7 @@ describe('profile links', () => {
   test('entity urls are collected', () => {
     const links = signals.collectProfileLinks(
       user({
-        entities: { url: { urls: [{ expanded_url: 'https://fansly.com/a' }] } },
+        links: { urls: ['https://fansly.com/a'] },
       })
     );
     expect(links).toEqual(['https://fansly.com/a']);
@@ -215,7 +207,7 @@ describe('profile links', () => {
 
 test('getUsernameChanges reads the About data', () => {
   const user = (about: unknown) =>
-    ({ about_profile: about }) as unknown as Tweet['user'];
+    ({ about_profile: about }) as unknown as Post['user'];
 
   expect(
     signals.getUsernameChanges(

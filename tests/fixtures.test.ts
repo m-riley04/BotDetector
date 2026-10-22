@@ -4,9 +4,9 @@ import {
   DEFAULT_DETECTION_REPORT_OPTIONS,
   getDetectionReport,
 } from '../src/detection/detection';
-import type { Tweet } from '../src/adapters/twitter/models';
+import { Post } from '../src/social-media/models';
 
-// Raw tweet objects in the same format as the "Copy tweet JSON" button.
+// Raw post objects in the same format as the "Copy post JSON" button.
 // To add a real example, paste the copied JSON into tests/fixtures/bot-*.json or human-*.json.
 const directory = join(__dirname, 'fixtures');
 const files = readdirSync(directory).filter((name) => name.endsWith('.json'));
@@ -14,25 +14,25 @@ const files = readdirSync(directory).filter((name) => name.endsWith('.json'));
 const fixedNow = Date.parse('2026-10-18T22:00:00.000Z');
 
 interface Fixture {
-  tweet: Tweet;
+  post: Post;
   expandedLinks: Record<string, string>;
 }
 
 function loadFixture(name: string): Fixture {
   const raw = JSON.parse(
     readFileSync(join(directory, name), 'utf8')
-  ) as Tweet & {
+  ) as Post & {
     _expanded_links?: Record<string, string>;
   };
-  return { tweet: raw, expandedLinks: raw._expanded_links ?? {} };
+  return { post: raw, expandedLinks: raw._expanded_links ?? {} };
 }
 
 function scoreFixture(name: string) {
-  const { tweet, expandedLinks } = loadFixture(name);
+  const { post, expandedLinks } = loadFixture(name);
   const originalNow = Date.now;
   Date.now = () => fixedNow;
   try {
-    const report = getDetectionReport(tweet, {
+    const report = getDetectionReport(post, {
       ...DEFAULT_DETECTION_REPORT_OPTIONS,
       expandedLinks,
     });
@@ -51,7 +51,7 @@ test('the fixture corpus has both bots and humans', () => {
 
 describe.each(files)('%s', (name) => {
   const report = scoreFixture(name);
-  const expected = loadFixture(name).tweet as unknown as {
+  const expected = loadFixture(name).post as unknown as {
     _expect_checks?: string[];
   };
 

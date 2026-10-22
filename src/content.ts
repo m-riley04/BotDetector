@@ -1,7 +1,6 @@
 import { isRecord } from './common/helpers';
 import { parseReactPropsResponse } from './common/parsing';
 import { BOT_DETECTOR_CLOSE_OVERLAY } from './detection/constants';
-import type { Tweet } from './adapters/twitter/models';
 import {
   requestReactProps,
   loadReactPropsBridge,
@@ -34,6 +33,9 @@ import {
 import { isContentRequest, type PageStats } from './common/messages';
 import { ReactPropsResponse } from './react/models';
 import { applyListOverride, getTweetAction } from './detection/visibility';
+import { Post } from './social-media/models';
+import { convertTweetToGenericPost } from './adapters/twitter/converters';
+import { Tweet } from './adapters/twitter/models';
 
 const HIDDEN_ATTRIBUTE = 'data-botdetector-hidden';
 // marks every post flagged as a likely bot, whether it is hidden or badged
@@ -50,18 +52,18 @@ const reportByElement = new WeakMap<HTMLElement, BotDetectionReport>();
 
 // Temporary storage for the latest tweet data received from the React props bridge
 // TODO: this is bad imo. Fix it.
-let temp: Tweet | undefined;
+let temp: Post | undefined;
 
 // The props bridge only answers once per tweet element, so remember each element's data
-const tweetDataByElement = new WeakMap<HTMLElement, Tweet>();
+const postDataByElement = new WeakMap<HTMLElement, Post>();
 
 // User settings from the popup; kept in sync via storage change events
 let settings: Settings = DEFAULT_SETTINGS;
 
-function getTweetDataFromReactResponse(
+function getPostDataFromReactResponse(
   reactProps: ReactPropsResponse,
   targetComponentName: string = 'Tweet' // fallback; the name is unstable, so prefer matching on the 'tweet' prop
-): Tweet | undefined {
+): Post | undefined {
   const components = reactProps.props.components ?? [];
   const componentProps = (
     components.find(
@@ -78,7 +80,7 @@ function getTweetDataFromReactResponse(
     return;
   }
 
-  return tweetProps;
+  return convertTweetToGenericPost(tweetProps);
 }
 
 // keyboard presses for manual/quick actions
@@ -113,7 +115,7 @@ window.addEventListener(REACT_PROPS_RESPONSE, (event: Event) => {
       return;
     }
 
-    const tweetProps = getTweetDataFromReactResponse(response);
+    const tweetProps = getPostDataFromReactResponse(response);
     if (!tweetProps) {
       console.warn(`[BotDetector] No tweet props found for ${response.id}`);
       return;
@@ -134,13 +136,13 @@ window.addEventListener(REACT_PROPS_RESPONSE, (event: Event) => {
 
 function modifyTweet(
   tweetElement: HTMLElement,
-  tweetData: Tweet,
+  postData: Post,
   report: BotDetectionReport
 ): void {
-  const handle = tweetData.user?.screen_name;
+  const handle = postData.user?.username;
 
   tweetElement.insertBefore(
-    createBotElement(report, tweetData, {
+    createBotElement(report, postData, {
       listStatus: getListStatus(handle, settings),
       onListAction: (action) => updateList(handle, action),
     }),
@@ -186,10 +188,10 @@ function revealHiddenTweets(): void {
       tweet.removeAttribute(HIDDEN_ATTRIBUTE);
       tweet.setAttribute(REVEALED_ATTRIBUTE, 'true');
 
-      const tweetData = tweetDataByElement.get(tweet);
+      const postData = postDataByElement.get(tweet);
       const report = reportByElement.get(tweet);
-      if (tweetData && report && !tweet.querySelector(BOT_ELEMENT)) {
-        modifyTweet(tweet, tweetData, report);
+      if (postData && report && !tweet.querySelector(BOT_ELEMENT)) {
+        modifyTweet(tweet, postData, report);
       }
     });
 }
@@ -231,7 +233,7 @@ function scanTweets(): void {
       REACT_ID_ATTRIBUTE,
       REACT_PROPS_REQUEST
     );
-    if (temp) tweetDataByElement.set(tweet, temp);
+    if (temp) postDataByElement.set(tweet, temp);
 
     // don't modify an already-modified tweet element
     if (
@@ -240,25 +242,25 @@ function scanTweets(): void {
     )
       return;
 
-    const tweetData = tweetDataByElement.get(tweet);
-    if (!tweetData) {
+    const postData = postDataByElement.get(tweet);
+    if (!postData) {
       console.warn(
         `[BotDetector] No detection report cached for tweet: skipping.`
       );
       return;
     }
 
-    let rawReport = reportCache.get(tweetData);
+    let rawReport = reportCache.get(postData);
     if (!rawReport) {
       rawReport = getDetectionReport(
-        tweetData,
+        postData,
         buildDetectionOptions(
           settings,
-          duplicateTracker.record(tweetData),
+          duplicateTracker.record(postData),
           linkExpander.links
         )
       );
-      if (rawReport) reportCache.set(tweetData, rawReport);
+      if (rawReport) reportCache.set(postData, rawReport);
     }
     if (!rawReport) {
       console.warn(
@@ -267,7 +269,7 @@ function scanTweets(): void {
       return;
     }
 
-    const listStatus = getListStatus(tweetData.user?.screen_name, settings);
+    const listStatus = getListStatus(postData.user.username, settings);
     const report = applyListOverride(rawReport, listStatus);
     reportByElement.set(tweet, report);
 
@@ -276,18 +278,20 @@ function scanTweets(): void {
       tweet.setAttribute(BOT_ATTRIBUTE, 'true');
     }
     if (action === 'hide') hideTweet(tweet);
-    else if (action === 'badge') modifyTweet(tweet, tweetData, report);
+    else if (action === 'badge') modifyTweet(tweet, postData, report);
   });
 
   expandProfileLinks();
 }
 
-/** Resolves t.co profile links in the background, then rescans so the new destinations count. */
+/**
+ * Resolves t.co profile links in the background, then rescans so the new destinations count.
+ */
 function expandProfileLinks(): void {
   const urls = Array.from(
     document.querySelectorAll<HTMLElement>('article[data-testid="tweet"]')
   )
-    .map((tweet) => tweetDataByElement.get(tweet)?.user?.url)
+    .map((tweet) => postDataByElement.get(tweet)?.user?.url)
     .filter((url) => linkExpander.needs(url));
   if (urls.length === 0) return;
 

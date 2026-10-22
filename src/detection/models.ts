@@ -1,4 +1,5 @@
 import { Tweet } from '../adapters/twitter/models';
+import { Post } from '../social-media/models';
 
 /**
  * A single weighted check. Every check is always present in the report;
@@ -18,13 +19,7 @@ export interface BotCheck {
 export interface BotDetectionReport {
   chance: number;
   checks: BotCheck[];
-  verifiedType?: Tweet['user']['verified_type'];
-  isVerified: boolean;
-  isVerifiedBusiness: boolean;
-  isQuotedUserVerified: boolean;
-  isQuotedUserBusiness: boolean;
-  quotedUserVerifiedType?: Tweet['user']['verified_type'];
-  didQuoteCheckmark: boolean;
+  user?: Post['user'];
   isBot: boolean;
   isBotThreshold: number;
 }

@@ -1,6 +1,8 @@
 const { transformSync } = require('esbuild');
 
-/** Compiles TS/ESM sources to CommonJS for Jest using the project's existing esbuild. */
+/**
+ * Compiles TS/ESM sources to CommonJS for Jest using the project's existing esbuild.
+ */
 module.exports = {
   process(sourceText, sourcePath) {
     const { code, map } = transformSync(sourceText, {

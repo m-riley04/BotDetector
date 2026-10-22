@@ -1,10 +1,20 @@
-/** Counts shown in the popup for the page the user is looking at. */
+/**
+ * Counts shown in the popup for the page the user is looking at.
+ */
 export interface PageStats {
-  /** Posts currently hidden. */
+  /**
+   * Posts currently hidden.
+   */
   hidden: number;
-  /** Posts marked as likely bots, whether hidden or badged. */
+
+  /**
+   * Posts marked as likely bots, whether hidden or badged.
+   */
   flagged: number;
-  /** Posts currently showing a badge. */
+
+  /**
+   * Posts currently showing a badge.
+   */
   badges: number;
 }
 

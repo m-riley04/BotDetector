@@ -23,6 +23,8 @@ import {
   looksLikeOnlyFans,
   looksRandomHandle,
 } from './signals';
+import { Post } from '../social-media/models';
+import { isNumber } from '../common/helpers';
 
 // region weights
 
@@ -74,7 +76,9 @@ export type CheckWeights = Record<CheckKey, number>;
 
 export const DEFAULT_WEIGHTS: CheckWeights = WEIGHTS;
 
-/** Report order matches the order of this object. */
+/**
+ * Report order matches the order of this object.
+ */
 export const CHECK_DEFINITIONS = {
   blueCheck: { id: 'blue-check', label: 'Paid blue checkmark (non-business)' },
   quotedCheckmark: {
@@ -210,30 +214,10 @@ export const CHECK_DEFINITIONS = {
 export const CHECK_KEYS = Object.keys(CHECK_DEFINITIONS) as CheckKey[];
 
 /**
- * TODO: probably too strict
- * @param user
- * @returns True if a user is a "professional" of type Business or has a verified type of Business.
- */
-function isBusiness(user: Tweet['user'] | undefined): boolean {
-  return (
-    (!!user?.professional &&
-      user.professional.professional_type === 'Business') ||
-    user?.verified_type === 'Business'
-  );
-}
-
-/**
  * @returns True if the user's verification is organizational (Business or Government) rather than a paid blue check.
  */
-function isOfficialVerification(user: Tweet['user'] | undefined): boolean {
-  return isBusiness(user) || user?.verified_type === 'Government';
-}
-
-/** Organization verification granted by X itself (not just a "professional" profile). */
-function isOfficialVerifiedType(user: Tweet['user'] | undefined): boolean {
-  return (
-    user?.verified_type === 'Business' || user?.verified_type === 'Government'
-  );
+function isOfficialVerification(user: Post['user'] | undefined): boolean {
+  return (user?.labels.isBusiness || user?.labels.isGovernment) ?? false;
 }
 
 /**
@@ -259,22 +243,28 @@ function makeCheck(
   };
 }
 
-function isAccountCreationOnFirstOrLastDay(user: Tweet['user']): boolean {
-  return isFirstOrLastDayOfMonth(new Date(user.created_at));
+function isAccountCreationOnFirstOrLastDay(user: Post['user']): boolean {
+  return isFirstOrLastDayOfMonth(user.about.createdAt);
 }
-
-const isNumber = (value: unknown): value is number =>
-  typeof value === 'number' && Number.isFinite(value);
 
 export interface GetDetectionReportOptions {
   weights: CheckWeights;
   isBotThreshold: number;
   dayMs: number;
-  /** Keywords that flag a bio as scammy. Defaults to DEFAULT_SCAM_KEYWORDS. */
+
+  /**
+   * Keywords that flag a bio as scammy. Defaults to DEFAULT_SCAM_KEYWORDS.
+   */
   scamKeywords?: readonly string[];
-  /** How many posts on the page share this post's text. Defaults to 1 (unique). */
+
+  /**
+   * How many posts on the page share this post's text. Defaults to 1 (unique).
+   */
   duplicateTextCount?: number;
-  /** Destinations of t.co links, keyed by the t.co URL. */
+
+  /**
+   * Destinations of t.co links, keyed by the t.co URL.
+   */
   expandedLinks?: Readonly<Record<string, string>>;
 }
 
@@ -296,39 +286,40 @@ const YEAR_DAYS = 365;
  * @returns A bot detection report if the tweet could be analyzed, otherwise undefined.
  */
 export function getDetectionReport(
-  tweet: Tweet | undefined,
+  post: Post | undefined,
   options:
     GetDetectionReportOptions | undefined = DEFAULT_DETECTION_REPORT_OPTIONS
 ): BotDetectionReport | undefined {
-  if (!tweet) return;
+  if (!post) return;
 
   const { weights, isBotThreshold, dayMs } = options;
   const scamKeywords = options.scamKeywords ?? DEFAULT_SCAM_KEYWORDS;
   const duplicateTextCount = options.duplicateTextCount ?? 1;
 
-  const user = tweet.user;
+  const user = post.user;
   const profileLinks = collectProfileLinks(user, options.expandedLinks);
   const usernameChanges = getUsernameChanges(user);
-  const quotedUser = tweet.quoted_status?.user;
+  const quotedUser = post.repost?.user;
 
-  const isVerified = (user.verified || user.is_blue_verified) ?? false;
-  const isVerifiedBusiness = isBusiness(user);
+  const isVerified = (user.labels.isVerified || user.labels.isPlus) ?? false;
+  const isVerifiedBusiness = user.labels.isBusiness;
   const isQuotedUserVerified =
-    (quotedUser?.verified || quotedUser?.is_blue_verified) ?? false;
-  const isQuotedUserBusiness = isBusiness(quotedUser);
-  const quotedUserVerifiedType = quotedUser?.verified_type;
+    (quotedUser?.labels.isVerified || quotedUser?.labels.isPlus) ?? false;
+  const isQuotedUserBusiness = quotedUser?.labels.isBusiness;
+  const quotedUserVerifiedType =
+    (quotedUser?.labels.isGovernment || quotedUser?.labels.isBusiness) ?? false;
   const didQuoteCheckmark =
     isQuotedUserVerified && !quotedUserVerifiedType && !isQuotedUserBusiness;
 
-  const createdMs = Date.parse(user.created_at);
+  const createdMs = user.about.createdAt.getTime();
   const ageDays = Number.isNaN(createdMs)
     ? undefined
     : Math.max((Date.now() - createdMs) / dayMs, 1);
-  const statuses = user.statuses_count ?? 0;
+  const statuses = user.stats.postStats.posts ?? 0;
   const tweetsPerDay = ageDays !== undefined ? statuses / ageDays : 0;
-  const followers = user.followers_count ?? 0;
-  const following = user.friends_count ?? 0;
-  const favourites = user.favourites_count;
+  const followers = user.stats.followers ?? 0;
+  const following = user.stats.following ?? 0;
+  const likes = user.stats.postStats.likesGiven ?? 0;
 
   const check = (key: CheckKey, triggered: boolean): BotCheck =>
     makeCheck(
@@ -340,13 +331,16 @@ export function getDetectionReport(
 
   // region checks
   const checks: BotCheck[] = [
-    check('blueCheck', isVerified && !isOfficialVerification(user)),
+    check(
+      'blueCheck',
+      isVerified && !isOfficialVerification(user) // NOTE: this was a verification_type check first. Make sure this doesn't break anything
+    ),
     check('quotedCheckmark', didQuoteCheckmark),
     check('newAccount', ageDays !== undefined && ageDays < 90),
     check(
       'postAiAccount',
       ageDays !== undefined &&
-        new Date(user.created_at) > new Date('2023-01-01')
+        (user.about?.createdAt ?? new Date(0)) > new Date('2023-01-01')
     ),
     check(
       'accountCreationDate',
@@ -360,20 +354,20 @@ export function getDetectionReport(
         followers / following >= 0.9 &&
         followers / following <= 1.1
     ),
-    check('autoGeneratedHandle', /\d{5,}$/.test(user.screen_name ?? '')),
+    check('autoGeneratedHandle', /\d{5,}$/.test(user.username ?? '')),
     check('onlyFansModel', looksLikeOnlyFans(user, profileLinks)),
     check(
       'excessivePromo',
-      hasPromoLocation(user.location) || hasPromoBio(user.description)
+      hasPromoLocation(user.location) || hasPromoBio(user.bio)
     ),
-    check('baitPersona', hasBaitPersona(user.description, user.location)),
+    check('baitPersona', hasBaitPersona(user.bio, user.location)),
     check(
       'cryptoPromo',
-      hasCryptoPromo(user.description, user.name, tweet.full_text ?? tweet.text)
+      hasCryptoPromo(user.bio, user.displayName, post.content.text)
     ),
     check(
       'lopsidedFollowing',
-      !isOfficialVerifiedType(user) &&
+      !isOfficialVerification(user) && // NOTE: this was a verification_type check first. Make sure this doesn't break anything
         hasLopsidedFollowing(followers, following)
     ),
     check(
@@ -383,43 +377,43 @@ export function getDetectionReport(
           (usernameChanges.lastChangedMs !== undefined &&
             Date.now() - usernameChanges.lastChangedMs < YEAR_DAYS * dayMs))
     ),
-    check('aiCharactersBio', hasAiCharacters(user.description)),
-    check('noDescription', !user.description?.trim()),
-    check('noBanner', !user.profile_banner_url),
+    check('aiCharactersBio', hasAiCharacters(user.bio)),
+    check('noDescription', !user.bio?.trim()),
+    check('noBanner', !user.profileElements?.bannerUrl),
     check(
       'defaultProfileImage',
-      (user.profile_image_url_https ?? '').includes('default_profile')
+      (user.profileElements?.imageUrl ?? '').includes('default_profile')
     ),
-    check('displayNameSpam', hasSpamName(user.name)),
-    check('randomHandle', looksRandomHandle(user.screen_name)),
+    check('displayNameSpam', hasSpamName(user.displayName)),
+    check('randomHandle', looksRandomHandle(user.username)),
     check(
       'handleNameMismatch',
-      handleMismatchesName(user.name, user.screen_name)
+      handleMismatchesName(user.displayName, user.username)
     ),
     check(
       'engagementMismatch',
-      isNumber(favourites) &&
-        ((statuses >= 1000 && favourites < 10) ||
-          (ageDays !== undefined && favourites / ageDays > 500))
+      isNumber(likes) &&
+        ((statuses >= 1000 && likes < 10) ||
+          (ageDays !== undefined && likes / ageDays > 500))
     ),
-    check('noMedia', user.media_count === 0 && statuses >= 1000),
+    check('noMedia', user.stats.postStats.media === 0 && statuses >= 1000),
     check(
       'spamLinks',
-      hasSpamLinks(user.description, user.location, user.url, user.name) ||
+      hasSpamLinks(user.bio, user.location, user.url, user.displayName) ||
         linksToDomain(profileLinks, ADULT_PROMO_DOMAINS)
     ),
     check(
       'scamKeywordsBio',
       containsKeyword(
-        `${user.description ?? ''} ${user.name ?? ''}`,
+        `${user.bio ?? ''} ${user.displayName ?? ''}`,
         scamKeywords
       )
     ),
-    check('genericReply', isGenericReply(tweet)),
-    check('mentionHashtagStuffing', hasMentionHashtagStuffing(tweet)),
+    check('genericReply', isGenericReply(post)),
+    check('mentionHashtagStuffing', hasMentionHashtagStuffing(post)),
     check('duplicateText', duplicateTextCount >= 2),
-    check('languageMismatch', hasLanguageMismatch(tweet)),
-    check('protectedAccount', user.protected === true),
+    check('languageMismatch', hasLanguageMismatch(post)),
+    check('protectedAccount', user.labels.isPrivate === true),
     check(
       'establishedAccount',
       ageDays !== undefined &&
@@ -427,7 +421,10 @@ export function getDetectionReport(
         followers >= 100 &&
         statuses >= 500
     ),
-    check('officialVerified', isVerified && isOfficialVerifiedType(user)),
+    check(
+      'officialVerified',
+      isVerified && isOfficialVerification(user) // NOTE: this was a verification_type check first. Make sure this doesn't break anything
+    ),
   ];
 
   const chance = Math.min(
@@ -441,13 +438,7 @@ export function getDetectionReport(
   return {
     chance,
     checks,
-    isVerified,
-    verifiedType: user.verified_type,
-    isVerifiedBusiness,
-    isQuotedUserVerified,
-    isQuotedUserBusiness,
-    quotedUserVerifiedType,
-    didQuoteCheckmark,
+    user,
     isBot: chance >= isBotThreshold,
     isBotThreshold: isBotThreshold,
   };

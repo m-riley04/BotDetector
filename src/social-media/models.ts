@@ -1,5 +1,6 @@
-interface UserLink {
-  url: string;
+interface UserLinks {
+  urls: string[];
+  description?: string;
 }
 
 interface UserPostStats {
@@ -45,17 +46,39 @@ interface UserLabels {
   isGovernment?: boolean;
 }
 
+type UserProfilePictureShape = 'circle' | 'square' | 'other';
+
+interface UserProfileElements {
+  bannerUrl?: string;
+  imageUrl?: string;
+  imageShape?: UserProfilePictureShape;
+}
+
+interface UserProfileAbout {
+  usernameChanges?: number;
+  lastUsernameChange?: Date;
+  createdAt: Date;
+}
+
 interface UserProfile {
   id: string;
+
+  /**
+   * i.e. screenname
+   */
   username: string;
+
   displayName: string;
   bio?: string;
-  links: UserLink[];
+  bioLanguage?: string;
+  links: UserLinks;
   location?: string;
-  createdAt: Date;
   pinnedPostIds?: string[];
   labels: UserLabels;
   stats: UserStatistics;
+  profileElements?: UserProfileElements;
+  url?: string;
+  about: UserProfileAbout;
 }
 
 interface MediaSize {
@@ -72,7 +95,7 @@ interface Media {
 }
 
 interface Content {
-  text: string;
+  text?: string;
   media?: Media[];
 }
 
@@ -95,6 +118,7 @@ export interface Post {
   language: string;
   link?: string;
   updatedAt?: Date;
+  inReplyToPostId?: string;
 
   /**
    * i.e. quote tweet

@@ -16,7 +16,9 @@ export class LinkExpander {
 
   constructor(private readonly send: Send) {}
 
-  /** True if the link still needs to be requested. */
+  /**
+   * True if the link still needs to be requested.
+   */
   needs(url: unknown): url is string {
     return isTcoUrl(url) && !this.attempted.has(url);
   }

@@ -4,9 +4,8 @@ import type { Tweet } from './models';
 function convertTwitterUserToGenericUser(user: Tweet['user']): Post['user'] {
   return {
     id: user.id_str,
-    createdAt: new Date(user.created_at),
-    displayName: user.screen_name,
-    username: user.name,
+    displayName: user.name,
+    username: user.screen_name,
     bio: user.description,
     labels: {
       isPrivate: user.protected,
@@ -26,10 +25,21 @@ function convertTwitterUserToGenericUser(user: Tweet['user']): Post['user'] {
       },
     },
     location: user.location,
-    links: [
-      // TODO: add these
-    ],
+    links: {
+      urls:
+        user.entities?.url?.urls
+          ?.filter((entry) => entry.expanded_url || entry.url)
+          .map((entry) => entry.expanded_url ?? entry.url ?? '')
+          .filter((url) => url !== '') ?? [],
+      description: undefined, // TODO:
+    },
     pinnedPostIds: user.pinned_tweet_ids,
+    url: user.url,
+    about: {
+      createdAt: new Date(user.created_at),
+      lastUsernameChange: undefined, // TODO:
+      usernameChanges: undefined, // TODO:
+    },
   };
 }
 

@@ -1,13 +1,15 @@
 import { BOT_ELEMENT } from '../common/constants';
 import type { ListAction, ListStatus } from '../common/settings';
-import type { Tweet } from '../adapters/twitter/models';
 import { BOT_DETECTOR_CLOSE_OVERLAY } from './constants';
 import type { BotDetectionReport } from './models';
+import { Post } from '../social-media/models';
 
 const pct = (n: number) => `${Number((n * 100).toFixed(2))}%`;
 const signedPct = (n: number) => `${n < 0 ? '-' : '+'}${pct(Math.abs(n))}`;
 
-/** Lets the modal change the user's allowlist/blocklist for the post's author. */
+/**
+ * Lets the modal change the user's allowlist/blocklist for the post's author.
+ */
 export interface ReportModalOptions {
   listStatus: ListStatus;
   onListAction: (action: ListAction) => void | Promise<void>;
@@ -41,7 +43,7 @@ function row(cells: string[], style = ''): HTMLTableRowElement {
  */
 export function showReportModal(
   report: BotDetectionReport,
-  tweet?: Tweet,
+  post?: Post,
   options?: ReportModalOptions
 ): void {
   const overlay = document.createElement('div');
@@ -143,10 +145,10 @@ export function showReportModal(
   close.onclick = () => closeOverlayHandler();
   actions.append(close);
   panel.append(actions);
-  if (tweet && options) {
+  if (post && options) {
     addListButtons(actions, close, options, closeOverlayHandler);
   }
-  if (tweet) addCopyTweetButton(panel, tweet, report);
+  if (post) addCopyPostButton(panel, post, report);
 
   overlay.append(panel);
   document.body.append(overlay);
@@ -180,16 +182,16 @@ function addListButtons(
   }
 }
 
-function addCopyTweetButton(
+function addCopyPostButton(
   panel: HTMLElement,
-  tweet: Tweet,
+  post: Post,
   report?: BotDetectionReport
 ): void {
   const actions = panel.lastElementChild;
   if (!actions) return;
 
   const copyButton = document.createElement('button');
-  copyButton.textContent = 'Copy tweet JSON';
+  copyButton.textContent = 'Copy post JSON';
   copyButton.setAttribute('type', 'button');
   styleButton(copyButton);
 
@@ -216,7 +218,7 @@ function addCopyTweetButton(
     }
   };
 
-  copyButton.onclick = copier('Tweet', tweet);
+  copyButton.onclick = copier('Post', post);
 
   if (report) {
     const reportButton = document.createElement('button');
@@ -262,7 +264,7 @@ export function getColorFromChance(chance: number): string {
  */
 export function createBotElement(
   report: BotDetectionReport,
-  tweet: Tweet,
+  post: Post,
   options?: ReportModalOptions
 ): HTMLElement {
   const bg = document.createElement(BOT_ELEMENT);
@@ -298,7 +300,7 @@ export function createBotElement(
   styleButton(infoButton);
   infoButton.style.padding = '5px 9px';
   infoButton.style.fontSize = '12px';
-  infoButton.onclick = () => showReportModal(report, tweet, options);
+  infoButton.onclick = () => showReportModal(report, post, options);
   bg.append(text, infoButton);
 
   return bg;
