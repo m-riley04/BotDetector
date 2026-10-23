@@ -49,11 +49,15 @@ export function createBotElement(
     'aria-label',
     `Bot detection: ${toWholePercent(report.chance)} chance`
   );
-  mountInShadow(host, () => (
-    <Badge
-      report={report}
-      onDetails={() => showReportModal(report, post, options)}
-    />
-  ));
+  mountInShadow(
+    host,
+    () => (
+      <Badge
+        report={report}
+        onDetails={() => showReportModal(report, post, options)}
+      />
+    ),
+    STYLES
+  );
   return host;
 }
