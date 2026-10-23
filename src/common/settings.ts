@@ -1,3 +1,12 @@
+import {
+  isBoolean,
+  isNonNullObject,
+  isNumber,
+  isRecord,
+  isString,
+} from './helpers';
+import { UnknownRecord } from './types';
+
 export interface Settings {
   enabled: boolean;
 
@@ -68,7 +77,7 @@ export const DEFAULT_SETTINGS: Settings = {
  * @returns The handle, or undefined if it isn't a valid X handle.
  */
 export function normalizeHandle(value: unknown): string | undefined {
-  if (typeof value !== 'string') return undefined;
+  if (!isString(value)) return undefined;
   const handle = value.trim().replace(/^@/, '').toLowerCase();
   return HANDLE_PATTERN.test(handle) ? handle : undefined;
 }
@@ -89,7 +98,7 @@ function sanitizeList<T>(
 }
 
 function normalizeKeyword(value: unknown): string | undefined {
-  if (typeof value !== 'string') return undefined;
+  if (!isString(value)) return undefined;
   const keyword = value.trim().toLowerCase();
   return keyword.length > 0 && keyword.length <= MAX_KEYWORD_LENGTH
     ? keyword
@@ -97,19 +106,17 @@ function normalizeKeyword(value: unknown): string | undefined {
 }
 
 function normalizeKey(value: unknown): string | undefined {
-  return typeof value === 'string' && KEY_PATTERN.test(value)
-    ? value
-    : undefined;
+  return isString(value) && KEY_PATTERN.test(value) ? value : undefined;
 }
 
 function sanitizeWeights(value: unknown): Record<string, number> {
-  if (typeof value !== 'object' || value === null || Array.isArray(value)) {
+  if (!isRecord(value)) {
     return {};
   }
   const result: Record<string, number> = {};
   for (const [key, weight] of Object.entries(value)) {
     if (!KEY_PATTERN.test(key)) continue;
-    if (typeof weight !== 'number' || !Number.isFinite(weight)) continue;
+    if (!isNumber(weight) || !Number.isFinite(weight)) continue;
     result[key] = Math.min(Math.max(weight, MIN_WEIGHT), MAX_WEIGHT);
   }
   return result;
@@ -120,13 +127,10 @@ function sanitizeWeights(value: unknown): Record<string, number> {
  * falling back to defaults for anything missing or invalid.
  */
 export function sanitizeSettings(value: unknown): Settings {
-  const raw =
-    typeof value === 'object' && value !== null
-      ? (value as Record<string, unknown>)
-      : {};
+  const raw = isNonNullObject(value) ? (value as UnknownRecord) : {};
 
   const threshold =
-    typeof raw.threshold === 'number' && Number.isFinite(raw.threshold)
+    isNumber(raw.threshold) && Number.isFinite(raw.threshold)
       ? Math.min(Math.max(raw.threshold, MIN_THRESHOLD), MAX_THRESHOLD)
       : DEFAULT_SETTINGS.threshold;
 
@@ -139,17 +143,14 @@ export function sanitizeSettings(value: unknown): Settings {
   ).filter((handle) => !blocklist.includes(handle));
 
   return {
-    enabled:
-      typeof raw.enabled === 'boolean' ? raw.enabled : DEFAULT_SETTINGS.enabled,
+    enabled: isBoolean(raw.enabled) ? raw.enabled : DEFAULT_SETTINGS.enabled,
     threshold,
-    onlyShowLikelyBotsBadges:
-      typeof raw.onlyShowLikelyBotsBadges === 'boolean'
-        ? raw.onlyShowLikelyBotsBadges
-        : DEFAULT_SETTINGS.onlyShowLikelyBotsBadges,
-    hideLikelyBots:
-      typeof raw.hideLikelyBots === 'boolean'
-        ? raw.hideLikelyBots
-        : DEFAULT_SETTINGS.hideLikelyBots,
+    onlyShowLikelyBotsBadges: isBoolean(raw.onlyShowLikelyBotsBadges)
+      ? raw.onlyShowLikelyBotsBadges
+      : DEFAULT_SETTINGS.onlyShowLikelyBotsBadges,
+    hideLikelyBots: isBoolean(raw.hideLikelyBots)
+      ? raw.hideLikelyBots
+      : DEFAULT_SETTINGS.hideLikelyBots,
     allowlist,
     blocklist,
     disabledChecks: sanitizeList(raw.disabledChecks, normalizeKey, 200),
@@ -221,11 +222,7 @@ export function exportSettings(settings: Settings): string {
 export function parseImportedSettings(text: string): Settings | undefined {
   try {
     const parsed: unknown = JSON.parse(text);
-    if (
-      typeof parsed !== 'object' ||
-      parsed === null ||
-      Array.isArray(parsed)
-    ) {
+    if (!isRecord(parsed)) {
       return undefined;
     }
     return sanitizeSettings(parsed);

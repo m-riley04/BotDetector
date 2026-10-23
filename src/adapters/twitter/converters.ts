@@ -1,13 +1,13 @@
-import { isRecord } from '../../common/helpers';
+import { isRecord, isString } from '../../common/helpers';
 import { Post } from '../../social-media/models';
 import type { Tweet } from './models';
 
 export function isTwitterTweet(value: unknown): value is Tweet {
   return (
     isRecord(value) &&
-    typeof value.id_str === 'string' &&
+    isString(value.id_str) &&
     isRecord(value.user) &&
-    typeof value.user.id_str === 'string'
+    isString(value.user.id_str)
   );
 }
 

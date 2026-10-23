@@ -1,3 +1,4 @@
+import { isNonNullObject, isString } from '../common/helpers';
 import {
   isTcoUrl,
   type ExpandLinksRequest,
@@ -41,13 +42,13 @@ export class LinkExpander {
     } catch {
       return false;
     }
-    if (typeof answer !== 'object' || answer === null) return false;
+    if (!isNonNullObject(answer)) return false;
 
     let learned = false;
     for (const [url, destination] of Object.entries(answer)) {
       if (
         pending.includes(url) &&
-        typeof destination === 'string' &&
+        isString(destination) &&
         destination.length > 0
       ) {
         this.links[url] = destination;

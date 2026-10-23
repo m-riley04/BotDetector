@@ -1,4 +1,4 @@
-import { toNumber } from '../common/helpers';
+import { isString, toNumber } from '../common/helpers';
 import type { Post } from '../social-media/models';
 
 type PostUser = Post['user'];
@@ -100,7 +100,7 @@ export function collectProfileLinks(
 ): string[] {
   const links: string[] = [];
   const add = (value: unknown) => {
-    if (typeof value === 'string' && value.length > 0) {
+    if (isString(value) && value.length > 0) {
       links.push(expanded[value] ?? value);
     }
   };
@@ -206,9 +206,7 @@ export function getUsernameChanges(
 ): UsernameChanges | undefined {
   const lastChanged = user.about?.lastUsernameChange;
   const lastChangedMs =
-    lastChanged instanceof Date
-      ? lastChanged.getTime()
-      : toNumber(lastChanged);
+    lastChanged instanceof Date ? lastChanged.getTime() : toNumber(lastChanged);
   const count =
     toNumber(user.about?.usernameChanges) ?? (lastChangedMs ? 1 : 0);
   return count > 0 || (lastChangedMs !== undefined && lastChangedMs > 0)
@@ -357,7 +355,7 @@ const IGNORED_LANGUAGES = new Set(['', 'und', 'qme', 'qht', 'zxx', 'art']);
 export function hasLanguageMismatch(post: Post): boolean {
   const postLanguage = post.language;
   const bioLanguage = post.user.bioLanguage;
-  if (typeof postLanguage !== 'string' || typeof bioLanguage !== 'string') {
+  if (!isString(postLanguage) || !isString(bioLanguage)) {
     return false;
   }
   if (

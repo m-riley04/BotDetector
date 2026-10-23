@@ -1,3 +1,4 @@
+import { isString } from './common/helpers';
 import {
   expandTcoUrls,
   isExpandLinksRequest,
@@ -24,7 +25,7 @@ browser.runtime.onMessage.addListener((message: unknown) => {
 
     for (const url of wanted) {
       const cached = cache.get(url);
-      if (typeof cached === 'string') result[url] = cached;
+      if (isString(cached)) result[url] = cached;
       else if (cached === undefined) missing.push(url);
     }
 

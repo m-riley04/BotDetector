@@ -1,4 +1,5 @@
 import type { Tweet } from '../adapters/twitter/models';
+import { isString } from '../common/helpers';
 import { Post } from '../social-media/models';
 import type { BotDetectionReport } from './models';
 
@@ -17,7 +18,7 @@ export class ReportCache {
   private static key(post: Post): string | undefined {
     const userId = post.user?.id;
     const postId = post.id;
-    if (typeof userId !== 'string' || typeof postId !== 'string') {
+    if (!isString(userId) || !isString(postId)) {
       return undefined;
     }
     return `${userId}:${postId}`;

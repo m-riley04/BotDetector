@@ -1,3 +1,5 @@
+import { isNonNullObject, isString } from './helpers';
+
 /**
  * Request sent from the content script to the background script.
  */
@@ -15,14 +17,15 @@ export const MAX_LINKS_PER_REQUEST = 20;
 
 const TCO_PATTERN = /^https:\/\/t\.co\/[A-Za-z0-9]{6,20}$/;
 
+// TODO: abstract this out to not be twitter-specific
 export function isTcoUrl(value: unknown): value is string {
-  return typeof value === 'string' && TCO_PATTERN.test(value);
+  return isString(value) && TCO_PATTERN.test(value);
 }
 
 export function isExpandLinksRequest(
   value: unknown
 ): value is ExpandLinksRequest {
-  if (typeof value !== 'object' || value === null) return false;
+  if (!isNonNullObject(value)) return false;
   const { type, urls } = value as { type?: unknown; urls?: unknown };
   return type === 'expand-links' && Array.isArray(urls);
 }

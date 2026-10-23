@@ -10,3 +10,6 @@ export interface SerializationState {
   nodes: number;
   seen: WeakSet<object>;
 }
+
+export type UnknownJsonProps = Record<string, unknown>;
+export type ReactFiber = UnknownJsonProps;

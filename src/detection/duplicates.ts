@@ -1,3 +1,4 @@
+import { isString } from '../common/helpers';
 import type { Post } from '../social-media/models';
 
 const MIN_LENGTH = 20;
@@ -30,7 +31,7 @@ export class DuplicateTextTracker {
     const text = normalizePostText(post.content.text);
     if (text.length < MIN_LENGTH) return 1;
 
-    const id = typeof post.id === 'string' ? post.id : undefined;
+    const id = isString(post.id) ? post.id : undefined;
     if (id === undefined) return 1;
 
     if (this.idsByText.size >= MAX_TRACKED_TEXTS && !this.idsByText.has(text)) {

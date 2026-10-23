@@ -1,14 +1,10 @@
 import type { ReactPropsResponse, ReactComponentData } from '../react/models';
-import { isRecord } from './helpers';
+import { isRecord, isString } from './helpers';
 
 export function parseReactPropsResponse(
   value: unknown
 ): ReactPropsResponse | undefined {
-  if (
-    !isRecord(value) ||
-    typeof value.id !== 'string' ||
-    !isRecord(value.props)
-  ) {
+  if (!isRecord(value) || !isString(value.id) || !isRecord(value.props)) {
     console.error('Value is not a record or missing required fields:', value);
     return undefined;
   }
@@ -26,7 +22,7 @@ export function parseReactPropsResponse(
   for (const component of components) {
     if (
       !isRecord(component) ||
-      (component.name !== undefined && typeof component.name !== 'string') ||
+      (component.name !== undefined && !isString(component.name)) ||
       (component.props !== undefined && !isRecord(component.props))
     ) {
       console.warn('Skipping malformed React component data:', component);
@@ -34,7 +30,7 @@ export function parseReactPropsResponse(
     }
 
     parsedComponents.push({
-      ...(typeof component.name === 'string' ? { name: component.name } : {}),
+      ...(isString(component.name) ? { name: component.name } : {}),
       ...(component.props === undefined
         ? {}
         : { props: component.props as ReactComponentData['props'] }),

@@ -1,3 +1,5 @@
+import { isNonNullObject } from './helpers';
+
 /**
  * Counts shown in the popup for the page the user is looking at.
  */
@@ -21,7 +23,7 @@ export interface PageStats {
 export type ContentRequest = { type: 'get-stats' } | { type: 'show-hidden' };
 
 export function isContentRequest(value: unknown): value is ContentRequest {
-  if (typeof value !== 'object' || value === null) return false;
+  if (!isNonNullObject(value)) return false;
   const type = (value as { type?: unknown }).type;
   return type === 'get-stats' || type === 'show-hidden';
 }

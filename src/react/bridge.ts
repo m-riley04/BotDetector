@@ -18,12 +18,12 @@ class ReactBridge {
     return String(++this.nextReactId);
   }
 
-  public hasRequestedProps(tweetElement: HTMLElement): boolean {
-    return this.requestedReactProps.has(tweetElement);
+  public hasRequestedProps(postElement: HTMLElement): boolean {
+    return this.requestedReactProps.has(postElement);
   }
 
-  public markRequested(tweetElement: HTMLElement): void {
-    this.requestedReactProps.add(tweetElement);
+  public markRequested(postElement: HTMLElement): void {
+    this.requestedReactProps.add(postElement);
   }
 
   public clearAddedTags(): void {
@@ -61,21 +61,21 @@ export function loadReactPropsBridge(
 }
 
 /**
- * Requests the React props for a given tweet element.
- * @param tweetElement The tweet element for which to request React props.
+ * Requests the React props for a given post element.
+ * @param postElement The post element for which to request React props.
  * @returns Nothing. This sends the (synchronous) dispatch event.
  */
 export function requestReactProps(
   bridge: ReactBridge,
-  tweetElement: HTMLElement,
+  postElement: HTMLElement,
   reactIdAttribute: string,
   reactPropsRequestId: string
 ): void {
-  if (!bridge.isReady() || bridge.hasRequestedProps(tweetElement)) return;
+  if (!bridge.isReady() || bridge.hasRequestedProps(postElement)) return;
 
   const id = bridge.getNextReactId();
-  tweetElement.setAttribute(reactIdAttribute, id);
-  bridge.markRequested(tweetElement);
+  postElement.setAttribute(reactIdAttribute, id);
+  bridge.markRequested(postElement);
 
   window.dispatchEvent(new CustomEvent(reactPropsRequestId, { detail: id }));
 }

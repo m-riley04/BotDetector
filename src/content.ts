@@ -1,4 +1,4 @@
-import { isRecord } from './common/helpers';
+import { isRecord, isString } from './common/helpers';
 import { parseReactPropsResponse } from './common/parsing';
 import { BOT_DETECTOR_CLOSE_OVERLAY } from './detection/constants';
 import {
@@ -74,7 +74,9 @@ function getPostDataFromReactResponse(
     ) ?? components.find((component) => component.name === targetComponentName)
   )?.props;
 
-  const tweetProps = isRecord(componentProps) ? componentProps.tweet : undefined;
+  const tweetProps = isRecord(componentProps)
+    ? componentProps.tweet
+    : undefined;
   if (!isTwitterTweet(tweetProps)) {
     console.warn(`[BotDetector] No tweet props found for ${reactProps.id}`);
     return;
@@ -105,7 +107,7 @@ window.addEventListener('keyup', (e: KeyboardEvent) => {
 // Listener for the react props responses from the injected script
 window.addEventListener(REACT_PROPS_RESPONSE, (event: Event) => {
   const detail = (event as CustomEvent<string>).detail;
-  if (typeof detail !== 'string') return;
+  if (!isString(detail)) return;
 
   try {
     const response = parseReactPropsResponse(JSON.parse(detail) as unknown);

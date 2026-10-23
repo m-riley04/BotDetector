@@ -1,6 +1,7 @@
 import * as dates from '../src/common/dates';
 import * as helpers from '../src/common/helpers';
 import * as parsing from '../src/common/parsing';
+import { getReactData } from '../src/react/react-serlializer';
 import * as serialization from '../src/react/serialization';
 
 const silence = (method: 'error' | 'warn') =>
@@ -186,7 +187,7 @@ test('toSerializable respects depth and node limits', () => {
   expect(Object.keys(limited as object).length).toBeLessThan(3);
 });
 
-test('getReactData reads props and fiber components in traversal order', () => {
+test('getReactData reads props and fiber components in traversal order for tweets', () => {
   const element = {
     __reactProps$abc: { tweet: { id: '1' } },
     __reactFiber$abc: {
@@ -204,7 +205,7 @@ test('getReactData reads props and fiber components in traversal order', () => {
     },
   };
 
-  const data = serialization.getReactData(asElement(element));
+  const data = getReactData(asElement(element), 'tweet');
   expect(data.elementProps).toStrictEqual({ tweet: { id: '1' } });
   expect(data.components).toStrictEqual([
     { name: 'div', props: { a: 1 } },
@@ -214,7 +215,7 @@ test('getReactData reads props and fiber components in traversal order', () => {
 });
 
 test('getReactData returns an empty result without React keys', () => {
-  expect(serialization.getReactData(asElement({ other: 1 }))).toStrictEqual({});
+  expect(getReactData(asElement({ other: 1 }), 'tweet')).toStrictEqual({});
 });
 
 test('getReactData stops walking the fiber chain at maxDepth', () => {
@@ -222,9 +223,10 @@ test('getReactData stops walking the fiber chain at maxDepth', () => {
   for (let i = 0; i < 10; i++) {
     fiber = { type: 'div', memoizedProps: { i }, return: fiber };
   }
-  const data = serialization.getReactData(
-    asElement({ __reactFiber$x: fiber }),
-    { propsKey: '__reactProps$', fiberKeys: ['__reactFiber$'], maxDepth: 3 }
-  );
+  const data = getReactData(asElement({ __reactFiber$x: fiber }), 'tweet', {
+    propsKey: '__reactProps$',
+    fiberKeys: ['__reactFiber$'],
+    maxDepth: 3,
+  });
   expect(data.components).toHaveLength(3);
 });
