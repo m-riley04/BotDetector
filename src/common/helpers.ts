@@ -17,3 +17,11 @@ export function toNumber(value: unknown): number | undefined {
     ? parsed
     : undefined;
 }
+
+export function toWholePercent(n: number) {
+  return `${Number((n * 100).toFixed(2))}%`;
+}
+
+export function toSignedWholePercent(n: number) {
+  return `${n < 0 ? '-' : '+'}${toWholePercent(Math.abs(n))}`;
+}

@@ -3,8 +3,10 @@
  */
 module.exports = {
   testEnvironment: 'node',
-  testMatch: ['<rootDir>/tests/**/*.test.ts'],
+  testMatch: ['<rootDir>/tests/**/*.test.{ts,tsx}'],
   transform: {
-    '\\.[jt]s$': '<rootDir>/jest.transform.cjs',
+    '\\.([jt]sx?|mjs|css)$': '<rootDir>/jest.transform.cjs',
   },
+  // Preact 11 ships ESM only, so Jest has to compile it too.
+  transformIgnorePatterns: ['/node_modules/(?!\\.pnpm/preact@|preact/)'],
 };

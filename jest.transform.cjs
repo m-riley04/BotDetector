@@ -5,8 +5,17 @@ const { transformSync } = require('esbuild');
  */
 module.exports = {
   process(sourceText, sourcePath) {
+    if (sourcePath.endsWith('.css')) {
+      return { code: `module.exports = ${JSON.stringify(sourceText)};` };
+    }
     const { code, map } = transformSync(sourceText, {
-      loader: sourcePath.endsWith('.ts') ? 'ts' : 'js',
+      loader: /\.tsx?$/.test(sourcePath)
+        ? sourcePath.endsWith('x')
+          ? 'tsx'
+          : 'ts'
+        : 'js',
+      jsx: 'automatic',
+      jsxImportSource: 'preact',
       format: 'cjs',
       target: 'node18',
       sourcemap: 'both',
