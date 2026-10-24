@@ -16,12 +16,13 @@ export function Badge({
     >
       <p>{`Bot chance ${toWholePercent(report.chance)}`}</p>
       <button
+        className="info"
         type="button"
         aria-label="Show detection details"
         title="Show detection details"
         onClick={onDetails}
       >
-        Details
+        ⓘ
       </button>
     </div>
   );

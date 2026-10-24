@@ -15,7 +15,7 @@ export class ReportCache {
   constructor(private readonly maxEntries = DEFAULT_MAX_ENTRIES) {}
 
   private static key(post: Post): string | undefined {
-    const userId = post.user?.id;
+    const userId = post.user.id;
     const postId = post.id;
     if (!isString(userId) || !isString(postId)) {
       return undefined;

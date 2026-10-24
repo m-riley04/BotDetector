@@ -100,7 +100,7 @@ test('createBotElement displays the chance and opens the report modal', async ()
   expect(badge?.style.borderLeft).toContain('rgb(255, 143, 0)');
 
   const details = root.querySelector('button') as HTMLButtonElement;
-  expect(details.textContent).toBe('Details');
+  expect(details.textContent).toBe('ⓘ');
   await click(details);
 
   expect(q('h3')?.textContent).toBe('Bot Chance: 72% | Likely a bot');
