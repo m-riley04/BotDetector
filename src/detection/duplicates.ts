@@ -1,8 +1,15 @@
 import { isString } from '../common/helpers';
 import type { Post } from '../social-media/models';
 
-const MIN_LENGTH = 20;
-const MAX_TRACKED_TEXTS = 5000;
+interface RecordPostOptions {
+  minLength: number;
+  maxTrackedChecks: number;
+}
+
+const DEFAULT_RECORD_POST_OPTIONS: RecordPostOptions = {
+  minLength: 20,
+  maxTrackedChecks: 5000,
+};
 
 /**
  * Lowercases and strips links, leading reply mentions and extra whitespace.
@@ -27,14 +34,20 @@ export class DuplicateTextTracker {
    * Records a post and returns how many distinct posts share its text.
    * Recording the same post again doesn't change the count. Short texts are never duplicates.
    */
-  record(post: Post): number {
+  record(
+    post: Post,
+    options: RecordPostOptions = DEFAULT_RECORD_POST_OPTIONS
+  ): number {
     const text = normalizePostText(post.content.text);
-    if (text.length < MIN_LENGTH) return 1;
+    if (text.length < options.minLength) return 1;
 
     const id = isString(post.id) ? post.id : undefined;
     if (id === undefined) return 1;
 
-    if (this.idsByText.size >= MAX_TRACKED_TEXTS && !this.idsByText.has(text)) {
+    if (
+      this.idsByText.size >= options.maxTrackedChecks &&
+      !this.idsByText.has(text)
+    ) {
       this.idsByText.clear();
     }
 

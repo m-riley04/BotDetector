@@ -104,7 +104,8 @@ test('createBotElement displays the chance and opens the report modal', async ()
   await click(details);
 
   expect(q('h3')?.textContent).toBe('Bot Chance: 72% | Likely a bot');
-  expect(buttons()[0]).toBe('Copy post JSON');
+  expect(buttons()[0]).toBe('Show all checks');
+  expect(buttons()[1]).toBe('Copy post JSON');
 });
 
 test('the details panel copies the complete post as formatted JSON', async () => {
@@ -178,8 +179,16 @@ test('showReportModal renders check contributions and threshold details', async 
     ['Check', 'Weight', 'Added', 'Total'],
     ['✔ First check', '60%', '+60%', '60%'],
     ['✔ Second check', '60%', '+60%', '100%'],
-    ['✘ Third check', '10%', '-', '100%'],
     ['Final (kept between 0% and 100%)', '', '', '99.99%'],
+  ]);
+
+  await click(button('Show all checks'));
+  const allRows = Array.from(modal()?.querySelectorAll('tr') ?? []);
+  expect(allRows.map(cellTexts)).toContainEqual([
+    '✘ Third check',
+    '10%',
+    '-',
+    '100%',
   ]);
   expect(q('.note')?.textContent).toBe('Marked as a bot at 70% or higher.');
 });
@@ -217,6 +226,7 @@ test('the details panel offers copying the report next to the post', async () =>
 
   await open(report, makePost({ id: 'post-1' }));
   expect(buttons()).toStrictEqual([
+    'Show all checks',
     'Copy post JSON',
     'Copy report JSON',
     'Close',
@@ -243,6 +253,7 @@ test('list buttons reflect the status, call back and close the modal', async () 
   };
 
   expect(await show('none')).toStrictEqual([
+    'Show all checks',
     'Copy post JSON',
     'Copy report JSON',
     'Mark as human',

@@ -1,4 +1,3 @@
-import { Tweet } from '../adapters/twitter/models';
 import { Post } from '../social-media/models';
 
 /**

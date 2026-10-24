@@ -1,5 +1,4 @@
 import { isFirstOrLastDayOfMonth } from '../common/dates';
-import type { Tweet } from '../adapters/twitter/models';
 import { BotCheck, BotDetectionReport } from './models';
 import {
   ADULT_PROMO_DOMAINS,
@@ -74,7 +73,9 @@ const WEIGHTS = {
 export type CheckKey = keyof typeof WEIGHTS;
 export type CheckWeights = Record<CheckKey, number>;
 
-export const DEFAULT_WEIGHTS: CheckWeights = WEIGHTS;
+export const DEFAULT_WEIGHTS: Readonly<CheckWeights> = WEIGHTS;
+
+type CheckDefinitions = Record<CheckKey, { id: string; label: string }>;
 
 /**
  * Report order matches the order of this object.
@@ -211,7 +212,7 @@ export const CHECK_DEFINITIONS = {
     id: 'official-verified',
     label: 'Business or government verification',
   },
-} as const satisfies Record<CheckKey, { id: string; label: string }>;
+} as const satisfies CheckDefinitions;
 
 export const CHECK_KEYS = Object.keys(CHECK_DEFINITIONS) as CheckKey[];
 
@@ -299,7 +300,7 @@ export function getDetectionReport(
   if (!post) return;
 
   const { weights, isBotThreshold, dayMs } = options;
-  const scamKeywords = options.scamKeywords ?? DEFAULT_SCAM_KEYWORDS;
+  const scamKeywords = options.scamKeywords;
   const duplicateTextCount = options.duplicateTextCount ?? 1;
 
   const user = post.user;
@@ -325,10 +326,14 @@ export function getDetectionReport(
   const following = user.stats.following;
   const likes = user.stats.postStats.likesGiven;
 
-  const check = (key: CheckKey, triggered: boolean): BotCheck =>
+  const check = (
+    key: CheckKey,
+    triggered: boolean,
+    definitions: CheckDefinitions = CHECK_DEFINITIONS
+  ): BotCheck =>
     makeCheck(
-      CHECK_DEFINITIONS[key].id,
-      CHECK_DEFINITIONS[key].label,
+      definitions[key].id,
+      definitions[key].label,
       weights[key],
       triggered
     );
@@ -423,7 +428,7 @@ export function getDetectionReport(
       'scamKeywordsBio',
       containsKeyword(
         `${user.bio ?? ''} ${user.displayName ?? ''}`,
-        scamKeywords
+        scamKeywords ?? [] // TODO: is this a fine enough check?
       )
     ),
     check('genericReply', isGenericReply(post)),

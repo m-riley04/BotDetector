@@ -91,10 +91,10 @@ test('saveSettings persists sanitized settings that loadSettings reads back', as
 });
 
 test('normalizeHandle accepts valid handles and rejects the rest', () => {
-  expect(settings.normalizeHandle('@Some_User')).toBe('some_user');
-  expect(settings.normalizeHandle('  abc123 ')).toBe('abc123');
+  expect(settings.normalizeUserHandle('@Some_User')).toBe('some_user');
+  expect(settings.normalizeUserHandle('  abc123 ')).toBe('abc123');
   for (const bad of ['', '@', 'has space', 'toolonghandle_123456', 'a-b', 5]) {
-    expect(settings.normalizeHandle(bad)).toBe(undefined);
+    expect(settings.normalizeUserHandle(bad)).toBe(undefined);
   }
 });
 
@@ -135,7 +135,7 @@ test('getListStatus and applyListAction move handles between lists', () => {
   expect(settings.getListStatus(undefined, s)).toBe('none');
 
   s = settings.applyListAction(s, '@Alice', 'allow');
-  expect(settings.getListStatus('alice', s)).toBe('allowed');
+  expect(settings.getListStatus('Alice', s)).toBe('allowed');
 
   s = settings.applyListAction(s, 'alice', 'block');
   expect(settings.getListStatus('alice', s)).toBe('blocked');

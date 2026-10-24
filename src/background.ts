@@ -7,11 +7,20 @@ import {
 } from './common/links';
 
 // The background page is the only place that can read t.co (see host_permissions).
-const MAX_CACHED = 1000;
 const cache = new Map<string, string | null>();
 
-function remember(url: string, destination: string | null): void {
-  if (cache.size >= MAX_CACHED) cache.clear();
+interface RememberOptions {
+  maxCacheEntries?: number;
+}
+
+function remember(
+  url: string,
+  destination: string | null,
+  options: RememberOptions = {
+    maxCacheEntries: 1000,
+  }
+): void {
+  if (cache.size >= (options?.maxCacheEntries ?? 0)) cache.clear();
   cache.set(url, destination);
 }
 

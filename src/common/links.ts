@@ -13,12 +13,16 @@ export interface ExpandLinksRequest {
  */
 export type ExpandedLinks = Record<string, string>;
 
-export const MAX_LINKS_PER_REQUEST = 20;
-
-const TCO_PATTERN = /^https:\/\/t\.co\/[A-Za-z0-9]{6,20}$/;
+export function isUrl(value: unknown) {
+  // NOTE: i moved this inside to make the function pure and allow for it to be a predicate. TODO: should i move this?
+  const URL_PATTERN = /^https?:\/\/[^\s/$.?#].[^\s]*$/;
+  return isString(value) && URL_PATTERN.test(value);
+}
 
 // TODO: abstract this out to not be twitter-specific
 export function isTcoUrl(value: unknown): value is string {
+  // NOTE: i moved this inside to make the function pure and allow for it to be a predicate. TODO: should i move this?
+  const TCO_PATTERN = /^https:\/\/t\.co\/[A-Za-z0-9]{6,20}$/;
   return isString(value) && TCO_PATTERN.test(value);
 }
 
@@ -94,16 +98,23 @@ export async function expandTcoUrl(
   }
 }
 
+interface ExpandTcoLinksOptions {
+  maxLinksPerRequest?: number;
+}
+
 /**
  * Expands several links at once, ignoring anything that isn't a t.co link.
  */
 export async function expandTcoUrls(
   urls: unknown[],
-  fetchFn: FetchLike
+  fetchFn: FetchLike,
+  options: ExpandTcoLinksOptions = {
+    maxLinksPerRequest: 20,
+  }
 ): Promise<ExpandedLinks> {
   const unique = [...new Set(urls.filter(isTcoUrl))].slice(
     0,
-    MAX_LINKS_PER_REQUEST
+    options.maxLinksPerRequest
   );
   const result: ExpandedLinks = {};
   await Promise.all(

@@ -49,16 +49,7 @@ export type ListAction = 'allow' | 'block' | 'clear';
 
 export const SETTINGS_KEY = 'settings';
 
-export const MIN_THRESHOLD = 0.1;
-export const MAX_THRESHOLD = 1;
-export const MIN_WEIGHT = -1;
-export const MAX_WEIGHT = 1;
-
-const MAX_LIST_SIZE = 1000;
-const MAX_KEYWORDS = 100;
-const MAX_KEYWORD_LENGTH = 50;
-const HANDLE_PATTERN = /^[a-z0-9_]{1,15}$/;
-const KEY_PATTERN = /^[A-Za-z]{1,40}$/;
+const DEFAULT_KEY_PATTERN = /^[A-Za-z]{1,40}$/;
 
 export const DEFAULT_SETTINGS: Settings = {
   enabled: true,
@@ -74,72 +65,103 @@ export const DEFAULT_SETTINGS: Settings = {
 
 /**
  * Normalizes a handle ("@Some_User") to its stored form ("some_user").
+ * @param value
+ * @param handlePattern The pattern to check whether the normalization succeeded. Defaults to `/^[a-z0-9_]{1,15}$/`
  * @returns The handle, or undefined if it isn't a valid X handle.
  */
-export function normalizeHandle(value: unknown): string | undefined {
+export function normalizeUserHandle(
+  value: unknown,
+  handlePattern: RegExp = /^[a-z0-9_]{1,15}$/
+): string | undefined {
   if (!isString(value)) return undefined;
-  const handle = value.trim().replace(/^@/, '').toLowerCase();
-  return HANDLE_PATTERN.test(handle) ? handle : undefined;
+  const handle = value.trim().replace(/^@/, '').toLowerCase(); // TODO: There is `.toLowerCase` here, but some sites are likely case-sensitive for handles. Test this rigorously.
+  return handlePattern.test(handle) ? handle : undefined;
 }
 
 function sanitizeList<T>(
   value: unknown,
   normalize: (item: unknown) => T | undefined,
-  max: number
+  options: SanitizeListOptions = {
+    maxListSize: 1000,
+  }
 ): T[] {
   if (!Array.isArray(value)) return [];
   const result = new Set<T>();
   for (const item of value) {
     const normalized = normalize(item);
     if (normalized !== undefined) result.add(normalized);
-    if (result.size >= max) break;
+    if (result.size >= (options.maxListSize ?? 0)) break;
   }
   return [...result];
 }
 
-function normalizeKeyword(value: unknown): string | undefined {
+function normalizeKeyword(
+  value: unknown,
+  maxKeywordLength: number = 50
+): string | undefined {
   if (!isString(value)) return undefined;
   const keyword = value.trim().toLowerCase();
-  return keyword.length > 0 && keyword.length <= MAX_KEYWORD_LENGTH
+  return keyword.length > 0 && keyword.length <= maxKeywordLength
     ? keyword
     : undefined;
 }
 
-function normalizeKey(value: unknown): string | undefined {
-  return isString(value) && KEY_PATTERN.test(value) ? value : undefined;
+function normalizeKey(
+  value: unknown,
+  keyPattern: RegExp = DEFAULT_KEY_PATTERN
+): string | undefined {
+  return isString(value) && keyPattern.test(value) ? value : undefined;
 }
 
-function sanitizeWeights(value: unknown): Record<string, number> {
+function sanitizeWeights(
+  value: unknown,
+  minWeight: number = -1,
+  maxWeight: number = 1,
+  keyPattern: RegExp = DEFAULT_KEY_PATTERN
+): Record<string, number> {
   if (!isRecord(value)) {
     return {};
   }
   const result: Record<string, number> = {};
   for (const [key, weight] of Object.entries(value)) {
-    if (!KEY_PATTERN.test(key)) continue;
+    if (!keyPattern.test(key)) continue;
     if (!isNumber(weight) || !Number.isFinite(weight)) continue;
-    result[key] = Math.min(Math.max(weight, MIN_WEIGHT), MAX_WEIGHT);
+    result[key] = Math.min(Math.max(weight, minWeight), maxWeight);
   }
   return result;
+}
+
+interface SanitizeListOptions {
+  maxListSize?: number;
 }
 
 /**
  * Builds a valid Settings object from untrusted stored data,
  * falling back to defaults for anything missing or invalid.
  */
-export function sanitizeSettings(value: unknown): Settings {
+export function sanitizeSettings(
+  value: unknown,
+  minThreshold: number = 0.1,
+  maxThreshold: number = 1,
+  listSanitizeOptions?: SanitizeListOptions
+): Settings {
   const raw = isNonNullObject(value) ? (value as UnknownRecord) : {};
 
   const threshold =
     isNumber(raw.threshold) && Number.isFinite(raw.threshold)
-      ? Math.min(Math.max(raw.threshold, MIN_THRESHOLD), MAX_THRESHOLD)
+      ? Math.min(Math.max(raw.threshold, minThreshold), maxThreshold)
       : DEFAULT_SETTINGS.threshold;
 
-  const blocklist = sanitizeList(raw.blocklist, normalizeHandle, MAX_LIST_SIZE);
+  const blocklist = sanitizeList(
+    raw.blocklist,
+    normalizeUserHandle,
+    listSanitizeOptions
+  );
   // a handle can't be on both lists; blocking wins
   const allowlist = sanitizeList(
     raw.allowlist,
-    normalizeHandle,
-    MAX_LIST_SIZE
+    normalizeUserHandle,
+    listSanitizeOptions
   ).filter((handle) => !blocklist.includes(handle));
 
   return {
@@ -153,12 +175,16 @@ export function sanitizeSettings(value: unknown): Settings {
       : DEFAULT_SETTINGS.hideLikelyBots,
     allowlist,
     blocklist,
-    disabledChecks: sanitizeList(raw.disabledChecks, normalizeKey, 200),
+    disabledChecks: sanitizeList(
+      raw.disabledChecks,
+      normalizeKey,
+      listSanitizeOptions
+    ),
     checkWeights: sanitizeWeights(raw.checkWeights),
     scamKeywords: sanitizeList(
       raw.scamKeywords,
       normalizeKeyword,
-      MAX_KEYWORDS
+      listSanitizeOptions
     ),
   };
 }
@@ -167,22 +193,36 @@ export function sanitizeSettings(value: unknown): Settings {
  * Parses a list typed into the popup: one handle per line, or separated by commas/spaces.
  * Invalid entries are dropped.
  */
-export function parseHandleList(text: string): string[] {
-  return sanitizeList(text.split(/[\s,]+/), normalizeHandle, MAX_LIST_SIZE);
+export function parseHandleList(
+  text: string,
+  sanitizeListOptions?: SanitizeListOptions
+): string[] {
+  return sanitizeList(
+    text.split(/[\s,]+/),
+    normalizeUserHandle,
+    sanitizeListOptions
+  );
 }
 
 /**
  * Parses a keyword list typed into the popup: one keyword or phrase per line, or comma separated.
  */
-export function parseKeywordList(text: string): string[] {
-  return sanitizeList(text.split(/[\n,]+/), normalizeKeyword, MAX_KEYWORDS);
+export function parseKeywordList(
+  text: string,
+  sanitizeListOptions?: SanitizeListOptions
+): string[] {
+  return sanitizeList(
+    text.split(/[\n,]+/),
+    normalizeKeyword,
+    sanitizeListOptions
+  );
 }
 
 export function getListStatus(
   handle: string | undefined,
   settings: Settings
 ): ListStatus {
-  const normalized = normalizeHandle(handle);
+  const normalized = normalizeUserHandle(handle);
   if (!normalized) return 'none';
   if (settings.blocklist.includes(normalized)) return 'blocked';
   if (settings.allowlist.includes(normalized)) return 'allowed';
@@ -197,7 +237,7 @@ export function applyListAction(
   handle: string,
   action: ListAction
 ): Settings {
-  const normalized = normalizeHandle(handle);
+  const normalized = normalizeUserHandle(handle);
   if (!normalized) return settings;
 
   const allowlist = settings.allowlist.filter((item) => item !== normalized);

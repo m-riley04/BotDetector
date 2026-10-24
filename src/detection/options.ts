@@ -15,20 +15,21 @@ import type { Settings } from '../common/settings';
 export function buildDetectionOptions(
   settings: Settings,
   duplicateTextCount = 1,
-  expandedLinks: Readonly<Record<string, string>> = {}
+  expandedLinks: Readonly<Record<string, string>> = {},
+  weights: CheckWeights = DEFAULT_WEIGHTS
 ): GetDetectionReportOptions {
-  const weights = { ...DEFAULT_WEIGHTS } as CheckWeights;
+  const copyWeights = { ...weights } as CheckWeights;
   for (const key of CHECK_KEYS) {
     if (settings.disabledChecks.includes(key)) {
-      weights[key] = 0;
+      copyWeights[key] = 0;
     } else if (key in settings.checkWeights) {
-      weights[key] = settings.checkWeights[key];
+      copyWeights[key] = settings.checkWeights[key];
     }
   }
 
   return {
     ...DEFAULT_DETECTION_REPORT_OPTIONS,
-    weights,
+    weights: copyWeights,
     isBotThreshold: settings.threshold,
     scamKeywords: [...DEFAULT_SCAM_KEYWORDS, ...settings.scamKeywords],
     duplicateTextCount,

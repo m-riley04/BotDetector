@@ -1,4 +1,3 @@
-import type { Tweet } from '../adapters/twitter/models';
 import { isString } from '../common/helpers';
 import { Post } from '../social-media/models';
 import type { BotDetectionReport } from './models';

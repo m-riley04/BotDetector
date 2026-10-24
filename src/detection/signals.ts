@@ -33,7 +33,11 @@ const LEET_MAP: Record<string, string> = {
   '@': 'a',
 };
 
-const KNOWN_ONLYFANS_LINKS = ['onlyfans.com', 'fansly.com', 'spicey.link'];
+const KNOWN_ONLYFANS_LINKS: readonly string[] = [
+  'onlyfans.com',
+  'fansly.com',
+  'spicey.link',
+];
 
 /**
  * Adult-content subscription sites and the link-in-bio pages those accounts use.
@@ -118,7 +122,9 @@ export function collectProfileLinks(
  */
 export function looksLikeOnlyFans(
   user: PostUser,
-  profileLinks: readonly string[] = []
+  profileLinks: readonly string[] = [],
+  knownOnlyFansLinks: readonly string[] = KNOWN_ONLYFANS_LINKS,
+  adultPromoDomains: readonly string[] = ADULT_PROMO_DOMAINS
 ): boolean {
   const text = `${user.bio ?? ''} ${user.displayName ?? ''}`;
   const deLeeted = text.replace(/[01345$@]/g, (char) => LEET_MAP[char] ?? char);
@@ -127,8 +133,8 @@ export function looksLikeOnlyFans(
   return (
     /onlyfans/i.test(deLeeted) ||
     /\bof\s*:\s*(https?:\/\/|\S+\.\S+)/i.test(text) ||
-    KNOWN_ONLYFANS_LINKS.some((link) => lower.includes(link)) ||
-    linksToDomain(profileLinks, ADULT_PROMO_DOMAINS)
+    knownOnlyFansLinks.some((link) => lower.includes(link)) ||
+    linksToDomain(profileLinks, adultPromoDomains)
   );
 }
 

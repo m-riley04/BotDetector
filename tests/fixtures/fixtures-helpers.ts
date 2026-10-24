@@ -19,7 +19,7 @@ export interface Fixture {
 
 // Raw post objects in the same format as the "Copy post JSON" button.
 // To add a real example, paste the copied JSON into tests/fixtures/twitter/bot-*.json or human-*.json.
-export const directory = join(__dirname, 'twitter');
+export const directory = join(__dirname, 'twitter'); // TODO: make this dynamic
 export const files = readdirSync(directory).filter((name) =>
   name.endsWith('.json')
 );
