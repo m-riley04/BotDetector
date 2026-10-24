@@ -197,17 +197,19 @@ export const CHECK_DEFINITIONS = {
     id: 'language-mismatch',
     label: 'Post language differs from the bio language',
   },
+
+  // region trust signals
   protectedAccount: {
     id: 'protected-account',
-    label: 'Protected account (trust signal)',
+    label: 'Protected account',
   },
   establishedAccount: {
     id: 'established-account',
-    label: 'Old, active account with a real following (trust signal)',
+    label: 'Old, active account with a real following',
   },
   officialVerified: {
     id: 'official-verified',
-    label: 'Business or government verification (trust signal)',
+    label: 'Business or government verification',
   },
 } as const satisfies Record<CheckKey, { id: string; label: string }>;
 
@@ -221,9 +223,7 @@ function isOfficialProfile(user: Post['user'] | undefined): boolean {
 }
 
 function isOfficiallyVerified(user: Post['user'] | undefined): boolean {
-  return (
-    user?.labels.isVerified === true && isOfficialProfile(user)
-  );
+  return user?.labels.isVerified === true && isOfficialProfile(user);
 }
 
 /**
@@ -335,10 +335,7 @@ export function getDetectionReport(
 
   // region checks
   const checks: BotCheck[] = [
-    check(
-      'blueCheck',
-      isVerified && !isOfficialProfile(user)
-    ),
+    check('blueCheck', isVerified && !isOfficialProfile(user)),
     check('quotedCheckmark', didQuoteCheckmark),
     check('newAccount', ageDays !== undefined && ageDays < 90),
     check(
@@ -352,9 +349,7 @@ export function getDetectionReport(
     ),
     check(
       'highTweetRate',
-      ageDays !== undefined &&
-        isNumber(statuses) &&
-        statuses / ageDays > 100
+      ageDays !== undefined && isNumber(statuses) && statuses / ageDays > 100
     ),
     check(
       'lowFollowersRatio',
@@ -417,9 +412,7 @@ export function getDetectionReport(
     ),
     check(
       'noMedia',
-      user.stats.postStats.media === 0 &&
-        isNumber(statuses) &&
-        statuses >= 1000
+      user.stats.postStats.media === 0 && isNumber(statuses) && statuses >= 1000
     ),
     check(
       'spamLinks',
@@ -442,15 +435,12 @@ export function getDetectionReport(
       'establishedAccount',
       ageDays !== undefined &&
         ageDays >= 4 * YEAR_DAYS &&
-      isNumber(followers) &&
-      followers >= 100 &&
-      isNumber(statuses) &&
-      statuses >= 500
+        isNumber(followers) &&
+        followers >= 100 &&
+        isNumber(statuses) &&
+        statuses >= 500
     ),
-    check(
-      'officialVerified',
-      isOfficiallyVerified(user)
-    ),
+    check('officialVerified', isOfficiallyVerified(user)),
   ];
 
   const chance = Math.min(

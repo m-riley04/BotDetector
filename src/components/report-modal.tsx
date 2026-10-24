@@ -1,11 +1,11 @@
 import { render } from 'preact';
-import { useEffect, useState } from 'preact/hooks';
+import { useCallback, useEffect, useState } from 'preact/hooks';
 import type { ListAction, ListStatus } from '../common/settings';
 import { Post } from '../social-media/models';
 import { BOT_DETECTOR_CLOSE_OVERLAY } from '../detection/constants';
 import type { BotDetectionReport } from '../detection/models';
 import { toWholePercent } from '../common/helpers';
-import { CheckRow } from './check-row';
+import { ChecksTable } from './checks-table';
 
 /**
  * Lets the modal change the user's allowlist/blocklist for the post's author.
@@ -18,18 +18,6 @@ export interface ReportModalOptions {
 interface CopyStatus {
   text: string;
   error: boolean;
-}
-
-function CheckRows({ report }: { report: BotDetectionReport }) {
-  let running = 0;
-  return (
-    <>
-      {report.checks.map((c) => {
-        running = Math.min(Math.max(running + c.contribution, 0), 1);
-        return <CheckRow check={c} currentRunningTotal={running} />;
-      })}
-    </>
-  );
 }
 
 interface ReportModalProps {
@@ -46,6 +34,7 @@ export function ReportModal({
   onClose,
 }: ReportModalProps) {
   const [status, setStatus] = useState<CopyStatus | null>(null);
+  const [hideUntriggeredChecks, setHideUntriggeredChecks] = useState(true);
 
   useEffect(() => {
     window.addEventListener(BOT_DETECTOR_CLOSE_OVERLAY, onClose);
@@ -53,22 +42,25 @@ export function ReportModal({
       window.removeEventListener(BOT_DETECTOR_CLOSE_OVERLAY, onClose);
   }, [onClose]);
 
-  const copy = (label: string, data: unknown) => async () => {
-    try {
-      if (!navigator.clipboard?.writeText) {
-        throw new Error('Clipboard access is unavailable in this page.');
+  const copy = useCallback(
+    (label: string, data: unknown) => async () => {
+      try {
+        if (!navigator.clipboard?.writeText) {
+          throw new Error('Clipboard access is unavailable in this page.');
+        }
+        await navigator.clipboard.writeText(JSON.stringify(data, null, 2));
+        setStatus({ text: `${label} JSON copied to clipboard.`, error: false });
+      } catch (error) {
+        setStatus({
+          text: `Could not copy ${label.toLowerCase()} JSON: ${
+            error instanceof Error ? error.message : String(error)
+          }`,
+          error: true,
+        });
       }
-      await navigator.clipboard.writeText(JSON.stringify(data, null, 2));
-      setStatus({ text: `${label} JSON copied to clipboard.`, error: false });
-    } catch (error) {
-      setStatus({
-        text: `Could not copy ${label.toLowerCase()} JSON: ${
-          error instanceof Error ? error.message : String(error)
-        }`,
-        error: true,
-      });
-    }
-  };
+    },
+    []
+  );
 
   const listButtons: [string, ListAction, boolean][] = options
     ? [
@@ -91,23 +83,21 @@ export function ReportModal({
             report.isBot ? 'Likely a bot' : 'Probably not a bot'
           }`}
         </h3>
-        <table>
-          <tbody>
-            <tr class="head">
-              <td>Check</td>
-              <td>Weight</td>
-              <td>Added</td>
-              <td>Total</td>
-            </tr>
-            <CheckRows report={report} />
-            <tr class="final">
-              <td>Final (kept between 0% and 100%)</td>
-              <td></td>
-              <td></td>
-              <td>{toWholePercent(report.chance)}</td>
-            </tr>
-          </tbody>
-        </table>
+
+        <button
+          type="button"
+          onClick={() => setHideUntriggeredChecks((prev) => !prev)}
+        >
+          {hideUntriggeredChecks
+            ? 'Show all checks'
+            : 'Hide untriggered checks'}
+        </button>
+
+        <ChecksTable
+          report={report}
+          hideUntriggeredChecks={hideUntriggeredChecks}
+        />
+
         <p class="note">
           {`Marked as a bot at ${toWholePercent(report.isBotThreshold)} or higher.`}
         </p>

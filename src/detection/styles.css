@@ -37,8 +37,8 @@ button {
   font: 600 13px sans-serif;
 
   &.secondary {
-    background: #fff;
-    color: #374151;
+    background: light-dark(#374151, #fff);
+    color: light-dark(#fff, #374151);
   }
 }
 

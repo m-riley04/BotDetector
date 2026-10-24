@@ -273,14 +273,26 @@ function scanTweets(): void {
 
     const listStatus = getListStatus(postData.user.username, settings);
     const report = applyListOverride(rawReport, listStatus);
-    reportByElement.set(tweet, report);
+    const sortedReport: BotDetectionReport = { ...report };
 
-    const action = getTweetAction(report, settings, listStatus);
-    if (action !== 'none' && report.isBot) {
+    sortedReport.checks.sort((a, b) => {
+      // sort by trigger first-and-foremost
+      if (a.triggered !== b.triggered) {
+        return a.triggered ? -1 : 1;
+      }
+
+      // then within triggered checks, sort by weight
+      if (a.weight !== b.weight) return a.weight > b.weight ? -1 : 1;
+      return 0;
+    });
+    reportByElement.set(tweet, sortedReport);
+
+    const action = getTweetAction(sortedReport, settings, listStatus);
+    if (action !== 'none' && sortedReport.isBot) {
       tweet.setAttribute(BOT_ATTRIBUTE, 'true');
     }
     if (action === 'hide') hideTweet(tweet);
-    else if (action === 'badge') modifyTweet(tweet, postData, report);
+    else if (action === 'badge') modifyTweet(tweet, postData, sortedReport);
   });
 
   expandProfileLinks();
