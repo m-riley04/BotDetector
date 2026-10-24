@@ -9,17 +9,32 @@
   --trust-color: #00ffb769;
   --risk-color: #ff004c57;
 
-  --text-color: light-dark(red, blue);
+  --text-color: light-dark(#111827, #e5e6e0);
+  --bg-color: light-dark(#e5e6e0, #111827);
+
+  --button-text-color: light-dark(#374151, #f9fafb);
+  --button-bg-color: light-dark(#f9fafb, #374151);
+  --button-border-color: light-dark(#374151, #f9fafb);
+
+  --panel-bg-color: light-dark(#374151, #f9fafb);
+
+  --overlay-bg-color: rgba(15, 23, 42, 0.68);
+
+  --table-header-bg: light-dark(#f3f4f6, #374151);
+  --table-header-text: light-dark(#374151, #f3f4f6);
+  --table-off-text: light-dark(#6b7280, #6b7280);
+  --table-final-border: light-dark(#d1d5db, #111827);
+  --table-final-text: light-dark(#111827, #d1d5db);
 }
 
 button {
-  border: 1px solid #374151;
-  border-radius: 6px;
-  padding: 7px 12px;
-  background: #1f2937;
-  color: #f9fafb;
-  font: 600 13px sans-serif;
   cursor: pointer;
+  border: 1px solid var(--button-border-color);
+  border-radius: 6px;
+  background: var(--button-bg-color);
+  padding: 7px 12px;
+  color: var(--button-text-color);
+  font: 600 13px sans-serif;
 
   &.secondary {
     background: #fff;
@@ -29,19 +44,19 @@ button {
 
 .badge {
   display: flex;
-  align-items: center;
-  gap: 10px;
-  background: #111827;
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  border-radius: 0 0 0 10px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.24);
-  color: var(--text-color);
-  font-family: system-ui, sans-serif;
   position: fixed;
   top: 0;
   right: 0;
+  align-items: center;
+  gap: 10px;
+  z-index: var(--max-z-height);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.24);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 0 0 0 10px;
+  background: var(--bg-color);
   padding: 8px 10px 8px 12px;
-  z-index: 2147483646;
+  color: var(--text-color);
+  font-family: system-ui, sans-serif;
 
   p {
     margin: 0;
@@ -58,30 +73,30 @@ button {
 }
 
 .overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(15, 23, 42, 0.68);
-  backdrop-filter: blur(3px);
-  z-index: var(--max-z-height);
   display: flex;
-  align-items: center;
+  position: fixed;
   justify-content: center;
+  align-items: center;
+  z-index: var(--max-z-height);
+  backdrop-filter: blur(3px);
+  inset: 0;
+  background: var(--overlay-bg-color);
   padding: 16px;
 }
 
 .panel {
-  background: #e5e6e0;
-  color: #111827;
-  font:
-    14px/1.5 system-ui,
-    sans-serif;
-  border: 1px solid #e5e7eb;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.28);
+  border: 1px solid var(--panel-bg-color);
   border-radius: 12px;
+  background: var(--bg-color);
   padding: 20px;
   width: min(560px, 100%);
   max-height: min(80vh, 720px);
   overflow: auto;
-  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.28);
+  color: var(--text-color);
+  font:
+    14px/1.5 system-ui,
+    sans-serif;
 
   h3 {
     margin: 0 0 16px;
@@ -108,29 +123,29 @@ button {
 
   tr {
     &.head {
+      background: var(--table-header-bg);
+      color: var(--table-header-text);
       font-weight: 600;
-      background: #f3f4f6;
-      color: #374151;
     }
 
     &.off {
-      color: #6b7280;
+      color: var(--table-off-text);
     }
 
     &.trust {
-      background: #ecfdf5;
-      color: var(--trust-color);
+      background: var(--trust-color);
+      color: var(--text-color);
     }
 
     &.risk {
-      background: #fff1f2;
-      color: var(--risk-color);
+      background: var(--risk-color);
+      color: var(--text-color);
     }
 
     &.final {
+      border-top: 2px solid var(--table-final-border);
+      color: var(--table-final-text);
       font-weight: 600;
-      border-top: 2px solid #d1d5db;
-      color: #111827;
     }
   }
 
@@ -141,17 +156,17 @@ button {
 
   .actions {
     display: flex;
+    flex-wrap: wrap;
     justify-content: flex-end;
     gap: 8px;
-    flex-wrap: wrap;
   }
 
   .status {
     margin: 10px 0 0;
+    color: #047857;
     font:
       13px/1.4 system-ui,
       sans-serif;
-    color: #047857;
 
     &.error {
       color: #b91c1c;
