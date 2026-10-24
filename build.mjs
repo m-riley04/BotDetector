@@ -13,7 +13,7 @@ await rm(outputDirectory, { recursive: true, force: true });
 await mkdir(outputDirectory, { recursive: true });
 
 await build({
-  entryPoints: ['src/popup.ts'],
+  entryPoints: ['src/popup.tsx'],
   bundle: true,
   format: 'iife',
   target: 'firefox128',

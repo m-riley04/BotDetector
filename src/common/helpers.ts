@@ -38,10 +38,24 @@ export function toNumber(value: unknown): number | undefined {
   return isNumber(parsed) && Number.isFinite(parsed) ? parsed : undefined;
 }
 
-export function toWholePercent(n: number) {
-  return `${Number((n * 100).toFixed(2))}%`;
+/**
+ * Multiplies by 100.
+ * TODO: I might be overengineering this...
+ * @param n
+ * @returns
+ */
+export function toPercent(n: number): number {
+  return n * 100;
 }
 
-export function toSignedWholePercent(n: number) {
+export function toWholePercent(n: number): string {
+  return `${Number(toPercent(n).toFixed(2))}%`;
+}
+
+export function toSignedWholePercent(n: number): string {
   return `${n < 0 ? '-' : '+'}${toWholePercent(Math.abs(n))}`;
+}
+
+export function combineLines(lines: string[]): string {
+  return lines.join('\n');
 }
