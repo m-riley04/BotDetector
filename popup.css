@@ -1,9 +1,15 @@
+:root {
+  --text-color: light-dark(#202124);
+  --h2-color: light-dark(#5f6368);
+  --text-secondary-color: light-dark(#5f6368);
+}
+
 body {
   box-sizing: border-box;
-  min-width: 300px;
   margin: 0;
   padding: 16px;
-  color: #202124;
+  min-width: 300px;
+  color: var(--text-color);
   font:
     14px/1.5 system-ui,
     sans-serif;
@@ -16,8 +22,8 @@ main {
 
 header {
   display: flex;
-  align-items: center;
   justify-content: space-between;
+  align-items: center;
   gap: 12px;
 }
 
@@ -28,11 +34,11 @@ h1 {
 
 h2 {
   margin: 0;
-  font-size: 13px;
+  color: var(--h2-color);
   font-weight: 600;
+  font-size: 13px;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  color: #5f6368;
 }
 
 p {
@@ -43,7 +49,7 @@ p {
 .subtitle,
 .help,
 small {
-  color: #5f6368;
+  color: var(--text-secondary-color);
 }
 
 .help,
@@ -56,12 +62,12 @@ small {
 }
 
 .status {
-  padding: 6px 10px;
   border-radius: 6px;
   background: #e6f4ea;
+  padding: 6px 10px;
   color: #137333;
-  font-size: 13px;
   font-weight: 600;
+  font-size: 13px;
 }
 
 .status.off {
@@ -72,13 +78,15 @@ small {
 #settings {
   display: grid;
   gap: 14px;
-  padding-top: 12px;
   border-top: 1px solid #e0e0e0;
-}
+  padding-top: 12px;
 
-#settings.disabled .field,
-#settings.disabled .check {
-  opacity: 0.5;
+  &.disabled {
+    .field,
+    .check {
+      opacity: 0.5;
+    }
+  }
 }
 
 .field {
@@ -93,8 +101,8 @@ small {
 }
 
 input[type='range'] {
-  width: 100%;
   margin: 0;
+  width: 100%;
   accent-color: #0060df;
 }
 
@@ -103,50 +111,50 @@ input[type='range'] {
   align-items: flex-start;
   gap: 8px;
   cursor: pointer;
-}
 
-.check input {
-  margin-top: 4px;
-  accent-color: #0060df;
+  input {
+    margin-top: 4px;
+    accent-color: #0060df;
+  }
 }
 
 .switch {
-  position: relative;
   display: inline-block;
+  position: relative;
+  flex: none;
   width: 40px;
   height: 22px;
-  flex: none;
-}
 
-.switch input {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  margin: 0;
-  opacity: 0;
-  cursor: pointer;
+  input {
+    position: absolute;
+    opacity: 0;
+    cursor: pointer;
+    margin: 0;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
 }
 
 .track {
   position: absolute;
+  transition: background 0.15s;
   inset: 0;
   border-radius: 11px;
   background: #9aa0a6;
   pointer-events: none;
-  transition: background 0.15s;
-}
 
-.track::after {
-  content: '';
-  position: absolute;
-  top: 3px;
-  left: 3px;
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  background: white;
-  transition: transform 0.15s;
+  &::after {
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    transition: transform 0.15s;
+    border-radius: 50%;
+    background: white;
+    width: 16px;
+    height: 16px;
+    content: '';
+  }
 }
 
 .switch input:checked + .track {
@@ -166,64 +174,64 @@ button:focus-visible {
 
 .visually-hidden {
   position: absolute;
+  clip-path: inset(50%);
   width: 1px;
   height: 1px;
   overflow: hidden;
-  clip-path: inset(50%);
   white-space: nowrap;
 }
 
 button {
-  padding: 8px 12px;
+  cursor: pointer;
   border: 0;
   border-radius: 4px;
   background: #0060df;
+  padding: 8px 12px;
   color: white;
   font: inherit;
-  cursor: pointer;
-}
 
-button:hover {
-  background: #0250bb;
-}
+  &:hover {
+    background: #0250bb;
+  }
 
-button.secondary {
-  border: 1px solid #c4c7c5;
-  background: white;
-  color: #202124;
-}
+  &.secondary {
+    border: 1px solid #c4c7c5;
+    background: white;
+    color: #202124;
 
-button.secondary:hover {
-  background: #f1f3f4;
-}
+    &:hover {
+      background: #f1f3f4;
+    }
+  }
 
-button:disabled {
-  opacity: 0.5;
-  cursor: default;
+  &:disabled {
+    opacity: 0.5;
+    cursor: default;
+  }
 }
 
 #page,
 #lists {
   display: grid;
   gap: 10px;
-  padding-top: 12px;
   border-top: 1px solid #e0e0e0;
+  padding-top: 12px;
 }
 
 details {
   display: grid;
   gap: 10px;
-  padding-top: 12px;
   border-top: 1px solid #e0e0e0;
+  padding-top: 12px;
 }
 
 summary {
-  font-size: 13px;
+  cursor: pointer;
+  color: #5f6368;
   font-weight: 600;
+  font-size: 13px;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  color: #5f6368;
-  cursor: pointer;
 }
 
 details[open] > summary {
@@ -232,14 +240,14 @@ details[open] > summary {
 
 textarea {
   box-sizing: border-box;
-  width: 100%;
-  padding: 6px 8px;
   border: 1px solid #c4c7c5;
   border-radius: 4px;
+  padding: 6px 8px;
+  width: 100%;
+  resize: vertical;
   font:
     12px/1.4 ui-monospace,
     monospace;
-  resize: vertical;
 }
 
 .field > label {
@@ -258,13 +266,13 @@ textarea {
   gap: 8px;
   padding: 4px 0;
   font-size: 12px;
-}
 
-.check-row output {
-  text-align: right;
-  font-variant-numeric: tabular-nums;
-}
+  output {
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+  }
 
-.check-row.off {
-  opacity: 0.5;
+  &.off {
+    opacity: 0.5;
+  }
 }

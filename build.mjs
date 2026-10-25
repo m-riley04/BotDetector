@@ -4,7 +4,13 @@ import { build, context } from 'esbuild';
 
 const outputDirectory = 'dist';
 const watch = process.argv.includes('--watch');
-const staticFiles = ['manifest.json', 'popup.html', 'popup.css'];
+const staticFiles = [
+  'manifest.json',
+  'popup.html',
+  'popup.css',
+  'assets/icon.png',
+  'assets/icon_4x.png',
+];
 
 const jsx = {
   jsx: 'automatic',
