@@ -19,6 +19,7 @@ import { buildDetectionOptions } from './detection/options';
 import { ReportCache } from './detection/cache';
 import { DuplicateTextTracker } from './detection/duplicates';
 import { LinkExpander } from './detection/linkExpander';
+import { tcoLinkResolver } from './adapters/twitter/links';
 import {
   DEFAULT_SETTINGS,
   SETTINGS_KEY,
@@ -47,8 +48,9 @@ const REVEALED_ATTRIBUTE = 'data-botdetector-revealed';
 
 const reportCache = new ReportCache();
 const duplicateTracker = new DuplicateTextTracker();
-const linkExpander = new LinkExpander((request) =>
-  browser.runtime.sendMessage(request)
+const linkExpander = new LinkExpander(
+  (request) => browser.runtime.sendMessage(request),
+  tcoLinkResolver
 );
 const reportByElement = new WeakMap<HTMLElement, BotDetectionReport>();
 

@@ -1,10 +1,15 @@
+import { isExpandLinksRequest } from '../src/common/links';
 import {
-  expandTcoUrls,
-  isExpandLinksRequest,
   isTcoUrl,
   parseTcoPage,
-} from '../src/common/links';
+  tcoLinkResolver,
+} from '../src/adapters/twitter/links';
 import { LinkExpander } from '../src/detection/linkExpander';
+
+const expandTcoUrls = (
+  urls: unknown[],
+  fetchFn: Parameters<typeof tcoLinkResolver.expandAll>[1]
+) => tcoLinkResolver.expandAll(urls, fetchFn);
 
 const REAL_PAGE =
   '<head><noscript><META http-equiv="refresh" content="0;URL=http://bouncy.ai/nyankatsumi"></noscript>' +
@@ -100,7 +105,7 @@ describe('LinkExpander', () => {
     const send = jest.fn(async () => ({
       'https://t.co/GoodLink1': 'https://onlyfans.com/x',
     }));
-    const expander = new LinkExpander(send);
+    const expander = new LinkExpander(send, tcoLinkResolver);
 
     expect(await expander.expand(['https://t.co/GoodLink1', 'nope'])).toBe(
       true
@@ -118,7 +123,7 @@ describe('LinkExpander', () => {
     const send = jest.fn(async () => {
       throw new Error('no background');
     });
-    const expander = new LinkExpander(send);
+    const expander = new LinkExpander(send, tcoLinkResolver);
 
     expect(await expander.expand(['https://t.co/GoodLink1'])).toBe(false);
     expect(expander.needs('https://t.co/GoodLink1')).toBe(false);

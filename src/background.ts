@@ -1,12 +1,15 @@
 import { isString } from './common/helpers';
+import { tcoLinkResolver } from './adapters/twitter/links';
 import {
-  expandTcoUrls,
   isExpandLinksRequest,
-  isTcoUrl,
   type ExpandedLinks,
+  type LinkResolver,
 } from './common/links';
 
-// The background page is the only place that can read t.co (see host_permissions).
+// Add resolvers for other shorteners here.
+const resolvers: LinkResolver[] = [tcoLinkResolver];
+
+// The background page is the only place that can read the shorteners (see host_permissions).
 const cache = new Map<string, string | null>();
 
 interface RememberOptions {
@@ -28,7 +31,13 @@ browser.runtime.onMessage.addListener((message: unknown) => {
   if (!isExpandLinksRequest(message)) return undefined;
 
   return (async (): Promise<ExpandedLinks> => {
-    const wanted = [...new Set(message.urls.filter(isTcoUrl))];
+    const wanted = [
+      ...new Set(
+        message.urls.filter((url): url is string =>
+          resolvers.some((resolver) => resolver.matches(url))
+        )
+      ),
+    ];
     const result: ExpandedLinks = {};
     const missing: string[] = [];
 
@@ -38,9 +47,13 @@ browser.runtime.onMessage.addListener((message: unknown) => {
       else if (cached === undefined) missing.push(url);
     }
 
-    const fetched = await expandTcoUrls(missing, (url, init) =>
-      fetch(url, init)
-    );
+    const fetched: ExpandedLinks = {};
+    for (const resolver of resolvers) {
+      Object.assign(
+        fetched,
+        await resolver.expandAll(missing, (url, init) => fetch(url, init))
+      );
+    }
     for (const url of missing) remember(url, fetched[url] ?? null);
     return { ...result, ...fetched };
   })();

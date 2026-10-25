@@ -1,27 +1,30 @@
 import { isNonNullObject, isString } from '../common/helpers';
 import {
-  isTcoUrl,
   type ExpandLinksRequest,
   type ExpandedLinks,
+  type LinkResolver,
 } from '../common/links';
 
 type Send = (request: ExpandLinksRequest) => Promise<unknown>;
 
 /**
- * Content-script side of shorted-link (i.e. t.co) expander. Each link is only requested once, and
+ * Content-script side of the shortened-link expander. Each link is only requested once, and
  * `links` keeps growing as answers arrive so the detector can read it directly.
  */
 export class LinkExpander {
   readonly links: ExpandedLinks = {};
   private readonly attempted = new Set<string>();
 
-  constructor(private readonly send: Send) {}
+  constructor(
+    private readonly send: Send,
+    private readonly resolver: LinkResolver
+  ) {}
 
   /**
    * True if the link still needs to be requested.
    */
   needs(url: unknown): url is string {
-    return isTcoUrl(url) && !this.attempted.has(url);
+    return this.resolver.matches(url) && !this.attempted.has(url);
   }
 
   /**
