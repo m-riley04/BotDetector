@@ -82,6 +82,8 @@ function getPostDataFromReactResponse(
     return;
   }
 
+  console.debug(`[BotDetector] Tweet props: `, tweetProps);
+
   return convertTweetToGenericPost(tweetProps);
 }
 

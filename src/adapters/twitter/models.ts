@@ -180,7 +180,21 @@ interface QuickPromoteEligibility {
   [k: string]: unknown;
 }
 
+type FooterIconType = 'BirdwatchEyeOff' | string;
+type IconType = 'BirdwatchV1Icon' | string;
+type VisualStyle = 'Default' | string;
+
+interface BirdwatchPivot {
+  destinationUrl?: string;
+  footerIconType?: FooterIconType;
+  iconType?: IconType;
+  noteId?: '';
+  title?: string;
+  visualStyle?: VisualStyle;
+}
+
 export interface Tweet {
+  birdwatch_pivot?: BirdwatchPivot;
   bookmark_count?: number;
   bookmarked?: boolean;
   cashtag_attachments?: unknown[];
