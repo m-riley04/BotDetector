@@ -1,8 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'preact/hooks';
-import { combineLines, toPercent } from '../../common/helpers';
+import { combineLines } from '../../common/helpers';
 import type { ContentRequest, PageStats } from '../../common/messages';
 import {
-  DEFAULT_SETTINGS,
   exportSettings,
   parseHandleList,
   parseImportedSettings,
@@ -12,9 +11,10 @@ import {
   type Settings,
 } from '../../common/settings';
 import { CHECK_KEYS } from '../../detection/detection';
+import { CurrentPageSection } from './CurrentPageSection';
 import { EditableCheckRow } from './editable-check-row';
+import { SettingsSection } from './SettingsSection';
 import { TextList } from './text-list';
-import { useSlider } from './useSlider';
 
 /**
  * Sends a content request to the active tab and returns the page statistics if available.
@@ -75,8 +75,11 @@ export function ExtensionPopup({ initial }: ExtensionPopupProps) {
     [setSettings, setVersion, setSaveError]
   );
 
-  const update = (patch: Partial<Settings>) =>
-    replace(sanitizeSettings({ ...latest.current, ...patch }));
+  const update = useCallback(
+    (patch: Partial<Settings>) =>
+      replace(sanitizeSettings({ ...latest.current, ...patch })),
+    [replace]
+  );
 
   useEffect(() => {
     void sendToActiveTab({ type: 'get-stats' }).then(setPageStats);
@@ -103,9 +106,6 @@ export function ExtensionPopup({ initial }: ExtensionPopupProps) {
   }, [backupText, setBackupStatus, replace]);
 
   const off = !settings.enabled;
-  const threshold = useSlider(toPercent(settings.threshold), (value) =>
-    update({ threshold: value / 100 })
-  );
 
   // TODO: split this huge layout up
 
@@ -140,107 +140,19 @@ export function ExtensionPopup({ initial }: ExtensionPopupProps) {
             : 'Active on x.com'}
       </p>
 
-      <section
-        id="settings"
-        class={off ? 'disabled' : undefined}
-        aria-labelledby="settings-title"
-      >
-        <h2 id="settings-title">Settings</h2>
+      <SettingsSection
+        isOff={off}
+        settings={settings}
+        update={update}
+        replace={replace}
+      />
 
-        <div class="field">
-          <div class="field-header">
-            <label for="threshold">Bot threshold</label>
-            <output id="threshold-value" for="threshold">
-              {`${threshold.shown}%`}
-            </output>
-          </div>
-          <input
-            id="threshold"
-            type="range"
-            min="10"
-            max="100"
-            step="5"
-            aria-describedby="threshold-help"
-            disabled={off}
-            {...threshold.props}
-          />
-          <p id="threshold-help" class="help">
-            Accounts scoring at or above this are marked as likely bots.
-          </p>
-        </div>
-
-        <label class="check">
-          <input
-            id="only-likely-bots"
-            type="checkbox"
-            checked={settings.onlyShowLikelyBotsBadges}
-            disabled={off}
-            onChange={(e) =>
-              update({ onlyShowLikelyBotsBadges: e.currentTarget.checked })
-            }
-          />
-          <span>
-            Only show likely bots' badges
-            <small>Hide the badge on accounts below the threshold.</small>
-          </span>
-        </label>
-
-        <label class="check">
-          <input
-            id="hide-likely-bots"
-            type="checkbox"
-            checked={settings.hideLikelyBots}
-            disabled={off}
-            onChange={(e) =>
-              update({ hideLikelyBots: e.currentTarget.checked })
-            }
-          />
-          <span>
-            Hide likely bots
-            <small>
-              Hide the entire post for accounts at or above the threshold.
-            </small>
-          </span>
-        </label>
-
-        <button
-          id="reset"
-          type="button"
-          class="secondary"
-          onClick={() =>
-            // Resetting keeps the allow/block lists, since those are the user's own data.
-            replace({
-              ...DEFAULT_SETTINGS,
-              allowlist: settings.allowlist,
-              blocklist: settings.blocklist,
-            })
-          }
-        >
-          Reset to defaults
-        </button>
-      </section>
-
-      <section id="page" aria-labelledby="page-title">
-        <h2 id="page-title">This page</h2>
-        <p id="stats" class="help">
-          {pageStats
-            ? `${pageStats.flagged} likely bot${
-                pageStats.flagged === 1 ? '' : 's'
-              } found, ${pageStats.hidden} hidden, ${pageStats.badges} badged.`
-            : 'Open x.com to see results.'}
-        </p>
-        <button
-          id="show-hidden"
-          type="button"
-          class="secondary"
-          disabled={!pageStats?.hidden}
-          onClick={() =>
-            void sendToActiveTab({ type: 'show-hidden' }).then(setPageStats)
-          }
-        >
-          Show hidden posts
-        </button>
-      </section>
+      <CurrentPageSection
+        pageStats={pageStats}
+        onClickedShowHidden={() => {
+          void sendToActiveTab({ type: 'show-hidden' }).then(setPageStats);
+        }}
+      />
 
       <section id="lists" aria-labelledby="lists-title">
         <h2 id="lists-title">Lists</h2>
