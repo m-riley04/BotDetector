@@ -25,8 +25,6 @@ import {
   looksRandomHandle,
 } from './signals';
 
-// region weights
-
 /**
  * Weights for each check.
  *
@@ -35,7 +33,9 @@ import {
  * Negative weights are "trust" signals that reduce the score.
  */
 const WEIGHTS = {
-  blueCheck: 0.4, // Blue checks aren't worth anything anymore.
+  // region distrust weights
+
+  blueCheck: 0.3, // Blue checks aren't worth anything anymore.
   onlyFansModel: 0.2, // why is it always onlyfans accounts
   newAccount: 0.15,
   highTweetRate: 0.15,
@@ -65,9 +65,13 @@ const WEIGHTS = {
   handleNameMismatch: 0.03,
   noMedia: 0.03,
   languageMismatch: 0.02,
-  protectedAccount: -0.1, // trust signals
+
+  // region trust signal weights
+
+  protectedAccount: -0.1,
   establishedAccount: -0.1,
   officialVerified: -0.15,
+  governmentAccount: -0.15,
 } as const;
 
 export type CheckKey = keyof typeof WEIGHTS;
@@ -81,6 +85,8 @@ type CheckDefinitions = Record<CheckKey, { id: string; label: string }>;
  * Report order matches the order of this object.
  */
 export const CHECK_DEFINITIONS = {
+  // region distrust defs
+
   blueCheck: { id: 'blue-check', label: 'Paid blue checkmark (non-business)' },
   quotedCheckmark: {
     id: 'quoted-checkmark',
@@ -199,7 +205,8 @@ export const CHECK_DEFINITIONS = {
     label: 'Post language differs from the bio language',
   },
 
-  // region trust signals
+  // region trust signal defs
+
   protectedAccount: {
     id: 'protected-account',
     label: 'Protected account',
@@ -211,6 +218,10 @@ export const CHECK_DEFINITIONS = {
   officialVerified: {
     id: 'official-verified',
     label: 'Business or government verification',
+  },
+  governmentAccount: {
+    id: 'government-account',
+    label: 'A government account is (hopefully) more trustworthy.',
   },
 } as const satisfies CheckDefinitions;
 
@@ -446,6 +457,7 @@ export function getDetectionReport(
         statuses >= 500
     ),
     check('officialVerified', isOfficiallyVerified(user)),
+    check('governmentAccount', !!post.user.labels.isGovernment),
   ];
 
   const chance = Math.min(
