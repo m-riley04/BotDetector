@@ -1,6 +1,6 @@
-import { cp, mkdir, rm } from 'node:fs/promises';
-import { watch as watchDirectory } from 'node:fs';
 import { build, context } from 'esbuild';
+import { watch as watchDirectory } from 'node:fs';
+import { cp, mkdir, rm } from 'node:fs/promises';
 
 const outputDirectory = 'dist';
 const watch = process.argv.includes('--watch');

@@ -8,6 +8,8 @@ export function isNonNullObject(value: unknown): value is object {
   return isObject(value) && value !== null;
 }
 
+// Uh yeah, the point is that it accepts any function.
+// eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
 export function isFunction(value: unknown): value is Function {
   return typeof value === 'function';
 }

@@ -3,25 +3,13 @@
     "target": "ES2022",
     "module": "ESNext",
     "moduleResolution": "Bundler",
-    "lib": [
-      "ES2022",
-      "DOM"
-    ],
-    "types": [
-      "firefox-webext-browser",
-      "jest",
-      "node"
-    ],
+    "lib": ["ES2022", "DOM"],
+    "types": ["firefox-webext-browser", "jest", "node"],
     "jsx": "react-jsx",
     "jsxImportSource": "preact",
     "strict": true,
     "noEmit": true,
     "skipLibCheck": true
   },
-  "include": [
-    "src/**/*.ts",
-    "src/**/*.tsx",
-    "tests/**/*.ts",
-    "tests/**/*.tsx"
-  ]
+  "include": ["src/**/*.ts", "src/**/*.tsx", "tests/**/*.ts", "tests/**/*.tsx"]
 }

@@ -1,4 +1,4 @@
-const { transformSync } = require('esbuild');
+import { transformSync } from 'esbuild';
 
 /**
  * Compiles TS/ESM sources to CommonJS for Jest using the project's existing esbuild.

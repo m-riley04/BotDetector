@@ -1,4 +1,6 @@
 import { isFirstOrLastDayOfMonth } from '../common/dates';
+import { isNumber } from '../common/helpers';
+import { Post } from '../social-media/models';
 import { BotCheck, BotDetectionReport } from './models';
 import {
   ADULT_PROMO_DOMAINS,
@@ -22,8 +24,6 @@ import {
   looksLikeOnlyFans,
   looksRandomHandle,
 } from './signals';
-import { Post } from '../social-media/models';
-import { isNumber } from '../common/helpers';
 
 // region weights
 
@@ -461,6 +461,6 @@ export function getDetectionReport(
     checks,
     user,
     isBot: chance >= isBotThreshold,
-    isBotThreshold: isBotThreshold,
+    isBotThreshold,
   };
 }

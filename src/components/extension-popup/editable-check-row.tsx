@@ -1,8 +1,8 @@
 import { toPercent } from '../../common/helpers';
 import { Settings } from '../../common/settings';
 import {
-  CheckKey,
   CHECK_DEFINITIONS,
+  CheckKey,
   DEFAULT_WEIGHTS,
 } from '../../detection/detection';
 import { useSlider } from './useSlider';

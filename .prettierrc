@@ -6,5 +6,5 @@
   "trailingComma": "es5",
   "endOfLine": "lf",
   "bracketSpacing": true,
-  "plugins": ["prettier-plugin-css-order"]
+  "plugins": ["prettier-plugin-css-order", "prettier-plugin-organize-imports"]
 }

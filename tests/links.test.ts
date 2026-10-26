@@ -1,9 +1,9 @@
-import { isExpandLinksRequest } from '../src/common/links';
 import {
   isTcoUrl,
   parseTcoPage,
   tcoLinkResolver,
 } from '../src/adapters/twitter/links';
+import { isExpandLinksRequest } from '../src/common/links';
 import { LinkExpander } from '../src/detection/linkExpander';
 
 const expandTcoUrls = (

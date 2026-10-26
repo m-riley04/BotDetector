@@ -213,8 +213,7 @@ describe('profile links', () => {
 });
 
 test('getUsernameChanges reads the About data', () => {
-  const user = (about: unknown) =>
-    ({ about }) as unknown as Post['user'];
+  const user = (about: unknown) => ({ about }) as unknown as Post['user'];
 
   expect(
     signals.getUsernameChanges(
@@ -225,5 +224,7 @@ test('getUsernameChanges reads the About data', () => {
     )
   ).toEqual({ count: 2, lastChangedMs: 1700000000000 });
   expect(signals.getUsernameChanges(user(undefined))).toBeUndefined();
-  expect(signals.getUsernameChanges(user({ usernameChanges: 0 }))).toBeUndefined();
+  expect(
+    signals.getUsernameChanges(user({ usernameChanges: 0 }))
+  ).toBeUndefined();
 });

@@ -1,7 +1,7 @@
-import * as detection from '../src/detection/detection';
-import type { BotDetectionReport } from '../src/detection/models';
 import { convertTweetToGenericPost } from '../src/adapters/twitter/converters';
 import type { Tweet } from '../src/adapters/twitter/models';
+import * as detection from '../src/detection/detection';
+import type { BotDetectionReport } from '../src/detection/models';
 import type { Post } from '../src/social-media/models';
 
 type DetectionOptions = typeof detection.DEFAULT_DETECTION_REPORT_OPTIONS;
@@ -601,8 +601,6 @@ test('onlyfans-model matches the keyword case-insensitively and uses its weight'
 });
 
 test('onlyfans models are detected', () => {
-  const knownPornScamLinks = ['spicey.link', 'onlyfans.com'];
-
   // need to check not only in bio, but also names and other info too
 
   const posts = [
@@ -923,25 +921,12 @@ describe('profile promotion and account history checks', () => {
           },
         },
       });
-
-    // expect(
-    //   check(
-    //     getReport(changes('1', fixedNow - 30 * dayMs)),
-    //     'recent-username-change'
-    //   ).triggered
-    // ).toBe(true);
     expect(
       check(
         getReport(changes('1', fixedNow - 800 * dayMs)),
         'recent-username-change'
       ).triggered
     ).toBe(false);
-    // expect(
-    //   check(
-    //     getReport(changes('3', fixedNow - 800 * dayMs)),
-    //     'recent-username-change'
-    //   ).triggered
-    // ).toBe(true);
     expect(
       check(getReport(makePost()), 'recent-username-change').triggered
     ).toBe(false);

@@ -1,4 +1,6 @@
-import { useEffect, useRef, useState } from 'preact/hooks';
+import { useCallback, useEffect, useRef, useState } from 'preact/hooks';
+import { combineLines, toPercent } from '../../common/helpers';
+import type { ContentRequest, PageStats } from '../../common/messages';
 import {
   DEFAULT_SETTINGS,
   exportSettings,
@@ -10,11 +12,9 @@ import {
   type Settings,
 } from '../../common/settings';
 import { CHECK_KEYS } from '../../detection/detection';
-import type { ContentRequest, PageStats } from '../../common/messages';
-import { combineLines, toPercent } from '../../common/helpers';
-import { useSlider } from './useSlider';
-import { TextList } from './text-list';
 import { EditableCheckRow } from './editable-check-row';
+import { TextList } from './text-list';
+import { useSlider } from './useSlider';
 
 /**
  * Sends a content request to the active tab and returns the page statistics if available.
@@ -59,20 +59,22 @@ export function ExtensionPopup({ initial }: ExtensionPopupProps) {
   // Debounced text saves can fire after a re-render, so always build on the latest settings.
   const latest = useRef(settings);
 
-  // TODO: make this more performant (i.e. `useCallback` and `useMemo`)
+  const replace = useCallback(
+    async (next: Settings, remount = false) => {
+      latest.current = next;
+      setSettings(next);
+      if (remount) setVersion((v) => v + 1);
+      try {
+        await saveSettings(next);
+        setSaveError(false);
+      } catch (error) {
+        console.error('[BotDetector] Could not save settings.', error);
+        setSaveError(true);
+      }
+    },
+    [setSettings, setVersion, setSaveError]
+  );
 
-  const replace = async (next: Settings, remount = false) => {
-    latest.current = next;
-    setSettings(next);
-    if (remount) setVersion((v) => v + 1);
-    try {
-      await saveSettings(next);
-      setSaveError(false);
-    } catch (error) {
-      console.error('[BotDetector] Could not save settings.', error);
-      setSaveError(true);
-    }
-  };
   const update = (patch: Partial<Settings>) =>
     replace(sanitizeSettings({ ...latest.current, ...patch }));
 
@@ -80,7 +82,7 @@ export function ExtensionPopup({ initial }: ExtensionPopupProps) {
     void sendToActiveTab({ type: 'get-stats' }).then(setPageStats);
   }, []);
 
-  const copySettings = async () => {
+  const copySettings = useCallback(async () => {
     const text = exportSettings(settings);
     setBackupText(text);
     try {
@@ -90,15 +92,15 @@ export function ExtensionPopup({ initial }: ExtensionPopupProps) {
       backupArea.current?.select();
       setBackupStatus('Press Ctrl+C to copy the selected text.');
     }
-  };
+  }, [settings]);
 
-  const importSettings = () => {
+  const importSettings = useCallback(() => {
     const imported = parseImportedSettings(backupText);
     if (imported) void replace(imported, true);
     setBackupStatus(
       imported ? 'Settings applied.' : 'That is not valid settings JSON.'
     );
-  };
+  }, [backupText, setBackupStatus, replace]);
 
   const off = !settings.enabled;
   const threshold = useSlider(toPercent(settings.threshold), (value) =>
@@ -119,7 +121,7 @@ export function ExtensionPopup({ initial }: ExtensionPopupProps) {
             checked={settings.enabled}
             onChange={(e) => update({ enabled: e.currentTarget.checked })}
           />
-          <span class="track"></span>
+          <span class="track" />
           <span class="visually-hidden">Enable BotDetector</span>
         </label>
       </header>

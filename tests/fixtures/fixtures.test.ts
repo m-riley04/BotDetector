@@ -1,4 +1,4 @@
-import { scoreFixture, files, loadFixture } from './fixtures-helpers';
+import { files, loadFixture, scoreFixture } from './fixtures-helpers';
 
 test('the fixture corpus has both bots and humans', () => {
   expect(files.some((name) => name.startsWith('bot-'))).toBe(true);

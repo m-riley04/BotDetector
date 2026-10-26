@@ -1,25 +1,12 @@
-import { isRecord, isString } from './common/helpers';
-import { parseReactPropsResponse } from './common/parsing';
-import { BOT_DETECTOR_CLOSE_OVERLAY } from './detection/constants';
 import {
-  requestReactProps,
-  loadReactPropsBridge,
-  reactBridge,
-} from './react/bridge';
-import {
-  REACT_ID_ATTRIBUTE,
-  REACT_PROPS_REQUEST,
-  REACT_PROPS_RESPONSE,
-} from './react/constants';
-import { BOT_ELEMENT } from './common/constants';
-import { createBotElement } from './detection/visuals';
-import type { BotDetectionReport } from './detection/models';
-import { getDetectionReport } from './detection/detection';
-import { buildDetectionOptions } from './detection/options';
-import { ReportCache } from './detection/cache';
-import { DuplicateTextTracker } from './detection/duplicates';
-import { LinkExpander } from './detection/linkExpander';
+  convertTweetToGenericPost,
+  isTwitterTweet,
+} from './adapters/twitter/converters';
 import { tcoLinkResolver } from './adapters/twitter/links';
+import { BOT_ELEMENT } from './common/constants';
+import { isRecord, isString } from './common/helpers';
+import { isContentRequest, type PageStats } from './common/messages';
+import { parseReactPropsResponse } from './common/parsing';
 import {
   DEFAULT_SETTINGS,
   SETTINGS_KEY,
@@ -31,14 +18,27 @@ import {
   type ListAction,
   type Settings,
 } from './common/settings';
-import { isContentRequest, type PageStats } from './common/messages';
-import { ReactPropsResponse } from './react/models';
+import { ReportCache } from './detection/cache';
+import { BOT_DETECTOR_CLOSE_OVERLAY } from './detection/constants';
+import { getDetectionReport } from './detection/detection';
+import { DuplicateTextTracker } from './detection/duplicates';
+import { LinkExpander } from './detection/linkExpander';
+import type { BotDetectionReport } from './detection/models';
+import { buildDetectionOptions } from './detection/options';
 import { applyListOverride, getTweetAction } from './detection/visibility';
-import { Post } from './social-media/models';
+import { createBotElement } from './detection/visuals';
 import {
-  convertTweetToGenericPost,
-  isTwitterTweet,
-} from './adapters/twitter/converters';
+  loadReactPropsBridge,
+  reactBridge,
+  requestReactProps,
+} from './react/bridge';
+import {
+  REACT_ID_ATTRIBUTE,
+  REACT_PROPS_REQUEST,
+  REACT_PROPS_RESPONSE,
+} from './react/constants';
+import { ReactPropsResponse } from './react/models';
+import { Post } from './social-media/models';
 
 const HIDDEN_ATTRIBUTE = 'data-botdetector-hidden';
 // marks every post flagged as a likely bot, whether it is hidden or badged

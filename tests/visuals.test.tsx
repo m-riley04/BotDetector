@@ -2,10 +2,10 @@
  * @jest-environment jsdom
  */
 import { act } from 'preact/test-utils';
+import { getColorFromChance } from '../src/components/helpers';
 import type { BotDetectionReport } from '../src/detection/models';
 import * as visuals from '../src/detection/visuals';
 import { Post } from '../src/social-media/models';
-import { getColorFromChance } from '../src/components/helpers';
 
 const BOT_DETECTOR_CLOSE_OVERLAY = 'BOT_DETECTOR_CLOSE_OVERLAY';
 
@@ -67,7 +67,7 @@ const open = (...args: Parameters<typeof visuals.showReportModal>) =>
     await settle();
   });
 
-function stubClipboard(writeText: (text: string) => Promise<void>) {
+function stubClipboard(writeText: (_text: string) => Promise<void>) {
   Object.defineProperty(navigator, 'clipboard', {
     configurable: true,
     value: { writeText },

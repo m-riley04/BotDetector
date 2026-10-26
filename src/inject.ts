@@ -1,10 +1,10 @@
-import { getReactData } from './react/react-serlializer';
+import { isString } from './common/helpers';
 import {
+  REACT_ID_ATTRIBUTE,
   REACT_PROPS_REQUEST,
   REACT_PROPS_RESPONSE,
-  REACT_ID_ATTRIBUTE,
 } from './react/constants';
-import { isString } from './common/helpers';
+import { getReactData } from './react/react-serlializer';
 
 // injects a listener into the context of the site to gather React props for tweets
 // they contain a LOT of the data that I would otherwise need to get from scraping manually. Thanks Twitter for your React site <3

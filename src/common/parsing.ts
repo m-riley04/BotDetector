@@ -1,4 +1,4 @@
-import type { ReactPropsResponse, ReactComponentData } from '../react/models';
+import type { ReactComponentData, ReactPropsResponse } from '../react/models';
 import { isRecord, isString } from './helpers';
 
 export function parseReactPropsResponse(

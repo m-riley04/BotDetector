@@ -1,10 +1,10 @@
 import { render } from 'preact';
 import { useCallback, useEffect, useState } from 'preact/hooks';
+import { toWholePercent } from '../common/helpers';
 import type { ListAction, ListStatus } from '../common/settings';
-import { Post } from '../social-media/models';
 import { BOT_DETECTOR_CLOSE_OVERLAY } from '../detection/constants';
 import type { BotDetectionReport } from '../detection/models';
-import { toWholePercent } from '../common/helpers';
+import { Post } from '../social-media/models';
 import { ChecksTable } from './checks-table';
 
 /**

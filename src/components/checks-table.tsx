@@ -1,6 +1,6 @@
+import { useMemo } from 'preact/compat';
+import { toSignedWholePercent, toWholePercent } from '../common/helpers';
 import type { BotCheck, BotDetectionReport } from '../detection/models';
-import { toWholePercent, toSignedWholePercent } from '../common/helpers';
-import { useEffect, useMemo, useState } from 'preact/compat';
 
 interface CheckRowOptions {
   check: BotCheck;
@@ -29,9 +29,9 @@ function CheckRows({ report }: { report: BotDetectionReport }) {
   let running = 0;
   return (
     <>
-      {report.checks.map((c) => {
+      {report.checks.map((c, i) => {
         running = Math.min(Math.max(running + c.contribution, 0), 1);
-        return <CheckRow check={c} currentRunningTotal={running} />;
+        return <CheckRow key={i} check={c} currentRunningTotal={running} />;
       })}
     </>
   );
@@ -67,8 +67,8 @@ export function ChecksTable({
         <CheckRows report={filteredReport} />
         <tr class="final">
           <td>Final (kept between 0% and 100%)</td>
-          <td></td>
-          <td></td>
+          <td />
+          <td />
           <td>{toWholePercent(filteredReport.chance)}</td>
         </tr>
       </tbody>

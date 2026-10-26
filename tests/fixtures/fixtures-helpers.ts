@@ -1,13 +1,13 @@
 import { readdirSync, readFileSync } from 'fs';
 import { join } from 'path';
 import {
-  isTwitterTweet,
   convertTweetToGenericPost,
+  isTwitterTweet,
 } from '../../src/adapters/twitter/converters';
 import { isRecord } from '../../src/common/helpers';
 import {
-  getDetectionReport,
   DEFAULT_DETECTION_REPORT_OPTIONS,
+  getDetectionReport,
 } from '../../src/detection/detection';
 import { Post } from '../../src/social-media/models';
 

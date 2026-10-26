@@ -1,18 +1,18 @@
+import { isContentRequest } from '../src/common/messages';
+import { DEFAULT_SETTINGS, sanitizeSettings } from '../src/common/settings';
 import { ReportCache } from '../src/detection/cache';
 import * as detection from '../src/detection/detection';
 import {
   DuplicateTextTracker,
   normalizePostText,
 } from '../src/detection/duplicates';
-import { buildDetectionOptions } from '../src/detection/options';
 import type { BotDetectionReport } from '../src/detection/models';
-import { isContentRequest } from '../src/common/messages';
-import { DEFAULT_SETTINGS, sanitizeSettings } from '../src/common/settings';
+import { buildDetectionOptions } from '../src/detection/options';
 import type { Post } from '../src/social-media/models';
 
 const post = (id: string, text = '', userId = 'u1'): Post =>
   ({
-    id: id,
+    id,
     content: {
       text,
     },

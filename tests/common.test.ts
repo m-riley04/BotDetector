@@ -197,7 +197,7 @@ test('getReactData reads props and fiber components in traversal order for tweet
         type: function b() {},
         memoizedProps: { z: 2 },
         return: {
-          type: Object.assign(function Other() {}, { displayName: 'Shown' }),
+          type: Object.assign(() => {}, { displayName: 'Shown' }),
           memoizedProps: { q: 3 },
           return: { type: 'span', memoizedProps: 'not-a-record' },
         },

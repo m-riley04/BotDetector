@@ -1,3 +1,4 @@
+import type { Settings } from '../common/settings';
 import {
   CHECK_KEYS,
   DEFAULT_DETECTION_REPORT_OPTIONS,
@@ -6,7 +7,6 @@ import {
   type GetDetectionReportOptions,
 } from './detection';
 import { DEFAULT_SCAM_KEYWORDS } from './signals';
-import type { Settings } from '../common/settings';
 
 /**
  * Applies the user's threshold, per-check toggles/weights and extra keywords on top of the defaults.

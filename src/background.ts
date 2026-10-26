@@ -1,5 +1,5 @@
-import { isString } from './common/helpers';
 import { tcoLinkResolver } from './adapters/twitter/links';
+import { isString } from './common/helpers';
 import {
   isExpandLinksRequest,
   type ExpandedLinks,
