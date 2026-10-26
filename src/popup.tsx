@@ -1,6 +1,6 @@
 import { render } from 'preact';
 import { DEFAULT_SETTINGS, loadSettings } from './common/settings';
-import { ExtensionPopup } from './components/extension-popup/popup';
+import { ExtensionPopup } from './components/extension-popup/ExtensionPopup';
 
 // the main entry point for the popup
 // this follows extension development guidelines
