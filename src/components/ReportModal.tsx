@@ -5,7 +5,7 @@ import type { ListAction, ListStatus } from '../common/settings';
 import { BOT_DETECTOR_CLOSE_OVERLAY } from '../detection/constants';
 import type { BotDetectionReport } from '../detection/models';
 import { Post } from '../social-media/models';
-import { ChecksTable } from './checks-table';
+import { ChecksTable } from './ChecksTable';
 
 /**
  * Lets the modal change the user's allowlist/blocklist for the post's author.

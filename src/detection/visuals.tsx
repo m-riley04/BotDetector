@@ -1,11 +1,11 @@
 import { BOT_ELEMENT } from '../common/constants';
 import { toWholePercent } from '../common/helpers';
-import { Badge } from '../components/badge';
+import { PostBadge } from '../components/PostBadge';
 import {
   mountInShadow,
   ReportModal,
   ReportModalOptions,
-} from '../components/report-modal';
+} from '../components/ReportModal';
 import { Post } from '../social-media/models';
 import { BotDetectionReport } from './models';
 import STYLES from './styles.css';
@@ -52,7 +52,7 @@ export function createBotElement(
   mountInShadow(
     host,
     () => (
-      <Badge
+      <PostBadge
         report={report}
         onDetails={() => showReportModal(report, post, options)}
       />

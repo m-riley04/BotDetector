@@ -2,7 +2,7 @@ import { toWholePercent } from '../common/helpers';
 import { BotDetectionReport } from '../detection/models';
 import { getColorFromChance } from './helpers';
 
-export function Badge({
+export function PostBadge({
   report,
   onDetails,
 }: {
