@@ -18,6 +18,7 @@ import {
   type ListAction,
   type Settings,
 } from './common/settings';
+import { LOG_PREFIX } from './constants';
 import { ReportCache } from './detection/cache';
 import { getDetectionReport } from './detection/detection';
 import { DuplicateTextTracker } from './detection/duplicates';
@@ -39,11 +40,11 @@ import {
 import { ReactPropsResponse } from './react/models';
 import { Post } from './social-media/models';
 
-const HIDDEN_ATTRIBUTE = 'data-botdetector-hidden';
+const HIDDEN_ATTRIBUTE = 'data-droiddetector-hidden';
 // marks every post flagged as a likely bot, whether it is hidden or badged
-const BOT_ATTRIBUTE = 'data-botdetector-bot';
+const BOT_ATTRIBUTE = 'data-droiddetector-bot';
 // a hidden post the user chose to reveal; it stays visible with a badge
-const REVEALED_ATTRIBUTE = 'data-botdetector-revealed';
+const REVEALED_ATTRIBUTE = 'data-droiddetector-revealed';
 
 const reportCache = new ReportCache();
 const duplicateTracker = new DuplicateTextTracker();
@@ -79,11 +80,11 @@ function getPostDataFromReactResponse(
     ? componentProps.tweet
     : undefined;
   if (!isTwitterTweet(tweetProps)) {
-    console.warn(`[BotDetector] No tweet props found for ${reactProps.id}`);
+    console.warn(`${LOG_PREFIX} No tweet props found for ${reactProps.id}`);
     return;
   }
 
-  console.debug(`[BotDetector] Tweet props: `, tweetProps);
+  console.debug(`${LOG_PREFIX} Tweet props: `, tweetProps);
 
   return convertTweetToGenericPost(tweetProps);
 }
@@ -91,7 +92,7 @@ function getPostDataFromReactResponse(
 // keyboard presses for manual/quick actions
 window.addEventListener('keyup', (e: KeyboardEvent) => {
   if (e.key === 'r') {
-    console.log('[BotDetector] Manual scan triggered.');
+    console.log(`${LOG_PREFIX} Manual scan triggered.`);
     reportCache.clear();
     duplicateTracker.clear();
     clearTweets();
@@ -109,24 +110,24 @@ window.addEventListener(REACT_PROPS_RESPONSE, (event: Event) => {
     const response = parseReactPropsResponse(JSON.parse(detail) as unknown);
     if (!response) {
       // TODO: make a dedicated logger
-      console.error('[BotDetector] Received an invalid React props response.');
+      console.error(`${LOG_PREFIX} Received an invalid React props response.`);
       return;
     }
 
     const tweetProps = getPostDataFromReactResponse(response);
     if (!tweetProps) {
-      console.warn(`[BotDetector] No tweet props found for ${response.id}`);
+      console.warn(`${LOG_PREFIX} No tweet props found for ${response.id}`);
       return;
     }
 
     console.log(
-      `[BotDetector] Received tweet props for ${response.id}:`,
+      `${LOG_PREFIX} Received tweet props for ${response.id}:`,
       tweetProps
     );
     temp = tweetProps;
   } catch (error) {
     console.error(
-      '[BotDetector] Could not read React props from a tweet.',
+      `${LOG_PREFIX} Could not read React props from a tweet.`,
       error
     );
   }
@@ -158,7 +159,7 @@ async function updateList(
     const current = await loadSettings();
     await saveSettings(applyListAction(current, handle, action));
   } catch (error) {
-    console.error('[BotDetector] Could not update the lists.', error);
+    console.error(`${LOG_PREFIX} Could not update the lists.`, error);
   }
 }
 
@@ -243,7 +244,7 @@ function scanTweets(): void {
     const postData = postDataByElement.get(tweet);
     if (!postData) {
       console.warn(
-        `[BotDetector] No detection report cached for tweet: skipping.`
+        `${LOG_PREFIX} No detection report cached for tweet: skipping.`
       );
       return;
     }
@@ -262,7 +263,7 @@ function scanTweets(): void {
     }
     if (!rawReport) {
       console.warn(
-        `[BotDetector] No detection report available for tweet: skipping.`
+        `${LOG_PREFIX} No detection report available for tweet: skipping.`
       );
       return;
     }
@@ -328,7 +329,7 @@ function clearTweets(): void {
 
   reactBridge.clearAddedTags();
 
-  console.log('[BotDetector] Cleared all bot elements.');
+  console.log(`${LOG_PREFIX} Cleared all bot elements.`);
 }
 
 // re-apply the badges whenever the popup changes a setting
@@ -348,7 +349,7 @@ loadSettings()
     settings = loaded;
   })
   .catch((error) => {
-    console.error('[BotDetector] Could not load settings.', error);
+    console.error(`${LOG_PREFIX} Could not load settings.`, error);
   })
   .finally(() => loadReactPropsBridge(reactBridge, scanTweets));
 document.addEventListener('scrollend', scanTweets);

@@ -1,1 +1,1 @@
-export const BOT_ELEMENT = 'div-botdetector';
+export const BOT_ELEMENT = 'div-droiddetector';

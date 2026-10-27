@@ -1,7 +1,7 @@
 {
   "$schema": "https://json.schemastore.org/chrome-manifest",
   "manifest_version": 3,
-  "name": "BotDetector",
+  "name": "DroidDetector",
   "version": "1.0.0",
   "description": "A bot detection extension for identifying troll and astroturfing accounts",
   "permissions": ["activeTab", "scripting", "storage", "clipboardWrite"],
@@ -26,7 +26,7 @@
     }
   ],
   "action": {
-    "default_title": "BotDetector",
+    "default_title": "DroidDetector",
     "default_popup": "popup.html"
   }
 }

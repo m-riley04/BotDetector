@@ -1,4 +1,4 @@
-# Contributing to BotDetector
+# Contributing to DroidDetector
 
 I need to flesh this out more.
 

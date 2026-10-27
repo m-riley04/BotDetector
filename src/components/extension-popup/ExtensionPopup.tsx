@@ -5,6 +5,7 @@ import {
   saveSettings,
   type Settings,
 } from '../../common/settings';
+import { LOG_PREFIX } from '../../constants';
 import { BackupSection } from './BackupSection';
 import { ChecksSection } from './ChecksSection';
 import { CurrentPageSection } from './CurrentPageSection';
@@ -73,7 +74,7 @@ export function ExtensionPopup({ initial }: ExtensionPopupProps) {
         await saveSettings(next);
         setSaveError(false);
       } catch (error) {
-        console.error('[BotDetector] Could not save settings.', error);
+        console.error(`${LOG_PREFIX} Could not save settings.`, error);
         setSaveError(true);
       }
     },
@@ -94,8 +95,8 @@ export function ExtensionPopup({ initial }: ExtensionPopupProps) {
   return (
     <main>
       <header>
-        <h1>BotDetector</h1>
-        <label class="switch" title="Enable or disable BotDetector">
+        <h1>DroidDetector</h1>
+        <label class="switch" title="Enable or disable DroidDetector">
           <input
             id="enabled"
             type="checkbox"
@@ -104,7 +105,7 @@ export function ExtensionPopup({ initial }: ExtensionPopupProps) {
             onChange={(e) => update({ enabled: e.currentTarget.checked })}
           />
           <span class="track" />
-          <span class="visually-hidden">Enable BotDetector</span>
+          <span class="visually-hidden">Enable DroidDetector</span>
         </label>
       </header>
       <p class="subtitle">
