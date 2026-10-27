@@ -1,8 +1,8 @@
 {
-    "recommendations": [
-        "Orta.vscode-jest",
-        "vitest.explorer",
-        "dbaeumer.vscode-eslint",
-        "esbenp.prettier-vscode"
-    ]
+  "recommendations": [
+    "Orta.vscode-jest",
+    "vitest.explorer",
+    "dbaeumer.vscode-eslint",
+    "esbenp.prettier-vscode"
+  ]
 }

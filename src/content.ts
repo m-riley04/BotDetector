@@ -219,9 +219,7 @@ function scanTweets(): void {
   if (!settings.enabled) return;
 
   const tweets = Array.from(
-    document.querySelectorAll<HTMLDivElement>(
-      'div[data-testid="cellInnerDiv"]'
-    )
+    document.querySelectorAll<HTMLDivElement>('div[data-testid="cellInnerDiv"]')
   );
 
   tweets.forEach((tweet) => {
