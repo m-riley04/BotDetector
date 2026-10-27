@@ -1,4 +1,5 @@
-import { transformSync } from 'esbuild';
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const { transformSync } = require('esbuild');
 
 /**
  * Compiles TS/ESM sources to CommonJS for Jest using the project's existing esbuild.

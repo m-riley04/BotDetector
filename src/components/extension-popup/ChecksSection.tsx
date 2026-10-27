@@ -2,20 +2,19 @@ import { combineLines } from '../../common/helpers';
 import { parseKeywordList, Settings } from '../../common/settings';
 import { CHECK_KEYS } from '../../detection/detection';
 import { EditableCheckRow } from './EditableCheckRow';
+import type { ReplaceSettings, UpdateSettings } from './ExtensionPopup';
 import { TextList } from './TextList';
 
 interface ChecksSectionProps {
   settings: Settings;
   version: number;
-  checkKeys: typeof CHECK_KEYS;
-  update: (patch: Partial<Settings>) => void;
-  replace: (next: Settings, remount?: boolean) => Promise<void>;
+  update: UpdateSettings;
+  replace: ReplaceSettings;
 }
 
 export function ChecksSection({
   settings,
   version,
-  checkKeys,
   update,
   replace,
 }: ChecksSectionProps) {
@@ -27,7 +26,7 @@ export function ChecksSection({
         score.
       </p>
       <div id="checks">
-        {checkKeys.map((key) => (
+        {CHECK_KEYS.map((key) => (
           <EditableCheckRow
             key={key}
             checkKey={key}

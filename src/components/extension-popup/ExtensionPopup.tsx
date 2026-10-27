@@ -5,7 +5,6 @@ import {
   saveSettings,
   type Settings,
 } from '../../common/settings';
-import { CHECK_KEYS } from '../../detection/detection';
 import { BackupSection } from './BackupSection';
 import { ChecksSection } from './ChecksSection';
 import { CurrentPageSection } from './CurrentPageSection';
@@ -34,6 +33,19 @@ async function sendToActiveTab(
   }
 }
 
+/**
+ * Merges a partial change into the latest settings and saves it.
+ */
+export type UpdateSettings = (patch: Partial<Settings>) => Promise<void>;
+
+/**
+ * Replaces all settings and saves them. Pass `remount` to reset the text areas to the new values.
+ */
+export type ReplaceSettings = (
+  next: Settings,
+  remount?: boolean
+) => Promise<void>;
+
 interface ExtensionPopupProps {
   initial: Settings;
 }
@@ -52,8 +64,8 @@ export function ExtensionPopup({ initial }: ExtensionPopupProps) {
   // Debounced text saves can fire after a re-render, so always build on the latest settings.
   const latest = useRef(settings);
 
-  const replace = useCallback(
-    async (next: Settings, remount = false) => {
+  const replace = useCallback<ReplaceSettings>(
+    async (next, remount = false) => {
       latest.current = next;
       setSettings(next);
       if (remount) setVersion((v) => v + 1);
@@ -68,9 +80,8 @@ export function ExtensionPopup({ initial }: ExtensionPopupProps) {
     [setSettings, setVersion, setSaveError]
   );
 
-  const update = useCallback(
-    (patch: Partial<Settings>) =>
-      replace(sanitizeSettings({ ...latest.current, ...patch })),
+  const update = useCallback<UpdateSettings>(
+    (patch) => replace(sanitizeSettings({ ...latest.current, ...patch })),
     [replace]
   );
 
@@ -79,8 +90,6 @@ export function ExtensionPopup({ initial }: ExtensionPopupProps) {
   }, []);
 
   const off = !settings.enabled;
-
-  // TODO: split this huge layout up
 
   return (
     <main>
@@ -130,7 +139,6 @@ export function ExtensionPopup({ initial }: ExtensionPopupProps) {
       <ListsSection settings={settings} update={update} version={version} />
 
       <ChecksSection
-        checkKeys={CHECK_KEYS}
         settings={settings}
         version={version}
         update={update}

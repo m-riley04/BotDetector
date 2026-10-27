@@ -4,10 +4,11 @@ import {
   parseImportedSettings,
   Settings,
 } from '../../common/settings';
+import type { ReplaceSettings } from './ExtensionPopup';
 
 interface BackupSectionProps {
   settings: Settings;
-  replace: (next: Settings, remount?: boolean) => Promise<void>;
+  replace: ReplaceSettings;
 }
 
 export function BackupSection({ settings, replace }: BackupSectionProps) {

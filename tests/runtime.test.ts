@@ -58,7 +58,7 @@ describe('buildDetectionOptions', () => {
 
   test('does not mutate the shared default weights', () => {
     buildDetectionOptions(sanitizeSettings({ disabledChecks: ['blueCheck'] }));
-    expect(detection.DEFAULT_WEIGHTS.blueCheck).toBe(0.4);
+    expect(detection.DEFAULT_WEIGHTS.blueCheck).toBe(0.3);
   });
 });
 

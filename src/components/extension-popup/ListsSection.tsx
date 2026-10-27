@@ -1,11 +1,12 @@
 import { combineLines } from '../../common/helpers';
 import { parseHandleList, Settings } from '../../common/settings';
+import type { UpdateSettings } from './ExtensionPopup';
 import { TextList } from './TextList';
 
 interface ListsSectionProps {
   settings: Settings;
   version: number;
-  update: (patch: Partial<Settings>) => void;
+  update: UpdateSettings;
 }
 
 export function ListsSection({ settings, version, update }: ListsSectionProps) {

@@ -1,12 +1,13 @@
 import { toPercent } from '../../common/helpers';
 import { DEFAULT_SETTINGS, Settings } from '../../common/settings';
+import type { ReplaceSettings, UpdateSettings } from './ExtensionPopup';
 import { useSlider } from './useSlider';
 
 interface SettingsSectionProps {
   settings: Settings;
   isOff: boolean;
-  update: (patch: Partial<Settings>) => Promise<void>;
-  replace: (next: Settings, remount?: boolean) => Promise<void>;
+  update: UpdateSettings;
+  replace: ReplaceSettings;
 }
 
 export function SettingsSection({
@@ -87,11 +88,15 @@ export function SettingsSection({
         class="secondary"
         onClick={() =>
           // Resetting keeps the allow/block lists, since those are the user's own data.
-          replace({
-            ...DEFAULT_SETTINGS,
-            allowlist: settings.allowlist,
-            blocklist: settings.blocklist,
-          })
+          // Remount so the scam keywords text area drops the keywords this clears.
+          replace(
+            {
+              ...DEFAULT_SETTINGS,
+              allowlist: settings.allowlist,
+              blocklist: settings.blocklist,
+            },
+            true
+          )
         }
       >
         Reset to defaults

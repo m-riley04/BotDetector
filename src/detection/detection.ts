@@ -217,11 +217,11 @@ export const CHECK_DEFINITIONS = {
   },
   officialVerified: {
     id: 'official-verified',
-    label: 'Business or government verification',
+    label: 'Business verification',
   },
   governmentAccount: {
     id: 'government-account',
-    label: 'A government account is (hopefully) more trustworthy.',
+    label: 'Government account',
   },
 } as const satisfies CheckDefinitions;
 
@@ -234,8 +234,8 @@ function isOfficialProfile(user: Post['user'] | undefined): boolean {
   return Boolean(user?.labels.isBusiness || user?.labels.isGovernment);
 }
 
-function isOfficiallyVerified(user: Post['user'] | undefined): boolean {
-  return user?.labels.isVerified === true && isOfficialProfile(user);
+function isBusinessVerified(user: Post['user'] | undefined): boolean {
+  return user?.labels.isVerified === true && user.labels.isBusiness === true;
 }
 
 /**
@@ -456,8 +456,9 @@ export function getDetectionReport(
         isNumber(statuses) &&
         statuses >= 500
     ),
-    check('officialVerified', isOfficiallyVerified(user)),
-    check('governmentAccount', !!post.user.labels.isGovernment),
+    // government accounts get their own check, so they aren't counted twice here
+    check('officialVerified', isBusinessVerified(user)),
+    check('governmentAccount', user.labels.isGovernment === true),
   ];
 
   const chance = Math.min(

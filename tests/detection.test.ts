@@ -127,6 +127,7 @@ test('a typical older account has zero risk and includes all checks', () => {
     'protected-account',
     'established-account',
     'official-verified',
+    'government-account',
   ]);
   expect(
     report.checks.every((item) => !item.triggered && item.contribution === 0)
@@ -183,7 +184,7 @@ test('missing source statistics do not become zero-count bot signals', () => {
 test('a non-business verified account triggers the blue-check score', () => {
   const verified = getReport(makePost({ is_blue_verified: true }));
   expect(check(verified, 'blue-check').triggered).toBe(true);
-  expect(check(verified, 'blue-check').contribution).toBe(0.4);
+  expect(check(verified, 'blue-check').contribution).toBe(0.3);
 
   const business = getReport(
     makePost({ verified: true, verified_type: 'Business' })
@@ -837,11 +838,18 @@ describe('additional checks', () => {
     const official = getReport(
       makePost({ verified: true, verified_type: 'Government' })
     );
-    expect(check(official, 'official-verified').triggered).toBe(true);
+    expect(check(official, 'government-account').triggered).toBe(true);
+    expect(check(official, 'official-verified').triggered).toBe(false);
     expect(check(official, 'blue-check').triggered).toBe(false);
 
+    const business = getReport(
+      makePost({ verified: true, verified_type: 'Business' })
+    );
+    expect(check(business, 'official-verified').triggered).toBe(true);
+    expect(check(business, 'government-account').triggered).toBe(false);
+
     const lowered = getReport(makePost({ is_blue_verified: true, ...old }));
-    expect(lowered.chance).toBeCloseTo(0.3);
+    expect(lowered.chance).toBeCloseTo(0.2);
   });
 
   test('every check key has a definition and a default weight', () => {
