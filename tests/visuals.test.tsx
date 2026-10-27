@@ -7,8 +7,6 @@ import type { BotDetectionReport } from '../src/detection/models';
 import * as visuals from '../src/detection/visuals';
 import { Post } from '../src/social-media/models';
 
-const BOT_DETECTOR_CLOSE_OVERLAY = 'BOT_DETECTOR_CLOSE_OVERLAY';
-
 const makePost = (fields: Record<string, unknown>) => fields as unknown as Post;
 
 function makeReport(
@@ -73,6 +71,18 @@ function stubClipboard(writeText: (_text: string) => Promise<void>) {
     value: { writeText },
   });
 }
+
+// jsdom has no showModal/close, so stand in for the parts the modal relies on.
+beforeAll(() => {
+  HTMLDialogElement.prototype.showModal = function (this: HTMLDialogElement) {
+    this.open = true;
+  };
+  HTMLDialogElement.prototype.close = function (this: HTMLDialogElement) {
+    if (!this.open) return;
+    this.open = false;
+    this.dispatchEvent(new Event('close'));
+  };
+});
 
 beforeEach(() => {
   document.body.replaceChildren();
@@ -193,6 +203,15 @@ test('showReportModal renders check contributions and threshold details', async 
   expect(q('.note')?.textContent).toBe('Marked as a bot at 70% or higher.');
 });
 
+test('showReportModal opens as a modal dialog labelled by its heading', async () => {
+  await open(makeReport());
+
+  const dialog = q<HTMLDialogElement>('dialog');
+  expect(dialog?.open).toBe(true);
+  const title = q(`#${dialog?.getAttribute('aria-labelledby')}`);
+  expect(title?.textContent).toBe('Bot Chance: 72% | Likely a bot');
+});
+
 test('showReportModal closes from its button or backdrop, but not panel content', async () => {
   await open(makeReport());
 
@@ -203,18 +222,41 @@ test('showReportModal closes from its button or backdrop, but not panel content'
   expect(modalHost()).toBeNull();
 
   await open(makeReport({ isBot: false }));
-  await click(q<HTMLElement>('.overlay'));
+  await click(q<HTMLElement>('dialog'));
   expect(modalHost()).toBeNull();
 });
 
-test('showReportModal closes on the close-overlay event', async () => {
+test('showReportModal unmounts when the dialog closes natively', async () => {
   await open(makeReport());
   expect(modalHost()).not.toBeNull();
 
-  await act(() => {
-    window.dispatchEvent(new CustomEvent(BOT_DETECTOR_CLOSE_OVERLAY));
+  await act(async () => {
+    q<HTMLDialogElement>('dialog')?.close();
+    await settle();
   });
   expect(modalHost()).toBeNull();
+});
+
+test('showReportModal closes on Escape before the page can handle it', async () => {
+  const pageSaw: string[] = [];
+  const pageHandler = (e: KeyboardEvent) => pageSaw.push(e.key);
+  document.addEventListener('keydown', pageHandler);
+  await open(makeReport());
+
+  const press = (key: string) =>
+    act(async () => {
+      document.dispatchEvent(new KeyboardEvent('keydown', { key }));
+      await settle();
+    });
+
+  await press('Enter');
+  expect(modalHost()).not.toBeNull();
+
+  await press('Escape');
+  document.removeEventListener('keydown', pageHandler);
+
+  expect(modalHost()).toBeNull();
+  expect(pageSaw).toStrictEqual(['Enter']);
 });
 
 test('the details panel offers copying the report next to the post', async () => {

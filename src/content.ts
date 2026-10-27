@@ -19,7 +19,6 @@ import {
   type Settings,
 } from './common/settings';
 import { ReportCache } from './detection/cache';
-import { BOT_DETECTOR_CLOSE_OVERLAY } from './detection/constants';
 import { getDetectionReport } from './detection/detection';
 import { DuplicateTextTracker } from './detection/duplicates';
 import { LinkExpander } from './detection/linkExpander';
@@ -91,13 +90,6 @@ function getPostDataFromReactResponse(
 
 // keyboard presses for manual/quick actions
 window.addEventListener('keyup', (e: KeyboardEvent) => {
-  // having trouble with this, so just to be safe
-  const isEscape = e.key === 'Escape' || e.key === 'Esc';
-
-  if (isEscape) {
-    window.dispatchEvent(new CustomEvent(BOT_DETECTOR_CLOSE_OVERLAY));
-  }
-
   if (e.key === 'r') {
     console.log('[BotDetector] Manual scan triggered.');
     reportCache.clear();
@@ -226,8 +218,10 @@ browser.runtime.onMessage.addListener((message: unknown) => {
 function scanTweets(): void {
   if (!settings.enabled) return;
 
-  const tweets = Array.from(document.querySelectorAll('div')).filter(
-    (tweet) => tweet.getAttribute('data-testid') === 'cellInnerDiv'
+  const tweets = Array.from(
+    document.querySelectorAll<HTMLDivElement>(
+      'div[data-testid="cellInnerDiv"]'
+    )
   );
 
   tweets.forEach((tweet) => {

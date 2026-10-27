@@ -124,4 +124,9 @@ export interface Post {
    * i.e. quote tweet
    */
   repost?: Post;
+
+  /**
+   * The raw json object.
+   */
+  raw?: object;
 }

@@ -1,8 +1,7 @@
 import { render } from 'preact';
-import { useCallback, useEffect, useState } from 'preact/hooks';
+import { useCallback, useEffect, useRef, useState } from 'preact/hooks';
 import { toWholePercent } from '../common/helpers';
 import type { ListAction, ListStatus } from '../common/settings';
-import { BOT_DETECTOR_CLOSE_OVERLAY } from '../detection/constants';
 import type { BotDetectionReport } from '../detection/models';
 import { Post } from '../social-media/models';
 import { ChecksTable } from './ChecksTable';
@@ -27,19 +26,34 @@ interface ReportModalProps {
   onClose: () => void;
 }
 
+/**
+ * A native modal `dialog`: it renders in the top layer, makes the page inert and traps focus.
+ */
 export function ReportModal({
   report,
   post,
   options,
   onClose,
-}: ReportModalProps) {
+}: ReportModalProps): preact.VNode<HTMLDialogElement> {
   const [status, setStatus] = useState<CopyStatus | null>(null);
   const [hideUntriggeredChecks, setHideUntriggeredChecks] = useState(true);
+  const dialog = useRef<HTMLDialogElement>(null);
 
   useEffect(() => {
-    window.addEventListener(BOT_DETECTOR_CLOSE_OVERLAY, onClose);
-    return () =>
-      window.removeEventListener(BOT_DETECTOR_CLOSE_OVERLAY, onClose);
+    dialog.current?.showModal();
+  }, []);
+
+  // The dialog's native Escape handling doesn't fire on x.com (the page's own key handlers
+  // likely cancel the keydown), so close it ourselves. Capturing on window runs before X's
+  // handlers, and stopping it keeps X from also acting on an Escape meant for this modal.
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape') return;
+      e.stopPropagation();
+      onClose();
+    };
+    window.addEventListener('keydown', onKeyDown, true);
+    return () => window.removeEventListener('keydown', onKeyDown, true);
   }, [onClose]);
 
   const copy = useCallback(
@@ -71,14 +85,18 @@ export function ReportModal({
     : [];
 
   return (
-    <div
-      class="overlay"
+    <dialog
+      ref={dialog}
+      aria-labelledby="report-title"
+      onClose={onClose}
       onClick={(e) => {
+        // the panel fills the dialog, so only backdrop clicks target the dialog itself
         if (e.target === e.currentTarget) onClose();
       }}
+      autofocus
     >
-      <div class="panel" role="dialog" aria-modal="true">
-        <h3>
+      <div class="panel">
+        <h3 id="report-title">
           {`Bot Chance: ${toWholePercent(report.chance)} | ${
             report.isBot ? 'Likely a bot' : 'Probably not a bot'
           }`}
@@ -143,7 +161,7 @@ export function ReportModal({
           </p>
         )}
       </div>
-    </div>
+    </dialog>
   );
 }
 

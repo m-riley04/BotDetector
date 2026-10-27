@@ -142,5 +142,6 @@ export function convertTweetToGenericPost(tweet: Tweet): Post {
       reposts: tweet.quote_count,
       views: tweet.views?.count,
     },
+    raw: tweet,
   };
 }

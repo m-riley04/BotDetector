@@ -18,8 +18,6 @@
 
   --panel-bg-color: light-dark(#374151, #f9fafb);
 
-  --overlay-bg-color: rgba(15, 23, 42, 0.68);
-
   --table-header-bg: light-dark(#f3f4f6, #374151);
   --table-header-text: light-dark(#374151, #f3f4f6);
   --table-off-text: light-dark(#6b7280, #6b7280);
@@ -79,28 +77,28 @@ button {
   }
 }
 
-.overlay {
-  display: flex;
-  position: fixed;
-  justify-content: center;
-  align-items: center;
-  z-index: var(--max-z-height);
-  backdrop-filter: blur(3px);
-  inset: 0;
-  background: var(--overlay-bg-color);
-  padding: 16px;
-}
-
-.panel {
+/* Shown with showModal(), so it sits in the top layer and needs no z-index. */
+dialog {
   box-shadow: 0 24px 64px rgba(0, 0, 0, 0.28);
   border: 1px solid var(--panel-bg-color);
   border-radius: 12px;
   background: var(--bg-color);
+  /* the panel carries the padding, so a click on the dialog itself is a backdrop click */
+  padding: 0;
+  width: min(560px, calc(100% - 32px));
+  color: var(--text-color);
+
+  /* literal color: older engines don't inherit custom properties into ::backdrop */
+  &::backdrop {
+    backdrop-filter: blur(3px);
+    background: rgba(15, 23, 42, 0.68);
+  }
+}
+
+.panel {
   padding: 20px;
-  width: min(560px, 100%);
   max-height: min(80vh, 720px);
   overflow: auto;
-  color: var(--text-color);
   font:
     14px/1.5 system-ui,
     sans-serif;
