@@ -111,8 +111,6 @@ const _CLICK_HERE_FANCY_VARIATIONS_TRICKY = [
   '≋c≋l≋i≋c≋k≋ ≋h≋e≋r≋e≋',
   '[̲̅c][̲̅l][̲̅i][̲̅c][̲̅k] [̲̅h][̲̅e][̲̅r][̲̅e]',
   'c♥l♥i♥c♥k♥ ♥h♥e♥r♥e',
-  //'ｃｌｉｃｋ　ｈｅｒｅ　佳タ唄',
-  //'ｃｌｉｃｋ░ｈｅｒｅ　（佳タ唄）',
   //'çӀìçҟ հҽɾҽ', // the 'I' character is too similar to 'I' to be perceived as 'l'
   //'♍︎●︎♓︎♍︎🙵 ♒︎♏︎❒︎♏︎', // probs dont need to check for gaster here lol
   //'§.•´¨'°÷•..× 𝒸𝓁ιＣⓚ ｈєⓇ𝐞 ×,.•´¨'°÷•..§', // this one throws eslint errors lol
