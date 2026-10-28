@@ -117,5 +117,5 @@ export function normalizeUnicodeFancyText(s: string): string {
  */
 export function containsFancyUnicodeText(s: string): boolean {
   const cleaned = normalizeUnicodeFancyText(s);
-  return cleaned !== s;
+  return cleaned !== s.toLowerCase();
 }
