@@ -86,28 +86,9 @@ const SPECIFIC_UTF_CHARACTER_MAPPING: Record<string, string> = {
 
 const SPECIFIC_CHARACTERS = Object.keys(SPECIFIC_UTF_CHARACTER_MAPPING);
 
-export function removeNonAsciiCharacters(s: string): string {
-  return s.replace(/[\s\S]/g, (character) =>
-    character.charCodeAt(0) <= 0x7f ? character : ''
-  );
-}
-
-export function removeNonLatinSymbols(
-  s: string,
-  keepPunctuation: boolean = false
-): string {
-  return keepPunctuation
-    ? s.replace(/\p{L}(?<!\p{Script=Latin})/gu, '')
-    : s.replace(/[^\p{Script=Latin}]/gu, '');
-}
-
-export function removeCombinedTextAccents(s: string): string {
-  return s.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-}
-
 export function replaceSpecificUTFCharacters(s: string): string {
   let ret = s;
-  // very long function. fix this.
+  // O(n) function. fix this.
   for (const c of SPECIFIC_CHARACTERS) {
     ret = ret.replaceAll(c, SPECIFIC_UTF_CHARACTER_MAPPING[c]);
   }
@@ -120,22 +101,21 @@ export function replaceSpecificUTFCharacters(s: string): string {
  * @returns
  */
 export function normalizeUnicodeFancyText(s: string): string {
-  return removeNonAsciiCharacters(
-    decancer(replaceSpecificUTFCharacters(s)).toString()
-  );
+  if (s === '') return s; // decancer for whatever reason messes this up
+  return decancer(replaceSpecificUTFCharacters(s)).toString();
 }
 
 /**
  * Detects whether the string contains fancy Unicode text.
+ *
  * Math Symbols: U+1D400–U+1D7FF
  * Enclosed Alphanumerics: U+2460–U+24FF
  * Fullwidth ASCII Variants: U+FF01–U+FF5E
+ *
  * @param s
  * @returns
  */
 export function containsFancyUnicodeText(s: string): boolean {
   const cleaned = normalizeUnicodeFancyText(s);
   return cleaned !== s;
-  //   const fancyRegex = /[\u1D400-\u1D7FF\u2460-\u24FF\uFF01-\uFF5E]/u;
-  //   return fancyRegex.test(s);
 }

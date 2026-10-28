@@ -71,3 +71,22 @@ Potential signifiers of a twitter bot (or bot interference)
   - Excessive political content
   - Quote tweets other blue-check accounts
 - Identical tweets or semi-identical tweets to others in the same thread
+
+## AI Usage
+
+I'll tell you what I do _**not**_ like in terms of AI:
+
+- Videos
+- Audio
+- Images
+- Graphic Design
+- Music
+- Public-facing Text
+
+If any of those things appear in my projects, you can be certain they were made by humans.
+
+As for my beliefs on AI usage _in programming_, I plan to make a write-up on it eventually on my website. I'll update this with it.
+
+I'm trying to do this project by hand as much as possible. If an algorithm is slow, I'll get to it.
+
+I am not going to pretend I am some coding genius (yet...?). The people making the Linux kernel are though, so [I'll agree with them for now](https://docs.kernel.org/process/coding-assistants.html).
