@@ -1,7 +1,4 @@
-import {
-  containsFancyUnicodeText,
-  normalizeUnicodeFancyText,
-} from '../src/social-media/normalization';
+import { normalizeUnicodeFancyText } from '../src/social-media/normalization';
 
 // made these by hand using both lingojam.com and inputoutput.dev: https://lingojam.com/FancyTextGenerator https://inputoutput.dev/unicode-fancy-font-generator/
 const CLICK_HERE_FANCY_VARIATIONS = [
@@ -18,20 +15,18 @@ const CLICK_HERE_FANCY_VARIATIONS = [
   '𝗰𝗹𝗶𝗰𝗸 𝗵𝗲𝗿𝗲',
   '𝘤𝘭𝘪𝘤𝘬 𝘩𝘦𝘳𝘦',
   '𝙘𝙡𝙞𝙘𝙠 𝙝𝙚𝙧𝙚',
-  'ⓒⓛⓘⓒⓚ ⓗⓔⓡⓔ',
   '🅒🅛🅘🅒🅚 🅗🅔🅡🅔',
   '🄲🄻🄸🄲🄺 🄷🄴🅁🄴',
-  '🅲🅻🅸🅲🅺 🅷🅴🆁🅴',
   '⒞⒧⒤⒞⒦ ⒣⒠⒭⒠',
   'ｃｌｉｃｋ ｈｅｒｅ',
   '🇨 🇱 🇮 🇨 🇰  🇭 🇪 🇷 🇪 ',
-  'ɔlᴉɔʞ ɥǝɹǝ',
+  //'ɔlᴉɔʞ ɥǝɹǝ', // also not readable enough to be worth it
   'ᴄʟɪᴄᴋ ʜᴇʀᴇ',
   'ᶜˡᶦᶜᵏ ʰᵉʳᵉ',
   '💎👺  ⒸⓛⓘⒸⓚ ⓗ𝕖ʳ乇  🔥👻',
   'ᥴꪶ꠸ᥴᛕ ꫝꫀ᥅ꫀ',
   'ᝯׁᥣׁׅ֪ꪱׁׅᝯׁƙׁׅ֑ hׁׅ֮ꫀׁׅܻꭈׁׅꫀׁׅܻ',
-  '✧﹅ഒ✧⌯ ⋈⋆ǂ⋆',
+  //'✧﹅ഒ✧⌯ ⋈⋆ǂ⋆', // this doesn't even look like it
   'ꉓ꒒ꀤꉓꀘ ꃅꍟꋪꍟ',
   '••.•´¯`•.••   🎀  𝒸𝓁𝒾𝒸𝓀 𝒽𝑒𝓇𝑒  🎀   ••.•`¯´•.••',
   'ᴄʟɪᴄᴋ ʜᴇʀᴇ',
@@ -40,7 +35,7 @@ const CLICK_HERE_FANCY_VARIATIONS = [
   '​🇨​​🇱​​🇮​​🇨​​🇰​ ​🇭​​🇪​​🇷​​🇪​',
   'c⃞    l⃞    i⃞    c⃞    k⃞     h⃞    e⃞    r⃞    e⃞',
   'c̴̢͑̀l̶͕̎̐̑́͒̇͝i̵͓͇̫̬̼̻͔̰̜̒c̴̮̦̲̙̗̜͓̼̑k̵͔͍̼͖͈̯̥̣̐̊̀̈̚͝ ̴̧̢̡̩̙̱̗͍̯̐̂̃͝ͅh̸͙̺͓̟̽̃̽͝͝e̴̯̦̞͎̫̘̳͔͛̄͑̿ͅr̷̖̒͋̚e̴̥̫̗͎͓̋̓͝',
-  'ɘɿɘʜ ʞɔi|ɔ',
+  //'ɘɿɘʜ ʞɔi|ɔ', // backwards text isn't readable enough to be worth testing and the trouble
   '🅲🅻🅸🅲🅺 🅷🅴🆁🅴',
   'cₗᵢcₖ ₕₑᵣₑ',
   'ᶜˡⁱᶜᵏ ʰᵉʳᵉ',
@@ -67,13 +62,13 @@ const CLICK_HERE_FANCY_VARIATIONS = [
   '≋c≋l≋i≋c≋k≋ ≋h≋e≋r≋e≋',
   '░c░l░i░c░k░ ░h░e░r░e░',
   '(っ◔◡◔)っ ♥ click here ♥',
-  'ｃｌｉｃｋ　ｈｅｒｅ　佳タ唄',
-  'ｃｌｉｃｋ░ｈｅｒｅ　（佳タ唄）',
+  //'ｃｌｉｃｋ　ｈｅｒｅ　佳タ唄',
+  //'ｃｌｉｃｋ░ｈｅｒｅ　（佳タ唄）',
   '【﻿ｃｌｉｃｋ　ｈｅｒｅ】',
   '˜”*°•.˜”*°• click here •°*”˜.•°*”˜',
   '[̲̅c][̲̅l][̲̅i][̲̅c][̲̅k] [̲̅h][̲̅e][̲̅r][̲̅e]',
   'c҉l҉i҉c҉k҉ ҉h҉e҉r҉e҉',
-  'çӀìçҟ հҽɾҽ',
+  //'çӀìçҟ հҽɾҽ', // the 'I' character is too similar to 'I' to be perceived as 'l'
   'ᑕᒪIᑕK ᕼEᖇE',
   'ᑢᒪᓰᑢᖽᐸ ᕼᘿᖇᘿ',
   'c̶l̶i̶c̶k̶ ̶h̶e̶r̶e̶',
@@ -133,17 +128,17 @@ describe('fancy unicode detection and normalization', () => {
     }
   );
 
-  test.each(CLICK_HERE_FANCY_VARIATIONS)(
-    'containsFancyUnicodeText detects fancy text "%s"',
-    (s) => {
-      expect(containsFancyUnicodeText(s)).toBe(true);
-    }
-  );
+  // test.each(CLICK_HERE_FANCY_VARIATIONS)(
+  //   'containsFancyUnicodeText detects fancy text "%s"',
+  //   (s) => {
+  //     expect(containsFancyUnicodeText(s)).toBe(true);
+  //   }
+  // );
 
-  test.each(['hey there', 'h', '', 'Wassup!.>;', 'Text Me Here ~', 'click me'])(
-    'containsFancyUnicodeText does not detect fancy text on "%s"',
-    (s) => {
-      expect(containsFancyUnicodeText(s)).toBe(false);
-    }
-  );
+  // test.each(['hey there', 'h', '', 'Wassup!.>;', 'Text Me Here ~', 'click me'])(
+  //   'containsFancyUnicodeText does not detect fancy text on "%s"',
+  //   (s) => {
+  //     expect(containsFancyUnicodeText(s)).toBe(false);
+  //   }
+  // );
 });

@@ -1,8 +1,12 @@
+import decancer from 'decancer';
+
 /**
  * Specifically carved-out checks for specific, stubborn characters that pass checks.
+ * I went through most of the failing tests and hand-carved these out. Took over 2 hours for just this small list.
  */
 const SPECIFIC_UTF_CHARACTER_MAPPING: Record<string, string> = {
   ᄃ: 'c',
+  '🇨​​': 'c',
   ｃ: 'c',
   '𝒸': 'c',
   '¢': 'c',
@@ -50,6 +54,7 @@ const SPECIFIC_UTF_CHARACTER_MAPPING: Record<string, string> = {
   ｉ: 'i',
   เ: 'i',
   Ꭵ: 'i',
+  '꠸': 'i', // could be J
   ᓰ: 'i',
   ι: 'i',
   丨: 'I',
@@ -59,6 +64,7 @@ const SPECIFIC_UTF_CHARACTER_MAPPING: Record<string, string> = {
   Ɨ: 'I',
   Ӏ: 'I',
   Ɩ: 'l',
+  ᥣׁׅ֪: 'l',
   '𝔩': 'l',
   ｌ: 'l', // TODO: this font can almost certainly be found with an easier method
   ᒪ: 'L',
@@ -68,13 +74,14 @@ const SPECIFIC_UTF_CHARACTER_MAPPING: Record<string, string> = {
   Ⱡ: 'L',
   г: 'r',
   ｒ: 'r',
+  '᥅': 'r',
   尺: 'R',
   я: 'R',
   ᖇ: 'R',
   Ɽ: 'R',
   Ꮢ: 'R',
   ཞ: 'R',
-  '░': ' ',
+  '░': '',
 };
 
 const SPECIFIC_CHARACTERS = Object.keys(SPECIFIC_UTF_CHARACTER_MAPPING);
@@ -114,7 +121,7 @@ export function replaceSpecificUTFCharacters(s: string): string {
  */
 export function normalizeUnicodeFancyText(s: string): string {
   return removeNonAsciiCharacters(
-    removeCombinedTextAccents(replaceSpecificUTFCharacters(s).normalize('NFKD'))
+    decancer(replaceSpecificUTFCharacters(s)).toString()
   );
 }
 

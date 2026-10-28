@@ -37,6 +37,7 @@
     "typescript-eslint": "^8.71.2"
   },
   "dependencies": {
+    "decancer": "^4.0.0",
     "preact": "^11.0.1"
   }
 }
