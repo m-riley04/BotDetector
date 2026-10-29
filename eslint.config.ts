@@ -7,7 +7,7 @@ import tseslint from 'typescript-eslint';
 
 export default defineConfig([
   {
-    ignores: ['dist/', 'build/', 'node_modules/'],
+    ignores: ['dist/', 'build/', 'node_modules/', 'vendor/'],
   },
   js.configs.recommended,
   preact as unknown as Linter.Config, // reactHooks is already in preact

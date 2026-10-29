@@ -7,8 +7,12 @@ test('the fixture corpus has both bots and humans', () => {
 });
 
 describe.each(files)('%s', (name) => {
-  const report = scoreFixture(name);
   const { expectedChecks } = loadFixture(name);
+  // scored in beforeAll (not at collection time) so decancer has finished loading first
+  let report: ReturnType<typeof scoreFixture>;
+  beforeAll(() => {
+    report = scoreFixture(name);
+  });
 
   if (name.startsWith('bot-')) {
     // Fixtures may list the obvious signals that must fire instead of reaching the threshold.

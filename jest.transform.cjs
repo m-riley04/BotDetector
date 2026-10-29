@@ -9,6 +9,13 @@ module.exports = {
     if (sourcePath.endsWith('.css')) {
       return { code: `module.exports = ${JSON.stringify(sourceText)};` };
     }
+    // Mirrors esbuild's "binary" loader: the module's default export is the file's bytes.
+    // Read from disk rather than sourceText, since Jest hands transforms the file as a (lossy) UTF-8 string.
+    if (sourcePath.endsWith('.wasm')) {
+      return {
+        code: `module.exports = new Uint8Array(require('fs').readFileSync(${JSON.stringify(sourcePath)}));`,
+      };
+    }
     const { code, map } = transformSync(sourceText, {
       loader: /\.tsx?$/.test(sourcePath)
         ? sourcePath.endsWith('x')

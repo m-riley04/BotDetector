@@ -38,6 +38,7 @@ import {
   REACT_PROPS_RESPONSE,
 } from './react/constants';
 import { ReactPropsResponse } from './react/models';
+import { loadDecancer } from './social-media/decancer';
 import { Post } from './social-media/models';
 
 const HIDDEN_ATTRIBUTE = 'data-droiddetector-hidden';
@@ -342,16 +343,26 @@ browser.storage.onChanged.addListener((changes, area) => {
   scanTweets();
 });
 
-// load the react bridge and start scanning tweets once it's ready
+// load settings + decancer, then the react bridge, and start scanning tweets once it's all ready
 // basically the main runtime loop
-loadSettings()
+const settingsReady = loadSettings()
   .then((loaded) => {
     settings = loaded;
   })
   .catch((error) => {
     console.error(`${LOG_PREFIX} Could not load settings.`, error);
+  });
+// detection needs decancer, so if it can't load there's no point starting the scan loop
+Promise.all([settingsReady, loadDecancer()])
+  .then(() => {
+    loadReactPropsBridge(reactBridge, scanTweets);
+    document.addEventListener('scrollend', scanTweets);
   })
-  .finally(() => loadReactPropsBridge(reactBridge, scanTweets));
-document.addEventListener('scrollend', scanTweets);
+  .catch((error) => {
+    console.error(
+      `${LOG_PREFIX} Could not load decancer; detection disabled.`,
+      error
+    );
+  });
 
 export {};

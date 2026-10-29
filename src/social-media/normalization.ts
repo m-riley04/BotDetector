@@ -1,4 +1,4 @@
-import decancer from 'decancer';
+import { getDecancer } from './decancer';
 
 /**
  * Specifically carved-out checks for specific, stubborn characters that pass checks.
@@ -86,7 +86,7 @@ const SPECIFIC_UTF_CHARACTER_MAPPING: Record<string, string> = {
 
 const SPECIFIC_CHARACTERS = Object.keys(SPECIFIC_UTF_CHARACTER_MAPPING);
 
-export function replaceSpecificUTFCharacters(s: string): string {
+function replaceSpecificUTFCharacters(s: string): string {
   let ret = s;
   // O(n) function. fix this.
   for (const c of SPECIFIC_CHARACTERS) {
@@ -95,14 +95,25 @@ export function replaceSpecificUTFCharacters(s: string): string {
   return ret;
 }
 
+export function removeEmojis(s: string): string {
+  return s.replace(/\p{Extended_Pictographic}/gu, '');
+}
+
 /**
- * Normalizes with NFKD to normalize UTF fonts/styling.
+ * Maps fancy Unicode text (styled fonts, homoglyphs, zalgo, etc.) back to plain text with decancer.
+ * Requires `loadDecancer()` to have finished first.
  * @param s
  * @returns
  */
 export function normalizeUnicodeFancyText(s: string): string {
   if (s === '') return s; // decancer for whatever reason messes this up
-  return decancer(replaceSpecificUTFCharacters(s)).toString();
+  const cured = getDecancer()(replaceSpecificUTFCharacters(s));
+  try {
+    return cured.toString();
+  } finally {
+    // the cured string lives in WASM memory, which the JS garbage collector won't reclaim
+    cured.free();
+  }
 }
 
 /**
@@ -116,6 +127,7 @@ export function normalizeUnicodeFancyText(s: string): string {
  * @returns
  */
 export function containsFancyUnicodeText(s: string): boolean {
-  const cleaned = normalizeUnicodeFancyText(s);
-  return cleaned !== s.toLowerCase();
+  const emojiless = removeEmojis(s);
+  const cleaned = normalizeUnicodeFancyText(emojiless);
+  return cleaned.toLowerCase() !== emojiless.toLowerCase();
 }

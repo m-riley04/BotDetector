@@ -6,6 +6,9 @@
   "description": "A bot detection extension for identifying troll and astroturfing accounts",
   "permissions": ["activeTab", "scripting", "storage", "clipboardWrite"],
   "host_permissions": ["https://t.co/*"],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self' 'wasm-unsafe-eval'"
+  },
   "background": {
     "scripts": ["src/background.js"]
   },

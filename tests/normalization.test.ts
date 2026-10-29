@@ -134,6 +134,41 @@ const NORMAL_TEXT = [
   'click me',
 ];
 
+// Ordinary text real people put in names/bios/posts. None of these should count as "fancy".
+
+const EMOJI_TEXT = [
+  'Sarah 🌸',
+  'Proud dad 👨‍👩‍👧', // ZWJ sequence
+  'USA 🇺🇸', // flag (regional indicators)
+  'she/her 🏳️‍🌈', // variation selector + ZWJ
+  'Love ❤️', // variation selector
+  'thumbs 👍🏽', // skin-tone modifier
+  'call 1️⃣', // keycap
+  '✨ vibes ✨',
+  'NYC 📍',
+];
+
+const PUNCTUATION_TEXT = [
+  'it’s “quoted”',
+  '10–20 — ok',
+  'wait…',
+  'a • b',
+  'Go →',
+  '½ price',
+  '50°F',
+];
+
+const NON_ENGLISH_TEXT = [
+  'José',
+  'Zoë',
+  'Straße',
+  'İstanbul',
+  'Привет',
+  '日本語',
+  'مرحبا',
+  'Ἀθῆναι',
+];
+
 describe('fancy unicode detection and normalization', () => {
   test('containsFancyUnicodeText detects fancy text', () => {});
 
@@ -170,6 +205,27 @@ describe('fancy unicode detection and normalization', () => {
 
   test.each(NORMAL_TEXT)(
     'containsFancyUnicodeText does not detect fancy text on "%s"',
+    (s) => {
+      expect(containsFancyUnicodeText(s)).toBe(false);
+    }
+  );
+
+  test.each(EMOJI_TEXT)(
+    'containsFancyUnicodeText ignores emoji in "%s"',
+    (s) => {
+      expect(containsFancyUnicodeText(s)).toBe(false);
+    }
+  );
+
+  test.each(PUNCTUATION_TEXT)(
+    'containsFancyUnicodeText ignores typographic punctuation in "%s"',
+    (s) => {
+      expect(containsFancyUnicodeText(s)).toBe(false);
+    }
+  );
+
+  test.each(NON_ENGLISH_TEXT)(
+    'containsFancyUnicodeText ignores real non-English text "%s"',
     (s) => {
       expect(containsFancyUnicodeText(s)).toBe(false);
     }
