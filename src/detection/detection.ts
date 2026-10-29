@@ -1,6 +1,7 @@
 import { isFirstOrLastDayOfMonth } from '../common/dates';
 import { isNumber } from '../common/helpers';
 import { Post } from '../social-media/models';
+import { containsFancyUnicodeText } from '../social-media/normalization';
 import { BotCheck, BotDetectionReport } from './models';
 import {
   ADULT_PROMO_DOMAINS,
@@ -51,6 +52,10 @@ const WEIGHTS = {
   defaultProfileImage: 0.1,
   displayNameSpam: 0.1,
   scamKeywordsBio: 0.1,
+  fancyTextInName: 0.1,
+  fancyTextInBio: 0.1,
+  fancyTextInPost: 0.15,
+  fancyTextInLocation: 0.1,
   duplicateText: 0.1,
   engagementMismatch: 0.08,
   quotedCheckmark: 0.05, // people get rage-baited, so lower
@@ -187,6 +192,22 @@ export const CHECK_DEFINITIONS = {
   scamKeywordsBio: {
     id: 'scam-keywords-bio',
     label: 'Bio contains scam or spam keywords',
+  },
+  fancyTextInName: {
+    id: 'fancy-text-in-name',
+    label: 'Name contains fancy UTF text',
+  },
+  fancyTextInBio: {
+    id: 'fancy-text-in-bio',
+    label: 'Bio contains fancy UTF text',
+  },
+  fancyTextInLocation: {
+    id: 'fancy-text-in-location',
+    label: 'Location contains fancy UTF text',
+  },
+  fancyTextInPost: {
+    id: 'fancy-text-in-post',
+    label: 'Post text contains fancy UTF text',
   },
   genericReply: {
     id: 'generic-reply',
@@ -442,6 +463,10 @@ export function getDetectionReport(
         scamKeywords ?? [] // TODO: is this a fine enough check?
       )
     ),
+    check('fancyTextInName', containsFancyUnicodeText(user.displayName)),
+    check('fancyTextInBio', containsFancyUnicodeText(user.bio ?? '')),
+    check('fancyTextInLocation', containsFancyUnicodeText(user.location ?? '')),
+    check('fancyTextInPost', containsFancyUnicodeText(post.content.text ?? '')),
     check('genericReply', isGenericReply(post)),
     check('mentionHashtagStuffing', hasMentionHashtagStuffing(post)),
     check('duplicateText', duplicateTextCount >= 2),

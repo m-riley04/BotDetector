@@ -120,6 +120,10 @@ test('a typical older account has zero risk and includes all checks', () => {
     'no-media',
     'spam-links',
     'scam-keywords-bio',
+    'fancy-text-in-name',
+    'fancy-text-in-bio',
+    'fancy-text-in-location',
+    'fancy-text-in-post',
     'generic-reply',
     'mention-hashtag-stuffing',
     'duplicate-text',
@@ -861,6 +865,39 @@ describe('additional checks', () => {
       (k) => detection.CHECK_DEFINITIONS[k].id
     );
     expect(new Set(ids).size).toBe(ids.length);
+  });
+
+  test('fancy-text checks read the name, bio, location, and post text', () => {
+    expect(
+      triggered(makePost({ name: '𝐂𝐫𝐲𝐩𝐭𝐨 𝐊𝐢𝐧𝐠' }), 'fancy-text-in-name')
+    ).toBe(true);
+    expect(
+      triggered(
+        makePost({ description: 'ᗪᗰ ᗰᗴ ᖴOᖇ ᑭᖇOᗰO' }),
+        'fancy-text-in-bio'
+      )
+    ).toBe(true);
+    expect(
+      triggered(makePost({ location: 'ⓘⓝⓑⓞⓧ' }), 'fancy-text-in-location')
+    ).toBe(true);
+    expect(
+      triggered(postWith({ full_text: '𝓬𝓵𝓲𝓬𝓴 𝓱𝓮𝓻𝓮' }), 'fancy-text-in-post')
+    ).toBe(true);
+  });
+
+  test('fancy-text checks do not fire on an ordinary international profile', () => {
+    const post = postWith(
+      { full_text: 'Can’t wait for the game this weekend… ⚽🔥' },
+      {
+        name: 'José García 🇲🇽',
+        description: 'Papá de dos 👨‍👧‍👦 • Fan del fútbol',
+        location: 'Ciudad de México',
+      }
+    );
+    expect(triggered(post, 'fancy-text-in-name')).toBe(false);
+    expect(triggered(post, 'fancy-text-in-bio')).toBe(false);
+    expect(triggered(post, 'fancy-text-in-location')).toBe(false);
+    expect(triggered(post, 'fancy-text-in-post')).toBe(false);
   });
 });
 
