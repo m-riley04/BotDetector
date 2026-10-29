@@ -96,7 +96,7 @@ function replaceSpecificUTFCharacters(s: string): string {
 }
 
 export function removeEmojis(s: string): string {
-  return s.replace(/\p{Extended_Pictographic}/gu, '');
+  return s.replace(/\p{RGI_Emoji}/gv, '');
 }
 
 /**
