@@ -115,19 +115,3 @@ export function normalizeUnicodeFancyText(s: string): string {
     cured.free();
   }
 }
-
-/**
- * Detects whether the string contains fancy Unicode text.
- *
- * Math Symbols: U+1D400–U+1D7FF
- * Enclosed Alphanumerics: U+2460–U+24FF
- * Fullwidth ASCII Variants: U+FF01–U+FF5E
- *
- * @param s
- * @returns
- */
-export function containsFancyUnicodeText(s: string): boolean {
-  const emojiless = removeEmojis(s);
-  const cleaned = normalizeUnicodeFancyText(emojiless);
-  return cleaned.toLowerCase() !== emojiless.toLowerCase();
-}
