@@ -28,21 +28,27 @@ const hasTagalog = (s: string) => /\p{Script=Tagalog}/u.test(s);
 const hasTagbanwa = (s: string) => /\p{Script=Tagbanwa}/u.test(s);
 const hasHebrew = (s: string) => /\p{Script=Hebrew}/u.test(s);
 const hasSyriac = (s: string) => /\p{Script=Syriac}/u.test(s);
-
 const hasCanadianAboriginalSyllabics = (s: string) =>
   /\p{Script=Canadian_Aboriginal}/u.test(s);
 
-// const hasRegionalIndicators = (s: string) => ⓒⓛⓘⓒⓚ ⓗⓔⓡⓔ 🅲🅻🅸🅲🅺 🅷🅴🆁🅴"
-
+const hasAbnormalRegionalIndicators = (s: string) =>
+  /[\u{1F1E6}-\u{1F1FF}]{3,}/u.test(s);
+const hasEnclosedAlphanumerics = (
+  s: string,
+  includeRegionalIndicators: boolean = true
+) =>
+  new RegExp(
+    `[\u{2460}-\u{24FF}${includeRegionalIndicators ? '\u{1F100}-\u{1F1FF}' : '\u{1F100}-\u{1F1E5}'}]`,
+    'u'
+  ).test(s);
 const hasPhoneticExtension = (s: string) =>
   /[\u{1D00}-\u{1D7F}\u{1D80}-\u{1DBF}]/u.test(s);
-const hasEnclosedAlphanumerics = (s: string) =>
-  /[\u{2460}-\u{24FF}\u{1F100}-\u{1F1FF}]/u.test(s);
 const hasHalfAndFullWidths = (s: string) => /[\u{FF00}-\u{FFEF}]/u.test(s);
 const hasSupplamentalMathOps = (s: string) => /[\u{2A00}-\u{2AFF}]/u.test(s);
 const hasMathAlphanumerics = (s: string) => /[\u{1D400}-\u{1D7FF}]/u.test(s);
 const hasFont = (s: string) =>
-  hasEnclosedAlphanumerics(s) ||
+  hasEnclosedAlphanumerics(s, false) ||
+  (hasEnclosedAlphanumerics(s, true) && hasAbnormalRegionalIndicators(s)) || // the regional indicators need to be strange
   hasHalfAndFullWidths(s) ||
   hasSupplamentalMathOps(s) ||
   hasMathAlphanumerics(s) ||

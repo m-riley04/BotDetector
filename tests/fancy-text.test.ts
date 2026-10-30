@@ -168,37 +168,33 @@ const NON_ENGLISH_TEXT = [
   '日本語',
   'مرحبا',
   'Ἀθῆναι',
+  'José García 🇲🇽',
+  'Papá de dos 👨‍👧‍👦 • Fan del fútbol',
+  'Ciudad de México',
+  'Can’t wait for the game this weekend… ⚽🔥',
 ];
 
-describe('fancy unicode detection and normalization', () => {
-  test.each(CLICK_HERE_FANCY_VARIATIONS)(
-    'normalizeUnicodeFancyText normalizes fancy text "%s"',
-    (s) => {
-      const t = normalizeUnicodeFancyText(s)
-        .trimEnd()
-        .trimStart()
-        .toLowerCase();
-      expect(t).toContain('click here');
-    }
-  );
-
-  // test.each(CLICK_HERE_FANCY_VARIATIONS_TRICKY)(
-  //   'normalizeUnicodeFancyText normalizes very tricky fancy text "%s"',
-  //   (s) => {
-  //     const t = normalizeUnicodeFancyText(s)
-  //       .trimEnd()
-  //       .trimStart()
-  //       .toLowerCase();
-  //     expect(t).toContain('click here');
-  //   }
-  // );
-
+describe('fancy unicode detection', () => {
   test.each(CLICK_HERE_FANCY_VARIATIONS)(
     'isFancyText detects fancy text "%s"',
     (s) => {
       expect(isFancyText(s)).toBe(true);
     }
   );
+
+  // test.each(_CLICK_HERE_FANCY_VARIATIONS_ACCENTS)(
+  //   'isFancyText detects fancy text with accents "%s"',
+  //   (s) => {
+  //     expect(isFancyText(s)).toBe(true);
+  //   }
+  // );
+
+  // test.each(_CLICK_HERE_FANCY_VARIATIONS_TRICKY)(
+  //   'isFancyText detects fancy text that are verrrrry tricky "%s"',
+  //   (s) => {
+  //     expect(isFancyText(s)).toBe(true);
+  //   }
+  // );
 
   test.each(NORMAL_TEXT)(
     'isFancyText does not detect fancy text on "%s"',
@@ -224,4 +220,28 @@ describe('fancy unicode detection and normalization', () => {
       expect(isFancyText(s)).toBe(false);
     }
   );
+});
+
+describe('fancy unicode normalization', () => {
+  test.each(CLICK_HERE_FANCY_VARIATIONS)(
+    'normalizeUnicodeFancyText normalizes fancy text "%s"',
+    (s) => {
+      const t = normalizeUnicodeFancyText(s)
+        .trimEnd()
+        .trimStart()
+        .toLowerCase();
+      expect(t).toContain('click here');
+    }
+  );
+
+  // test.each(CLICK_HERE_FANCY_VARIATIONS_TRICKY)(
+  //   'normalizeUnicodeFancyText normalizes very tricky fancy text "%s"',
+  //   (s) => {
+  //     const t = normalizeUnicodeFancyText(s)
+  //       .trimEnd()
+  //       .trimStart()
+  //       .toLowerCase();
+  //     expect(t).toContain('click here');
+  //   }
+  // );
 });

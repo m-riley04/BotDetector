@@ -3,6 +3,8 @@
 - [ ] Caching of account bot percentages
 - [ ] List of confirmed bot accounts
 - [ ] Proper popup page for the extension
+- [ ] Add custom, user-created checks
+  - [ ] Regex
 
 ## New Check Ideas
 

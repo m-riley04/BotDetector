@@ -1,7 +1,7 @@
 import { isFirstOrLastDayOfMonth } from '../common/dates';
 import { isNumber } from '../common/helpers';
 import { Post } from '../social-media/models';
-import { containsFancyUnicodeText } from '../social-media/normalization';
+import { isFancyText } from './fancy-text';
 import { BotCheck, BotDetectionReport } from './models';
 import {
   ADULT_PROMO_DOMAINS,
@@ -463,10 +463,10 @@ export function getDetectionReport(
         scamKeywords ?? [] // TODO: is this a fine enough check?
       )
     ),
-    check('fancyTextInName', containsFancyUnicodeText(user.displayName)),
-    check('fancyTextInBio', containsFancyUnicodeText(user.bio ?? '')),
-    check('fancyTextInLocation', containsFancyUnicodeText(user.location ?? '')),
-    check('fancyTextInPost', containsFancyUnicodeText(post.content.text ?? '')),
+    check('fancyTextInName', isFancyText(user.displayName)),
+    check('fancyTextInBio', isFancyText(user.bio ?? '')),
+    check('fancyTextInLocation', isFancyText(user.location ?? '')),
+    check('fancyTextInPost', isFancyText(post.content.text ?? '')),
     check('genericReply', isGenericReply(post)),
     check('mentionHashtagStuffing', hasMentionHashtagStuffing(post)),
     check('duplicateText', duplicateTextCount >= 2),
