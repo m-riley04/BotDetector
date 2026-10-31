@@ -3,13 +3,9 @@
   "manifest_version": 3,
   "name": "BotDetector",
   "version": "1.0.0",
-  "description": "A bot detection extension for identifying troll and astroturfing accounts",
-  "permissions": ["activeTab", "scripting", "storage", "clipboardWrite"],
-  "host_permissions": [
-    "https://t.co/*",
-    "https://bit.ly/*",
-    "https://tinyurl.com/*"
-  ],
+  "description": "A bot detection extension for identifying trolls, bots, and astroturfing accounts",
+  "permissions": ["storage", "clipboardWrite"],
+  "host_permissions": ["https://t.co/*"],
   "browser_specific_settings": {
     "gecko": {
       "id": "botdetector@rileymeyerkorth.com",

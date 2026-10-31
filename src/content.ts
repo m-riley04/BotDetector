@@ -81,11 +81,12 @@ function getPostDataFromReactResponse(
     ? componentProps.tweet
     : undefined;
   if (!isTwitterTweet(tweetProps)) {
-    console.warn(`${LOG_PREFIX} No tweet props found for ${reactProps.id}`);
+    if (settings.debug)
+      console.warn(`${LOG_PREFIX} No tweet props found for ${reactProps.id}`);
     return;
   }
 
-  console.debug(`${LOG_PREFIX} Tweet props: `, tweetProps);
+  if (settings.debug) console.debug(`${LOG_PREFIX} Tweet props: `, tweetProps);
 
   return convertTweetToGenericPost(tweetProps);
 }
@@ -95,7 +96,7 @@ function getPostDataFromReactResponse(
  * Triggered by the "rescan" keyboard command (see manifest.json `commands`), relayed by the background script.
  */
 function rescan(): void {
-  console.log(`${LOG_PREFIX} Manual scan triggered.`);
+  if (settings.debug) console.log(`${LOG_PREFIX} Manual scan triggered.`);
   reportCache.clear();
   duplicateTracker.clear();
   clearTweets();
@@ -112,26 +113,32 @@ window.addEventListener(REACT_PROPS_RESPONSE, (event: Event) => {
     const response = parseReactPropsResponse(JSON.parse(detail) as unknown);
     if (!response) {
       // TODO: make a dedicated logger
-      console.error(`${LOG_PREFIX} Received an invalid React props response.`);
+      if (settings.debug)
+        console.error(
+          `${LOG_PREFIX} Received an invalid React props response.`
+        );
       return;
     }
 
     const tweetProps = getPostDataFromReactResponse(response);
     if (!tweetProps) {
-      console.warn(`${LOG_PREFIX} No tweet props found for ${response.id}`);
+      if (settings.debug)
+        console.warn(`${LOG_PREFIX} No tweet props found for ${response.id}`);
       return;
     }
 
-    console.log(
-      `${LOG_PREFIX} Received tweet props for ${response.id}:`,
-      tweetProps
-    );
+    if (settings.debug)
+      console.log(
+        `${LOG_PREFIX} Received tweet props for ${response.id}:`,
+        tweetProps
+      );
     temp = tweetProps;
   } catch (error) {
-    console.error(
-      `${LOG_PREFIX} Could not read React props from a tweet.`,
-      error
-    );
+    if (settings.debug)
+      console.error(
+        `${LOG_PREFIX} Could not read React props from a tweet.`,
+        error
+      );
   }
 });
 
@@ -161,7 +168,8 @@ async function updateList(
     const current = await loadSettings();
     await saveSettings(applyListAction(current, handle, action));
   } catch (error) {
-    console.error(`${LOG_PREFIX} Could not update the lists.`, error);
+    if (settings.debug)
+      console.error(`${LOG_PREFIX} Could not update the lists.`, error);
   }
 }
 
@@ -246,9 +254,10 @@ function scanTweets(): void {
 
     const postData = postDataByElement.get(tweet);
     if (!postData) {
-      console.warn(
-        `${LOG_PREFIX} No detection report cached for tweet: skipping.`
-      );
+      if (settings.debug)
+        console.warn(
+          `${LOG_PREFIX} No detection report cached for tweet: skipping.`
+        );
       return;
     }
 
@@ -265,9 +274,10 @@ function scanTweets(): void {
       if (rawReport) reportCache.set(postData, rawReport);
     }
     if (!rawReport) {
-      console.warn(
-        `${LOG_PREFIX} No detection report available for tweet: skipping.`
-      );
+      if (settings.debug)
+        console.warn(
+          `${LOG_PREFIX} No detection report available for tweet: skipping.`
+        );
       return;
     }
 
@@ -332,7 +342,7 @@ function clearTweets(): void {
 
   reactBridge.clearAddedTags();
 
-  console.log(`${LOG_PREFIX} Cleared all bot elements.`);
+  if (settings.debug) console.log(`${LOG_PREFIX} Cleared all bot elements.`);
 }
 
 // re-apply the badges whenever the popup changes a setting
@@ -353,7 +363,8 @@ void loadSettings()
   })
   .catch((error) => {
     // keep going with DEFAULT_SETTINGS rather than disabling detection
-    console.error(`${LOG_PREFIX} Could not load settings.`, error);
+    if (settings.debug)
+      console.error(`${LOG_PREFIX} Could not load settings.`, error);
   })
   .then(() => {
     loadReactPropsBridge(reactBridge, scanTweets);

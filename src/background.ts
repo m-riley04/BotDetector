@@ -8,6 +8,7 @@ import {
 import type { ContentRequest } from './common/messages';
 
 // Add resolvers for other shorteners here.
+// TODO: add more resolvers
 const resolvers: LinkResolver[] = [tcoLinkResolver];
 
 // The background page is the only place that can read the shorteners (see host_permissions).

@@ -12,6 +12,7 @@ const settings = (overrides: Partial<Settings> = {}): Settings => ({
   disabledChecks: [],
   checkWeights: {},
   scamKeywords: [],
+  debug: false,
   ...overrides,
 });
 

@@ -41,6 +41,8 @@ export interface Settings {
    * Extra scam keywords on top of the built-in list.
    */
   scamKeywords: string[];
+
+  debug: boolean;
 }
 
 export type ListName = 'allowlist' | 'blocklist';
@@ -61,6 +63,7 @@ export const DEFAULT_SETTINGS: Settings = {
   disabledChecks: [],
   checkWeights: {},
   scamKeywords: [],
+  debug: false,
 };
 
 /**
@@ -186,6 +189,7 @@ export function sanitizeSettings(
       normalizeKeyword,
       listSanitizeOptions
     ),
+    debug: isBoolean(raw.debug) ? raw.debug : DEFAULT_SETTINGS.debug,
   };
 }
 
