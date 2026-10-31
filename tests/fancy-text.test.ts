@@ -333,7 +333,8 @@ describe('abnormal language mixing within a word', () => {
   test.skip('homoglyphs separated by punctuation (e.g. "p.а.y.p.a.l")', () => {});
 });
 
-describe('fancy unicode normalization', () => {
+// skipped until normalizeUnicodeFancyText is implemented again (decancer was removed for v1)
+describe.skip('fancy unicode normalization', () => {
   test.each(CLICK_HERE_FANCY_VARIATIONS)(
     'normalizeUnicodeFancyText normalizes fancy text "%s"',
     (s) => {

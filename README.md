@@ -36,45 +36,34 @@ Tests are TypeScript and run with Jest. `pnpm typecheck` type-checks the source 
 - Settings can be copied out and pasted back in under **Backup**.
 - Reports are cached per author and post; pressing `r` on the page rescans.
 
-## Try it in Firefox
+## Development
+
+### Pnpm Scripts
+
+- `build`: builds the extension
+- `test`: runs all tests
+- `start` and `firefox`: opens and installs the extension into Firefox
+- `package`: builds and zips the extension
+- `lint`: runs an eslint check
+  - `lint:fix`: fixes eslint errors
+  - `lint:ext`: checks the extension lint violations
+- `format`: runs a Prettier check
+  - `format:fix`: runs a Prettier write on all files
+
+### Manually Try it in Firefox
 
 1. Open `about:debugging#/runtime/this-firefox`.
 2. Select **Load Temporary Add-on...**.
 3. Select `dist/manifest.json`.
-4. Open a regular webpage, select the extension button, and click **Read current page title**.
+4. Open a supported social media site (i.e. Twitter) and scroll through posts
 
 Temporary add-ons are removed when Firefox closes.
 
-## Bot Detection Weights
-
-Potential signifiers of a twitter bot (or bot interference)
-
-- Account
-  - Username
-    - \>4 numbers at the end
-    - CamelCasing
-    - Random non-name words
-    - Random characters
-  - Bio
-    - Excessive emoji usage
-    - No bio whatsoever
-  - Blue checkmark
-  - Non-business accounts
-  - No profile picture
-  - Inhumane amount of posts
-  - Very small difference between followers and following
-- Content
-  - Overly generic comments
-  - Use of l33tspeak to get around filters
-  - Strange links/promos
-  - Slurs
-  - Excessive political content
-  - Quote tweets other blue-check accounts
-- Identical tweets or semi-identical tweets to others in the same thread
-
 ## AI Usage
 
-I'll tell you what I do _**not**_ like in terms of AI:
+Don't worry.
+
+I'll tell you what I do absolutely _**not**_ like in terms of AI:
 
 - Videos
 - Audio
@@ -85,7 +74,7 @@ I'll tell you what I do _**not**_ like in terms of AI:
 
 If any of those things appear in my projects, you can be certain they were made by humans.
 
-As for my beliefs on AI usage _in programming_, I plan to make a write-up on it eventually on my website. I'll update this with it.
+As for my beliefs on AI usage _in programming_, the jury is still out on that one. I have differing opinions based on the situation and usage, but it's too much to discuss in a READMD. I plan to make a write-up on it eventually on my website. I'll update this with it.
 
 I'm trying to do this project by hand as much as possible. If an algorithm is slow, I'll get to it.
 

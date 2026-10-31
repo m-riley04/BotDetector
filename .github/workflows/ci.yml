@@ -46,13 +46,18 @@ jobs:
       - name: Test
         run: pnpm test
 
-      - name: Build
-        run: pnpm build
+      # builds dist/ and zips it into web-ext-artifacts/
+      - name: Build and package
+        run: pnpm package
 
-      - name: Upload extension build
+      # AMO's own validator; warnings are reported but only errors fail the job
+      - name: Lint extension
+        run: pnpm lint:ext
+
+      - name: Upload extension package
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: botdetector-dist
-          path: dist/
+          name: botdetector-package
+          path: web-ext-artifacts/*.zip
           if-no-files-found: error
           retention-days: 14

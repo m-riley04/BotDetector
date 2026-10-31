@@ -1,5 +1,3 @@
-import { getDecancer } from './decancer';
-
 /**
  * Specifically carved-out checks for specific, stubborn characters that pass checks.
  * I went through most of the failing tests and hand-carved these out. Took over 2 hours for just this small list.
@@ -86,7 +84,7 @@ const SPECIFIC_UTF_CHARACTER_MAPPING: Record<string, string> = {
 
 const SPECIFIC_CHARACTERS = Object.keys(SPECIFIC_UTF_CHARACTER_MAPPING);
 
-function replaceSpecificUTFCharacters(s: string): string {
+export function replaceSpecificUTFCharacters(s: string): string {
   let ret = s;
   // O(n) function. fix this.
   for (const c of SPECIFIC_CHARACTERS) {
@@ -100,18 +98,16 @@ export function removeEmojis(s: string): string {
 }
 
 /**
- * Maps fancy Unicode text (styled fonts, homoglyphs, zalgo, etc.) back to plain text with decancer.
- * Requires `loadDecancer()` to have finished first.
+ * Maps fancy Unicode text (styled fonts, homoglyphs, zalgo, etc.) back to plain text.
+ * Not used by detection yet; its tests in tests/fancy-text.test.ts are skipped until this is implemented.
  * @param s
  * @returns
  */
 export function normalizeUnicodeFancyText(s: string): string {
-  if (s === '') return s; // decancer for whatever reason messes this up
-  const cured = getDecancer()(replaceSpecificUTFCharacters(s));
-  try {
-    return cured.toString();
-  } finally {
-    // the cured string lives in WASM memory, which the JS garbage collector won't reclaim
-    cured.free();
-  }
+  // TODO: Turn styled/homoglyph text back into plain text without decancer.
+  // `s.normalize('NFKC')` already folds most "math alphanumeric" fonts; see what's left
+  // after that, then decide whether `replaceSpecificUTFCharacters` covers the rest.
+  throw new Error(
+    `normalizeUnicodeFancyText is not implemented yet (got ${s.length} chars)`
+  );
 }

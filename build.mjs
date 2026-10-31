@@ -15,7 +15,7 @@ const staticFiles = [
 const jsx = {
   jsx: 'automatic',
   jsxImportSource: 'preact',
-  loader: { '.css': 'text', '.wasm': 'binary' },
+  loader: { '.css': 'text' },
 };
 
 const builds = [

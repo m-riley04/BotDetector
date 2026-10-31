@@ -8,7 +8,7 @@ test('the fixture corpus has both bots and humans', () => {
 
 describe.each(files)('%s', (name) => {
   const { expectedChecks } = loadFixture(name);
-  // scored in beforeAll (not at collection time) so decancer has finished loading first
+  // scored in beforeAll rather than at collection time, so a scoring error fails a test instead of the whole file
   let report: ReturnType<typeof scoreFixture>;
   beforeAll(() => {
     report = scoreFixture(name);

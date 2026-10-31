@@ -5,17 +5,20 @@
   "type": "module",
   "packageManager": "pnpm@12.6.0",
   "engines": {
-    "node": ">=24.18.0 <25"
+    "node": ">=20.0.0 <25"
   },
   "scripts": {
     "build": "node build.mjs",
-    "format": "prettier --check .",
-    "format:fix": "prettier --write . --config .prettierrc",
-    "typecheck": "tsc --noEmit",
     "start": "node build.mjs --watch",
+    "firefox": "web-ext run",
+    "package": "pnpm build && web-ext build",
+    "typecheck": "tsc --noEmit",
     "test": "jest",
     "lint": "eslint",
-    "lint:fix": "eslint --fix"
+    "lint:fix": "eslint --fix",
+    "lint:ext": "web-ext lint",
+    "format": "prettier --check .",
+    "format:fix": "prettier --write . --config .prettierrc"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
@@ -34,10 +37,10 @@
     "prettier-plugin-css-order": "^2.2.0",
     "prettier-plugin-organize-imports": "^4.3.0",
     "typescript": "^5.8.0",
-    "typescript-eslint": "^8.71.2"
+    "typescript-eslint": "^8.71.2",
+    "web-ext": "^10.8.0"
   },
   "dependencies": {
-    "decancer": "^4.0.0",
     "preact": "^11.0.1"
   }
 }

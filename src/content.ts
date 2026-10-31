@@ -38,7 +38,6 @@ import {
   REACT_PROPS_RESPONSE,
 } from './react/constants';
 import { ReactPropsResponse } from './react/models';
-import { loadDecancer } from './social-media/decancer';
 import { Post } from './social-media/models';
 
 const HIDDEN_ATTRIBUTE = 'data-botdetector-hidden';
@@ -343,26 +342,19 @@ browser.storage.onChanged.addListener((changes, area) => {
   scanTweets();
 });
 
-// load settings + decancer, then the react bridge, and start scanning tweets once it's all ready
+// load settings, then the react bridge, and start scanning tweets once it's all ready
 // basically the main runtime loop
-const settingsReady = loadSettings()
+void loadSettings()
   .then((loaded) => {
     settings = loaded;
   })
   .catch((error) => {
+    // keep going with DEFAULT_SETTINGS rather than disabling detection
     console.error(`${LOG_PREFIX} Could not load settings.`, error);
-  });
-// detection needs decancer, so if it can't load there's no point starting the scan loop
-Promise.all([settingsReady, loadDecancer()])
+  })
   .then(() => {
     loadReactPropsBridge(reactBridge, scanTweets);
     document.addEventListener('scrollend', scanTweets);
-  })
-  .catch((error) => {
-    console.error(
-      `${LOG_PREFIX} Could not load decancer; detection disabled.`,
-      error
-    );
   });
 
 export {};
