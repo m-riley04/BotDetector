@@ -8,8 +8,8 @@ import {
 type Send = (request: ExpandLinksRequest) => Promise<unknown>;
 
 /**
- * Content-script side of the shortened-link expander. Each link is only requested once, and
- * `links` keeps growing as answers arrive so the detector can read it directly.
+ * Content-script side of the shortened-link expander.
+ * Each link is only requested once, and `links` keeps growing as answers arrive so the detector can read it directly.
  */
 export class LinkExpander {
   readonly links: ExpandedLinks = {};

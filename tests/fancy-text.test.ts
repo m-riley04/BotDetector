@@ -1,4 +1,7 @@
-import { isFancyText } from '../src/detection/fancy-text';
+import {
+  hasAbnormalLanguageMixing,
+  isFancyText,
+} from '../src/detection/fancy-text';
 import { normalizeUnicodeFancyText } from '../src/social-media/normalization';
 
 // made these by hand using both lingojam.com and inputoutput.dev: https://lingojam.com/FancyTextGenerator https://inputoutput.dev/unicode-fancy-font-generator/
@@ -147,6 +150,7 @@ const EMOJI_TEXT = [
   'call 1️⃣', // keycap
   '✨ vibes ✨',
   'NYC 📍',
+  'College educated voter™️ | aspiring white collar professional | he/him 🇵🇸🇺🇦',
 ];
 
 const PUNCTUATION_TEXT = [
@@ -157,6 +161,11 @@ const PUNCTUATION_TEXT = [
   'Go →',
   '½ price',
   '50°F',
+  'Acme™', // trademark
+  'Acme Delivery℠', // service mark
+  'Album ℗ 2024', // sound recording copyright
+  '© 2024 Acme', // copyright
+  'Acme®', // registered
 ];
 
 const NON_ENGLISH_TEXT = [
@@ -220,6 +229,108 @@ describe('fancy unicode detection', () => {
       expect(isFancyText(s)).toBe(false);
     }
   );
+});
+
+// Invisible / look-alike characters are written as escapes so the test names show what's actually there.
+const MIXED_SCRIPT_WORDS = [
+  'hеllo world', // Cyrillic 'е' inside a Latin word
+  'pаypal login', // Cyrillic 'а' (classic phishing homoglyph)
+  'Apрle support', // Cyrillic 'р'
+  'οk', // Greek omicron + Latin 'k'
+  'іt works', // Cyrillic 'і' + Latin 't'
+  'clіck here!', // homoglyph with trailing punctuation
+  'free mоney', // Cyrillic 'о'
+  'Пpивет', // "Привет" with a Latin 'p' in it
+  '日本go', // Han + Latin in one word
+  'テストtest', // Katakana + Latin in one word
+  'h​еllo', // zero-width space hiding inside the word
+  'h‍еllo', // zero-width joiner hiding inside the word
+  'pаy-pal', // hyphen split still leaves a mixed half
+];
+
+const SAME_SCRIPT_WORDS = [
+  'hello world',
+  '第1 你好!', // digit + punctuation attached to Han words
+  '食べる', // Japanese: Han + Hiragana in one word is normal
+  'コーヒー', // 'ー' (U+30FC) is Script=Common, not Katakana
+  'café', // NFD 'café': 'e' + combining acute (Script=Inherited)
+  'Привет,hello', // punctuation separates words, it doesn't join them
+  'hi\tпривет', // tab is whitespace
+  '你好　世界', // U+3000 ideographic space
+  '', // empty string
+  'hello\nмир', // newline is whitespace
+  'hello мир', // non-breaking space
+  'Привет мир',
+  'مرحبا بالعالم',
+  'हिन्दी', // Devanagari vowel signs are Script=Devanagari
+  'naïve Straße İstanbul', // precomposed Latin letters
+  'Ἀθῆναι', // precomposed Greek with diacritics
+  'カタカナとひらがな', // Katakana + Hiragana
+  '東京タワー', // Han + Katakana + 'ー'
+  '2024年', // digits + Han
+  'C++ and C#',
+  'emoji😀test', // emoji inside a word is removed, not a script
+];
+
+// Punctuation that should separate words rather than glue them together.
+const PUNCTUATION_SEPARATED_WORDS = [
+  'Привет—hello', // em dash
+  'Привет/hello',
+  'hello.Мир',
+  'Привет(hello)',
+  'Привет!hello',
+  'Привет?hello',
+  'Привет:hello',
+  'Привет;hello',
+  'Привет…hello', // ellipsis character
+  '«Привет»hello', // guillemets
+  'Привет"hello"',
+];
+
+// Ordinary words with mid-word punctuation. These should never flag, whatever counts as a separator.
+const MID_WORD_PUNCTUATION = [
+  "don't",
+  "rock'n'roll",
+  'e-mail',
+  'U.S.A.',
+  '   ',
+];
+
+// Mixed scripts that this function can't see, but isFancyText as a whole should still catch.
+const MIXED_SCRIPTS_FOR_OTHER_CHECKS = [
+  '\u{1d421}еllo', // math-bold 'h' is Script=Common, so it's stripped before the script check
+];
+
+describe('abnormal language mixing within a word', () => {
+  test.each(MIXED_SCRIPT_WORDS)('detects mixed scripts in %j', (s) => {
+    expect(hasAbnormalLanguageMixing(s)).toBe(true);
+  });
+
+  test.each(SAME_SCRIPT_WORDS)('does not flag %j', (s) => {
+    expect(hasAbnormalLanguageMixing(s)).toBe(false);
+  });
+
+  test.each(PUNCTUATION_SEPARATED_WORDS)(
+    'treats punctuation as a word boundary in %j',
+    (s) => {
+      expect(hasAbnormalLanguageMixing(s)).toBe(false);
+    }
+  );
+
+  test.each(MID_WORD_PUNCTUATION)('does not flag %j', (s) => {
+    expect(hasAbnormalLanguageMixing(s)).toBe(false);
+  });
+
+  test.each(MIXED_SCRIPTS_FOR_OTHER_CHECKS)(
+    'isFancyText still catches %j',
+    (s) => {
+      expect(isFancyText(s)).toBe(true);
+    }
+  );
+
+  test.skip('Hangul + Han in one word (e.g. "韓國어")', () => {});
+  test.skip('Bopomofo + Han in one word (e.g. "台灣ㄉ")', () => {});
+  test.skip('homoglyphs separated by punctuation (e.g. "p.а.y.p.a.l")', () => {});
 });
 
 describe('fancy unicode normalization', () => {
