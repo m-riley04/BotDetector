@@ -12,7 +12,7 @@
   ],
   "browser_specific_settings": {
     "gecko": {
-      "id": "@botdetector",
+      "id": "botdetector@rileymeyerkorth.com",
       "data_collection_permissions": {
         "required": ["none"]
       },
@@ -40,6 +40,19 @@
       "resources": ["src/inject.js"]
     }
   ],
+  "commands": {
+    "rescan": {
+      "description": "Rescan the page for bots",
+      "suggested_key": {
+        "default": "Alt+R"
+      }
+    },
+    "_execute_action": {
+      "suggested_key": {
+        "default": "Alt+K"
+      }
+    }
+  },
   "action": {
     "default_title": "BotDetector",
     "default_popup": "popup.html"

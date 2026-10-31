@@ -1,12 +1,43 @@
+/**
+ * Same palette as the badges and report dialog (src/detection/styles.css), so the
+ * popup and the on-page UI match. light-dark() picks a value from the OS/Firefox theme.
+ */
 :root {
-  --text-color: light-dark(#202124);
-  --h2-color: light-dark(#5f6368);
-  --text-secondary-color: light-dark(#5f6368);
+  color-scheme: light dark;
+
+  --text-color: light-dark(#111827, #e5e6e0);
+  --bg-color: light-dark(#e5e6e0, #111827);
+  --text-secondary-color: light-dark(#4b5563, #9ca3af);
+  --border-color: light-dark(#d1d5db, #374151);
+
+  --tag-bg-color: light-dark(#91969e, #252c36);
+  --tag-border-color: light-dark(#848991, #374151);
+
+  /* filled buttons; matches the badges' `button.secondary` */
+  --button-primary-bg: light-dark(#374151, #f9fafb);
+  --button-primary-hover-bg: light-dark(#1f2937, #e5e7eb);
+  --button-primary-text: light-dark(#f9fafb, #374151);
+
+  /* outlined buttons; matches the badges' plain `button` */
+  --button-text-color: light-dark(#374151, #f9fafb);
+  --button-bg-color: light-dark(#f9fafb, #374151);
+  --button-hover-bg-color: light-dark(#f3f4f6, #4b5563);
+  --button-border-color: light-dark(#374151, #f9fafb);
+
+  --input-bg-color: light-dark(#f9fafb, #1f2937);
+  --accent-color: light-dark(#0060df, #4f9cff);
+  --track-off-color: light-dark(#9ca3af, #4b5563);
+
+  --status-on-bg: light-dark(#d1fae5, #064e3b);
+  --status-on-text: light-dark(#047857, #6ee7b7);
+  --status-off-bg: light-dark(#fee2e2, #7f1d1d);
+  --status-off-text: light-dark(#b91c1c, #fca5a5);
 }
 
 body {
   box-sizing: border-box;
   margin: 0;
+  background: var(--bg-color);
   padding: 16px;
   min-width: 300px;
   color: var(--text-color);
@@ -34,7 +65,7 @@ h1 {
 
 h2 {
   margin: 0;
-  color: var(--h2-color);
+  color: var(--text-secondary-color);
   font-weight: 600;
   font-size: 13px;
   letter-spacing: 0.04em;
@@ -63,28 +94,71 @@ small {
 
 .status {
   border-radius: 6px;
-  background: #e6f4ea;
+  background: var(--status-on-bg);
   padding: 6px 10px;
-  color: #137333;
+  color: var(--status-on-text);
   font-weight: 600;
   font-size: 13px;
 }
 
 .status.off {
-  background: #fce8e6;
-  color: #b3261e;
+  background: var(--status-off-bg);
+  color: var(--status-off-text);
 }
 
 #settings {
   display: grid;
   gap: 14px;
-  border-top: 1px solid #e0e0e0;
+  border-top: 1px solid var(--border-color);
   padding-top: 12px;
 
   &.disabled {
     .field,
     .check {
       opacity: 0.5;
+    }
+  }
+}
+
+.text-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+
+  .item-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    width: 300px;
+
+    .item {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      border: solid 1px var(--tag-border-color);
+      background-color: var(--tag-bg-color);
+      padding: 0 5px;
+      height: 20px;
+
+      button {
+        display: inline-flex;
+        justify-content: center;
+        align-items: center;
+        border: none;
+        background: none;
+        padding: 0px;
+        width: 20px;
+        color: red;
+        text-align: center;
+
+        * {
+          margin: 0;
+        }
+      }
+
+      &:hover {
+        background-color: var(--button-hover-bg-color);
+      }
     }
   }
 }
@@ -103,7 +177,7 @@ small {
 input[type='range'] {
   margin: 0;
   width: 100%;
-  accent-color: #0060df;
+  accent-color: var(--accent-color);
 }
 
 .check {
@@ -114,7 +188,7 @@ input[type='range'] {
 
   input {
     margin-top: 4px;
-    accent-color: #0060df;
+    accent-color: var(--accent-color);
   }
 }
 
@@ -141,7 +215,7 @@ input[type='range'] {
   transition: background 0.15s;
   inset: 0;
   border-radius: 11px;
-  background: #9aa0a6;
+  background: var(--track-off-color);
   pointer-events: none;
 
   &::after {
@@ -158,7 +232,7 @@ input[type='range'] {
 }
 
 .switch input:checked + .track {
-  background: #0060df;
+  background: var(--accent-color);
 }
 
 .switch input:checked + .track::after {
@@ -168,7 +242,7 @@ input[type='range'] {
 .switch input:focus-visible + .track,
 input:focus-visible,
 button:focus-visible {
-  outline: 2px solid #0060df;
+  outline: 2px solid var(--accent-color);
   outline-offset: 2px;
 }
 
@@ -183,24 +257,25 @@ button:focus-visible {
 
 button {
   cursor: pointer;
-  border: 0;
-  border-radius: 4px;
-  background: #0060df;
+  border: 1px solid var(--button-primary-bg);
+  border-radius: 6px;
+  background: var(--button-primary-bg);
   padding: 8px 12px;
-  color: white;
+  color: var(--button-primary-text);
   font: inherit;
+  font-weight: 600;
 
   &:hover {
-    background: #0250bb;
+    background: var(--button-primary-hover-bg);
   }
 
   &.secondary {
-    border: 1px solid #c4c7c5;
-    background: white;
-    color: #202124;
+    border-color: var(--button-border-color);
+    background: var(--button-bg-color);
+    color: var(--button-text-color);
 
     &:hover {
-      background: #f1f3f4;
+      background: var(--button-hover-bg-color);
     }
   }
 
@@ -214,20 +289,20 @@ button {
 #lists {
   display: grid;
   gap: 10px;
-  border-top: 1px solid #e0e0e0;
+  border-top: 1px solid var(--border-color);
   padding-top: 12px;
 }
 
 details {
   display: grid;
   gap: 10px;
-  border-top: 1px solid #e0e0e0;
+  border-top: 1px solid var(--border-color);
   padding-top: 12px;
 }
 
 summary {
   cursor: pointer;
-  color: #5f6368;
+  color: var(--text-secondary-color);
   font-weight: 600;
   font-size: 13px;
   letter-spacing: 0.04em;
@@ -240,11 +315,13 @@ details[open] > summary {
 
 textarea {
   box-sizing: border-box;
-  border: 1px solid #c4c7c5;
+  border: 1px solid var(--border-color);
   border-radius: 4px;
+  background: var(--input-bg-color);
   padding: 6px 8px;
   width: 100%;
   resize: vertical;
+  color: var(--text-color);
   font:
     12px/1.4 ui-monospace,
     monospace;

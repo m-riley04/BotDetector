@@ -5,6 +5,7 @@ import {
   type ExpandedLinks,
   type LinkResolver,
 } from './common/links';
+import type { ContentRequest } from './common/messages';
 
 // Add resolvers for other shorteners here.
 const resolvers: LinkResolver[] = [tcoLinkResolver];
@@ -56,5 +57,25 @@ browser.runtime.onMessage.addListener((message: unknown) => {
     }
     for (const url of missing) remember(url, fetched[url] ?? null);
     return { ...result, ...fetched };
+  })();
+});
+
+// Keyboard shortcuts from manifest.json `commands`. Users can rebind them in about:addons → ⚙ → Manage Extension Shortcuts.
+browser.commands.onCommand.addListener((command) => {
+  if (command !== 'rescan') return;
+
+  void (async () => {
+    const [tab] = await browser.tabs.query({
+      active: true,
+      currentWindow: true,
+    });
+    if (tab?.id === undefined) return;
+
+    const request: ContentRequest = { type: 'rescan' };
+    try {
+      await browser.tabs.sendMessage(tab.id, request);
+    } catch {
+      // no content script in this tab (e.g. not on x.com), so there's nothing to rescan
+    }
   })();
 });

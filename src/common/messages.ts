@@ -20,10 +20,17 @@ export interface PageStats {
   badges: number;
 }
 
-export type ContentRequest = { type: 'get-stats' } | { type: 'show-hidden' };
+/**
+ * Messages the content script answers. Every one replies with the current {@link PageStats}.
+ */
+export type ContentRequest =
+  { type: 'get-stats' } | { type: 'show-hidden' } | { type: 'rescan' };
+
+const CONTENT_REQUEST_TYPES: ReadonlySet<unknown> = new Set<
+  ContentRequest['type']
+>(['get-stats', 'show-hidden', 'rescan']);
 
 export function isContentRequest(value: unknown): value is ContentRequest {
   if (!isNonNullObject(value)) return false;
-  const type = (value as { type?: unknown }).type;
-  return type === 'get-stats' || type === 'show-hidden';
+  return CONTENT_REQUEST_TYPES.has((value as { type?: unknown }).type);
 }

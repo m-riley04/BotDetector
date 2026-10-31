@@ -1,69 +1,87 @@
 # BotDetector
 
-## Requirements
+## Table of Contents
 
-- Node.js 20 or newer
-- Firefox 128 or newer
+- [Overview](#overview)
+- [Features](#features)
+  - [Detection Methods](#detection-methods)
+  - [Keyboard Shortcuts](#keyboard-shortcuts)
+- [Development and Contributing](#development-and-contributing)
+- [Social Media-Agnositc Approach](#social-media-agnostic-approach)
+- [AI Policy](#ai-policy)
+  - [In-App](#in-app)
+  - [Development](#development)
 
-## Build
+## Overview
 
-```sh
-pnpm install
-pnpm build
-```
-
-The loadable extension is generated in `dist/`.
-
-## Test
-
-Run the automated tests with:
-
-```sh
-pnpm test
-```
-
-Tests are TypeScript and run with Jest. `pnpm typecheck` type-checks the source and the tests.
-
-`tests/fixtures/` holds raw tweet objects (the same JSON the **Copy tweet JSON** button produces). The tests validate and convert each capture through the Twitter adapter before scoring it, so fixtures exercise the same normalized `Post` model as the extension. Files named `bot-*.json` must be flagged and `human-*.json` must not, using the default weights. A bot fixture can instead list `"_expect_checks": ["onlyfans-model", ...]` (ids that must trigger) and `"_expanded_links": {"https://t.co/...": "https://destination"}` (what the t.co link resolves to). The fixture clock is pinned to 2026-10-18. The bundled ones are synthetic; drop in real captures to grow the regression corpus.
+BotDetector is a web extension to help users detect and flag posts that are most likely to be artificial.
 
 ## Features
 
-- **t.co expansion:** profile links are shortened, so the background script fetches each `t.co` page (no cookies, no redirects followed, the destination is never contacted) and reads the destination, so adult/link-in-bio sites (OnlyFans, Fansly, bouncy.ai, beacons.ai, dm.bio...) are recognised. This needs the `https://t.co/*` host permission; if expansion seems to do nothing, grant it under `about:addons` → the extension → Permissions.
-- **Username history:** if the tweet carries X's "About this account" data (`user.about_profile.username_changes`), a change within the last year or 3+ changes is flagged (a sign of a sold or hacked account). The extension doesn't fetch it itself because X's private query needs rotating IDs.
-- Per-check toggles and weight sliders in the popup (weights are additive evidence and don't need to sum to 1; negative weights are trust signals that lower the score).
-- Allowlist/blocklist, editable in the popup or from a post's details dialog (**Mark as human**, **Always hide**).
-- **Show hidden posts** reveals posts hidden by "Hide likely bots", and the popup shows counts for the current page.
-- Settings can be copied out and pasted back in under **Backup**.
-- Reports are cached per author and post; pressing `r` on the page rescans.
+- Per-post and per-user bot probability algorithm via a "checks and weights" system
+  - Checks are examinations of specific elements of a post/user. They are either true or false.
+  - Every check has an associated weight assigned to it. A positive weight indicates a better chance of being a bot. A negative weight indicates less of a chance to be a bot (aka a better chance to be a human/real).
+- Per-post probability badges
+- Extensive customization
+  - Customizable bot detection threshold
+    - The default detection threshold is at 75%, but you can always raise or lower that to your liking!
+  - Per-check toggles and weight sliders in the popup
+    - If you don't agree with my checks/weights, just change them!
+    - In the future, I will be expanding this system to allow users to add their own checks via RegEx and other factors.
+  - Allowlist/blocklist
+    - Editable in the popup or from a post's details dialog ("Mark as human", "Always hide").
+  - Show hidden posts
+    - Reveals posts hidden by "Hide likely bots", and the popup shows counts for the current page.
+- Export/import settings data
 
-## Development
+### Detection Methods
 
-### Pnpm Scripts
+In general, I believe in being safe than sorry. I'd rather assume the whole internet is bots than believe the amount of hate there is truly representative of reality.
 
-- `build`: builds the extension
-- `test`: runs all tests
-- `start` and `firefox`: opens and installs the extension into Firefox
-- `package`: builds and zips the extension
-- `lint`: runs an eslint check
-  - `lint:fix`: fixes eslint errors
-  - `lint:ext`: checks the extension lint violations
-- `format`: runs a Prettier check
-  - `format:fix`: runs a Prettier write on all files
+Because of that belief, I believe some false-positves are worth it to help the mental health of users.
 
-### Manually Try it in Firefox
+- Fancy text detection
+  - A lot of bots/trolls use lookalike text to confuse users
+  - Some users might also use unicode fonts for pazazz (i.e. "𝖈𝖑𝖎𝖈𝖐 𝖍𝖊𝖗𝖊")
+- Shortend link expansion
+  - Links on many social media sites are shortened and/or go through a proxy. This makes it difficult for detection algorithms to find suspicious links.
+  - The background script _safely_ fetches each shortened page (no cookies, no redirects followed, the destination is never contacted) and reads the destination, so adult/link-in-bio sites (OnlyFans, Fansly, bouncy.ai, beacons.ai, dm.bio...) are recognised.
+  - Requires host permissions for each link-shortener domain (i.e. `https://t.co/*`). If expansion seems to do nothing, grant it under `about:addons` -> BotDetector -> Permissions.
+- Username history
+  - If the user visits the "About this user" page, a change within the last year or 3+ changes is flagged (a sign of a sold or hacked account)
+  - For Twitter, he extension doesn't currently fetch it itself because Twitter's private query needs rotating IDs. API support is being considered.
 
-1. Open `about:debugging#/runtime/this-firefox`.
-2. Select **Load Temporary Add-on...**.
-3. Select `dist/manifest.json`.
-4. Open a supported social media site (i.e. Twitter) and scroll through posts
+### Keyboard Shortcuts
 
-Temporary add-ons are removed when Firefox closes.
+- `r`: manually re-scan reports
 
-## AI Usage
+## Development and Contributing
 
-Don't worry.
+To learn how to develop, build locally, and contribute to BotDetector, look at the [contributing docs](CONTRIBUTING.md).
 
-I'll tell you what I do absolutely _**not**_ like in terms of AI:
+## Social Media-Agnostic Approach
+
+Internally, this extension uses an adapter pattern approach to allow multiple different social media sites to be able to be detected.
+
+Currently, we are focusing on Twitter (one of the main culprits for bot activity), but the system can allow for a wide variety of sites.
+
+This system will be expanded in future versions.
+
+## AI Policy
+
+### In-App
+
+Let me be clear: this does NOT utilize a generative AI model (i.e. ChatGPT, Claude, etc.) for it's detections.
+
+This is NOT a ChatGPT wrapper!
+
+Perhaps in the future, I could implement some _machine learning_ algorithm (_NOT_ an LLM) to detect post intent, but that's for the future.
+
+### Development
+
+Don't worry. I'm trying to do this project "by hand" as much as possible. If an algorithm is slow, I'll get to it.
+
+With that being said, I'll tell you what I absolutely do _**not**_ like in terms of AI:
 
 - Videos
 - Audio
@@ -72,10 +90,8 @@ I'll tell you what I do absolutely _**not**_ like in terms of AI:
 - Music
 - Public-facing Text
 
-If any of those things appear in my projects, you can be certain they were made by humans.
+When those things appear in my projects, you can be certain they were made by a human (probably me).
 
-As for my beliefs on AI usage _in programming_, the jury is still out on that one. I have differing opinions based on the situation and usage, but it's too much to discuss in a READMD. I plan to make a write-up on it eventually on my website. I'll update this with it.
-
-I'm trying to do this project by hand as much as possible. If an algorithm is slow, I'll get to it.
+As for my beliefs on AI usage _in programming_, the jury is still out on that one. I have differing opinions based on the situation and usage, but it's too much to discuss in a README. I plan to make a write-up on it eventually on [my website](https://rileymeyerkorth.com). I'll update this with it when I get to it.
 
 I am not going to pretend I am some coding genius (yet...?). The people making the Linux kernel are though, so [I'll agree with them for now](https://docs.kernel.org/process/coding-assistants.html).

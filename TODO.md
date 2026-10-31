@@ -5,12 +5,15 @@
 - [ ] Proper popup page for the extension
 - [ ] Add custom, user-created checks
   - [ ] Regex
+- [ ] Make everything async so external checks (i.e. to an API) could be performed
 
 ## New Check Ideas
 
 - [ ] "Dynamically weighted" checks?
   - [ ] Basically, the higher/lower the value, the more weight that the check has? Like the closer the bio
   - [ ] This would allow us to replace multiple step-based weights with a single continuous check.
+- [ ] Have checks have an "unknown" state
+  - [ ] Some checks might not be run for certain sites or could be disabled.
 - [ ] Normalize unicode characters
 - [ ] Check for
 - [ ] Utilize Twitter-specific flags

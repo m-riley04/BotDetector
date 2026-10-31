@@ -108,9 +108,6 @@ export function ExtensionPopup({ initial }: ExtensionPopupProps) {
           <span class="visually-hidden">Enable BotDetector</span>
         </label>
       </header>
-      <p class="subtitle">
-        Detect troll and astroturfing accounts on Twitter (or 'X')
-      </p>
       <p
         id="status"
         class={`status${off || saveError ? ' off' : ''}`}

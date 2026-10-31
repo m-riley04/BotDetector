@@ -141,6 +141,7 @@ describe('ReportCache', () => {
 test('isContentRequest accepts only known messages', () => {
   expect(isContentRequest({ type: 'get-stats' })).toBe(true);
   expect(isContentRequest({ type: 'show-hidden' })).toBe(true);
+  expect(isContentRequest({ type: 'rescan' })).toBe(true);
   for (const bad of [null, undefined, 'get-stats', {}, { type: 'other' }]) {
     expect(isContentRequest(bad)).toBe(false);
   }

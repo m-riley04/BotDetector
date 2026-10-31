@@ -30,7 +30,7 @@ export function ListsSection({ settings, version, update }: ListsSectionProps) {
           value={combineLines(settings.blocklist)}
           onCommit={(text) => update({ blocklist: parseHandleList(text) })}
         />
-        <p class="help">One @handle per line.</p>
+        <p class="help">Press Enter or Space after each @handle.</p>
       </div>
     </section>
   );

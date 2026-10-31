@@ -7,7 +7,7 @@ import {
 } from '../../detection/detection';
 import { useSlider } from './useSlider';
 
-interface CheckRowProps {
+interface EditableCheckRowProps {
   checkKey: CheckKey;
   settings: Settings;
   onChange: (patch: Partial<Settings>) => void;
@@ -23,7 +23,7 @@ export function EditableCheckRow({
   checkKey: key,
   settings,
   onChange,
-}: CheckRowProps) {
+}: EditableCheckRowProps) {
   const label = CHECK_DEFINITIONS[key].label;
   const isOn = !settings.disabledChecks.includes(key);
 

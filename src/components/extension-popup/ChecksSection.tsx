@@ -40,10 +40,11 @@ export function ChecksSection({
         <TextList
           key={version}
           id="scam-keywords"
+          separator=","
           value={combineLines(settings.scamKeywords)}
           onCommit={(text) => update({ scamKeywords: parseKeywordList(text) })}
         />
-        <p class="help">One word or phrase per line.</p>
+        <p class="help">Press Enter or comma after each word or phrase.</p>
       </div>
       <button
         id="reset-checks"

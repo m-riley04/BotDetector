@@ -13,10 +13,12 @@ import {
   UnicodeLanguageScriptKey,
 } from '../common/unicode';
 
-// WARNING/TODO: just a thought I had: it would usually either be bots or scientific figures using these symbols.
-// If I don't get this right, I feel as if it could be bad for the scientific community, as
-// they might be mistakenly marked as "untrustworthy". That's the last thing we need rn.
-// bleh.
+/**
+ * WARNING/TODO: just a thought I had: it would usually either be bots or scientific figures using these symbols.
+ * If I don't get this right, I feel as if it could be bad for the scientific community.
+ * They might be mistakenly marked as "untrustworthy". That's the last thing we need rn.
+ * bleh.
+ */
 
 /**
  * Scripts that legitimately appear together inside a single word.

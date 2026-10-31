@@ -12,7 +12,9 @@ interface BackupSectionProps {
 }
 
 export function BackupSection({ settings, replace }: BackupSectionProps) {
-  const [backupText, setBackupText] = useState('');
+  const [backupText, setBackupText] = useState(
+    "Click 'copy' to export settings"
+  );
   const [backupStatus, setBackupStatus] = useState('');
   const backupArea = useRef<HTMLTextAreaElement>(null);
 

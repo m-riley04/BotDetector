@@ -56,6 +56,7 @@ const reportByElement = new WeakMap<HTMLElement, BotDetectionReport>();
 
 // Temporary storage for the latest tweet data received from the React props bridge
 // TODO: this is bad imo. Fix it.
+// it works today because `dispatchEvent` runs synchronously.
 let temp: Post | undefined;
 
 // The props bridge only answers once per tweet element, so remember each element's data
@@ -89,17 +90,18 @@ function getPostDataFromReactResponse(
   return convertTweetToGenericPost(tweetProps);
 }
 
-// keyboard presses for manual/quick actions
-window.addEventListener('keyup', (e: KeyboardEvent) => {
-  if (e.key === 'r') {
-    console.log(`${LOG_PREFIX} Manual scan triggered.`);
-    reportCache.clear();
-    duplicateTracker.clear();
-    clearTweets();
-    temp = undefined;
-    scanTweets();
-  }
-});
+/**
+ * Throws away every cached report and scans the page from scratch.
+ * Triggered by the "rescan" keyboard command (see manifest.json `commands`), relayed by the background script.
+ */
+function rescan(): void {
+  console.log(`${LOG_PREFIX} Manual scan triggered.`);
+  reportCache.clear();
+  duplicateTracker.clear();
+  clearTweets();
+  temp = undefined;
+  scanTweets();
+}
 
 // Listener for the react props responses from the injected script
 window.addEventListener(REACT_PROPS_RESPONSE, (event: Event) => {
@@ -205,10 +207,11 @@ function getStats(): PageStats {
   };
 }
 
-// answers the popup's requests
+// answers requests from the popup and the background script
 browser.runtime.onMessage.addListener((message: unknown) => {
   if (!isContentRequest(message)) return undefined;
   if (message.type === 'show-hidden') revealHiddenTweets();
+  if (message.type === 'rescan') rescan();
   return Promise.resolve(getStats());
 });
 

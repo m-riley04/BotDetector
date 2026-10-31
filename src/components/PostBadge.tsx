@@ -16,7 +16,7 @@ export function PostBadge({
     >
       <p>{`Bot chance ${toWholePercent(report.chance)}`}</p>
       <button
-        className="info"
+        class="info"
         type="button"
         aria-label="Show detection details"
         title="Show detection details"
