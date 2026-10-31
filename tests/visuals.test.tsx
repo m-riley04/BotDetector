@@ -101,7 +101,7 @@ test('createBotElement displays the chance and opens the report modal', async ()
     makeReport(),
     makePost({ id: 'post-123' })
   );
-  expect(element.tagName.toLowerCase()).toBe('div-droiddetector');
+  expect(element.tagName.toLowerCase()).toBe('div-botdetector');
   expect(element.getAttribute('aria-label')).toBe('Bot detection: 72% chance');
 
   const root = element.shadowRoot as ShadowRoot;

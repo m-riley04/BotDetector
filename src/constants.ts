@@ -1,1 +1,1 @@
-export const LOG_PREFIX = '[DroidDetector]';
+export const LOG_PREFIX = '[BotDetector]';

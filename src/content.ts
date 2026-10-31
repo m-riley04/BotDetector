@@ -41,11 +41,11 @@ import { ReactPropsResponse } from './react/models';
 import { loadDecancer } from './social-media/decancer';
 import { Post } from './social-media/models';
 
-const HIDDEN_ATTRIBUTE = 'data-droiddetector-hidden';
+const HIDDEN_ATTRIBUTE = 'data-botdetector-hidden';
 // marks every post flagged as a likely bot, whether it is hidden or badged
-const BOT_ATTRIBUTE = 'data-droiddetector-bot';
+const BOT_ATTRIBUTE = 'data-botdetector-bot';
 // a hidden post the user chose to reveal; it stays visible with a badge
-const REVEALED_ATTRIBUTE = 'data-droiddetector-revealed';
+const REVEALED_ATTRIBUTE = 'data-botdetector-revealed';
 
 const reportCache = new ReportCache();
 const duplicateTracker = new DuplicateTextTracker();

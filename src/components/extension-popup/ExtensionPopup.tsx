@@ -95,8 +95,8 @@ export function ExtensionPopup({ initial }: ExtensionPopupProps) {
   return (
     <main>
       <header>
-        <h1>DroidDetector</h1>
-        <label class="switch" title="Enable or disable DroidDetector">
+        <h1>BotDetector</h1>
+        <label class="switch" title="Enable or disable BotDetector">
           <input
             id="enabled"
             type="checkbox"
@@ -105,7 +105,7 @@ export function ExtensionPopup({ initial }: ExtensionPopupProps) {
             onChange={(e) => update({ enabled: e.currentTarget.checked })}
           />
           <span class="track" />
-          <span class="visually-hidden">Enable DroidDetector</span>
+          <span class="visually-hidden">Enable BotDetector</span>
         </label>
       </header>
       <p class="subtitle">

@@ -1,4 +1,4 @@
-# DroidDetector
+# BotDetector
 
 ## Requirements
 
