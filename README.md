@@ -55,7 +55,7 @@ Because of that belief, I believe some false-positves are worth it to help the m
 
 - `r`: manually re-scan reports
 
-## Development and Contributing
+## Building, Developing, and Contributing
 
 To learn how to develop, build locally, and contribute to BotDetector, look at the [contributing docs](CONTRIBUTING.md).
 
