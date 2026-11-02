@@ -1,5 +1,5 @@
 {
-  "_expect_checks": ["new-account", "no-description"],
+  "_expect_checks": ["new-account-quarter", "no-description"],
   "_note": "Synthetic fixture: a real account I found not actually advertising OnlyFans, but was clearly AI-generated half-nude women. It wasn't being marked as a bot despite having posted the same type of content repeatedly.",
   "bookmark_count": 1,
   "bookmarked": false,

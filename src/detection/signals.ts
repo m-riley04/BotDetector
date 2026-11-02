@@ -350,7 +350,7 @@ export function hasMentionHashtagStuffing(post: Post): boolean {
   const text = (post.content.text ?? '').replace(LEADING_MENTIONS, '');
   const mentions = text.match(/@\w+/g)?.length ?? 0;
   const hashtags = text.match(/#\w+/g)?.length ?? 0;
-  return mentions >= 5 || hashtags >= 5 || mentions + hashtags >= 7;
+  return mentions >= 8 || hashtags >= 8 || mentions + hashtags >= 12;
 }
 
 const IGNORED_LANGUAGES = new Set(['', 'und', 'qme', 'qht', 'zxx', 'art']);
