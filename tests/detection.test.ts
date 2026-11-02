@@ -96,18 +96,22 @@ test('a typical older account has zero risk and includes all checks', () => {
   expect(report.checks.map(({ id }) => id)).toStrictEqual([
     'blue-check',
     'quoted-checkmark',
-    'new-account',
+    'new-account-year',
+    'new-account-quarter',
+    'new-account-month',
+    'new-account-weeks',
+    'new-account-days',
     'post-ai-account',
     'account-creation-date',
     'high-tweet-rate',
     'low-followers-ratio',
     'low-followers-following-ratio',
+    'lopsided-following',
     'auto-handle',
     'onlyfans-model',
     'excessive-promo',
     'bait-persona',
     'crypto-promo',
-    'lopsided-following',
     'recent-username-change',
     'ai-characters-bio',
     'no-description',
@@ -150,7 +154,7 @@ test('invalid account dates and missing counts do not trigger age or rate checks
 
   expect(report.chance).toBe(0);
   for (const id of [
-    'new-account',
+    'new-account-quarter',
     'post-ai-account',
     'account-creation-date',
     'high-tweet-rate',
@@ -209,15 +213,15 @@ test('quote-checkmark only triggers for verified non-business quoted users', () 
   expect(check(businessReport, 'quoted-checkmark').triggered).toBe(false);
 });
 
-test('new-account, post-AI, and calendar-date checks honor their boundaries', () => {
+test('new-account-quarter, post-AI, and calendar-date checks honor their boundaries', () => {
   const at89Days = new Date(fixedNow - 89 * dayMs).toISOString();
   const at90Days = new Date(fixedNow - 90 * dayMs).toISOString();
   expect(
-    check(getReport(makePost({ created_at: at89Days })), 'new-account')
+    check(getReport(makePost({ created_at: at89Days })), 'new-account-quarter')
       .triggered
   ).toBe(true);
   expect(
-    check(getReport(makePost({ created_at: at90Days })), 'new-account')
+    check(getReport(makePost({ created_at: at90Days })), 'new-account-quarter')
       .triggered
   ).toBe(false);
 
@@ -508,7 +512,7 @@ test('account-creation-date handles leap years and month lengths', () => {
 test('very new or future-dated accounts are treated as one day old', () => {
   const future = new Date(fixedNow + 5 * dayMs).toISOString();
   const futureReport = getReport(makePost({ created_at: future }));
-  expect(check(futureReport, 'new-account').triggered).toBe(true);
+  expect(check(futureReport, 'new-account-quarter').triggered).toBe(true);
 
   const now = new Date(fixedNow).toISOString();
   const rate = (statuses_count: number) =>
@@ -532,15 +536,16 @@ test('low-followers-ratio handles zero followers and requires 100 following', ()
   expect(lowRatio(0, 0)).toBe(false);
 });
 
-test('auto-handle only matches long digit runs at the end of the handle', () => {
+test('auto-handle only matches long digit runs at the end or beginning of the handle', () => {
   const triggered = (screen_name: string | undefined) =>
     check(getReport(makePost({ screen_name })), 'auto-handle').triggered;
 
   expect(triggered('user12345')).toBe(true);
   expect(triggered('user123456789')).toBe(true);
+  expect(triggered('12345_user')).toBe(true);
+  expect(triggered('8675309ml')).toBe(true);
   expect(triggered('12345')).toBe(true);
   expect(triggered('user12345x')).toBe(false);
-  expect(triggered('12345_user')).toBe(false);
   expect(triggered('plain_user')).toBe(false);
   expect(triggered(undefined)).toBe(false);
 });
@@ -807,7 +812,7 @@ describe('additional checks', () => {
     ).toBe(true);
     expect(
       triggered(
-        postWith({ full_text: '#a #b #c #d #e' }),
+        postWith({ full_text: '#a #b #c #d #e #c #d #e' }),
         'mention-hashtag-stuffing'
       )
     ).toBe(true);

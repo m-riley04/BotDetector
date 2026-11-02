@@ -6,7 +6,7 @@
 - [Features](#features)
   - [Detection Methods](#detection-methods)
   - [Keyboard Shortcuts](#keyboard-shortcuts)
-- [Development and Contributing](#development-and-contributing)
+- [Building, Developing, and Contributing](#building-developing-and-contributing)
 - [Social Media-Agnositc Approach](#social-media-agnostic-approach)
 - [AI Policy](#ai-policy)
   - [In-App](#in-app)
@@ -53,7 +53,8 @@ Because of that belief, I believe some false-positves are worth it to help the m
 
 ### Keyboard Shortcuts
 
-- `r`: manually re-scan reports
+- `Alt+K`: open popup configuration menu
+- `Alt+R`: manually re-scan reports
 
 ## Building, Developing, and Contributing
 
@@ -94,4 +95,6 @@ When those things appear in my projects, you can be certain they were made by a 
 
 As for my beliefs on AI usage _in programming_, the jury is still out on that one. I have differing opinions based on the situation and usage, but it's too much to discuss in a README. I plan to make a write-up on it eventually on [my website](https://rileymeyerkorth.com). I'll update this with it when I get to it.
 
-I am not going to pretend I am some coding genius (yet...?). The people making the Linux kernel are though, so [I'll agree with them for now](https://docs.kernel.org/process/coding-assistants.html).
+On that note, there is something I am 100% against when it comes to AI in programming: "vibe coding". I absolutely _**despise**_ software created solely through prompts with little to no review (nor understanding) of the tool being built.
+
+Overall, I am not going to pretend I am some coding genius (yet...?). The people making the Linux kernel are though, so [I'll agree with them for now](https://docs.kernel.org/process/coding-assistants.html).

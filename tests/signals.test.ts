@@ -96,15 +96,17 @@ test('isGenericReply only matches short generic replies', () => {
 test('hasMentionHashtagStuffing ignores leading reply mentions', () => {
   expect(
     signals.hasMentionHashtagStuffing(
-      post({ full_text: '#a #b #c #d #e buy now' })
+      post({ full_text: '#a #b #c #d #e #a #b #c #d #e buy now' })
     )
   ).toBe(true);
   expect(
-    signals.hasMentionHashtagStuffing(post({ full_text: 'hi @a @b @c @d @e' }))
+    signals.hasMentionHashtagStuffing(
+      post({ full_text: 'hi @a @b @c @d @e @f @g @h @i @j' })
+    )
   ).toBe(true);
   expect(
     signals.hasMentionHashtagStuffing(
-      post({ full_text: 'x #a #b #c #d @e @f @g' })
+      post({ full_text: 'x #a #b #c #d @e @f @g @h @i @j #fr #ong #wazzup' })
     )
   ).toBe(true);
   expect(
