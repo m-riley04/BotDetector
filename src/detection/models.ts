@@ -1,14 +1,93 @@
 import { Post } from '../social-media/models';
+import { getUsernameChanges } from './signals';
+
+/**
+ * Everything a check's `test` needs to decide whether it fires for one post.
+ * Built once per post by `buildCheckContext`, then shared by every check.
+ */
+export interface CheckContext {
+  post: Post;
+  user: Post['user'];
+
+  /**
+   * Timestamp the report is computed at, so every check agrees on "now".
+   */
+  now: number;
+  dayMs: number;
+
+  /**
+   * Account age in days (at least 1), or undefined if createdAt is invalid.
+   */
+  ageDays: number | undefined;
+
+  // Shortcuts for the stats most checks read.
+  statuses: Post['user']['stats']['postStats']['posts'];
+  likes: Post['user']['stats']['postStats']['likesGiven'];
+  followers: Post['user']['stats']['followers'];
+  following: Post['user']['stats']['following'];
+
+  // Derived once because they're non-trivial or shared by several checks.
+  profileLinks: string[];
+  usernameChanges: ReturnType<typeof getUsernameChanges>;
+
+  // Options with their defaults already applied.
+  scamKeywords: readonly string[];
+  duplicateTextCount: number;
+}
+
+export interface CheckEntity {
+  id: string;
+  label: string;
+  defaultWeight: number;
+}
+
+/**
+ * One bot-detection check: its metadata, its default weight, and the predicate
+ * that decides whether it fires.
+ *
+ * Weights are additive evidence, not probabilities: they do not need to sum to 1.
+ * The final score is the sum of the triggered weights clamped to 0-1, compared to the threshold.
+ * Negative weights are "trust" signals that reduce the score.
+ */
+export interface CheckDefinition extends CheckEntity {
+  reasoning?: string;
+  test: (ctx: CheckContext) => boolean;
+}
+
+export type CheckGroupLogicalOperation = 'NONE' | 'FIRST' | 'AND' | 'OR';
+
+/**
+ * Represents a group of similar checks
+ */
+export interface CheckGroupDefinition extends CheckEntity {
+  /**
+   * The logical operation to use across the checks in the group.
+   * - `NONE`: doesn't use any logical op. Basically just for grouping.
+   * - `FIRST`: iterates through the checks and applies the first weight that passes
+   * - `AND`: TODO:
+   * - `OR`: TODO:
+   */
+  logicalOperation: CheckGroupLogicalOperation;
+
+  /**
+   * IN-ORDER group of checks
+   */
+  checks: CheckDefinition[];
+}
 
 /**
  * A single weighted check. Every check is always present in the report;
  * `contribution` is the weight when triggered, otherwise 0.
  */
-export interface BotCheck {
+export interface Check {
   id: string;
   label: string;
   weight: number;
   triggered: boolean;
+
+  /**
+   * The weight when triggered.
+   */
   contribution: number;
 }
 
@@ -17,7 +96,7 @@ export interface BotCheck {
  */
 export interface BotDetectionReport {
   chance: number;
-  checks: BotCheck[];
+  checks: Check[];
   user?: Post['user'];
   isBot: boolean;
   isBotThreshold: number;

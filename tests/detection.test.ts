@@ -1,10 +1,19 @@
 import { convertTweetToGenericPost } from '../src/adapters/twitter/converters';
 import type { Tweet } from '../src/adapters/twitter/models';
-import * as detection from '../src/detection/detection';
+import {
+  CHECK_DEFINITIONS,
+  CHECK_KEYS,
+  CheckWeights,
+  DEFAULT_WEIGHTS,
+} from '../src/detection/checks';
+import {
+  DEFAULT_DETECTION_REPORT_OPTIONS,
+  getDetectionReport,
+} from '../src/detection/detection';
 import type { BotDetectionReport } from '../src/detection/models';
 import type { Post } from '../src/social-media/models';
 
-type DetectionOptions = typeof detection.DEFAULT_DETECTION_REPORT_OPTIONS;
+type DetectionOptions = typeof DEFAULT_DETECTION_REPORT_OPTIONS;
 
 const fixedNow = Date.parse('2025-01-15T12:00:00.000Z');
 const dayMs = 24 * 60 * 60 * 1000;
@@ -55,7 +64,7 @@ function getReport(post: Post, options?: DetectionOptions): BotDetectionReport {
   const originalNow = Date.now;
   Date.now = () => fixedNow;
   try {
-    const report = detection.getDetectionReport(post, options);
+    const report = getDetectionReport(post, options);
     if (!report) throw new Error('expected a detection report');
     return report;
   } finally {
@@ -74,17 +83,17 @@ function customOptions(
   isBotThreshold = 0.75
 ): DetectionOptions {
   const zeroed = Object.fromEntries(
-    detection.CHECK_KEYS.map((key) => [key, 0])
-  ) as detection.CheckWeights;
+    CHECK_KEYS.map((key) => [key, 0])
+  ) as CheckWeights;
   return {
     weights: { ...zeroed, ...weights },
-    isBotThreshold,
+    botThreshold: isBotThreshold,
     dayMs,
   };
 }
 
 test('getDetectionReport returns undefined without a post', () => {
-  expect(detection.getDetectionReport(undefined)).toBe(undefined);
+  expect(getDetectionReport(undefined)).toBe(undefined);
 });
 
 test('a typical older account has zero risk and includes all checks', () => {
@@ -394,10 +403,7 @@ test('chance equals the threshold counts as a bot, and extreme thresholds behave
 });
 
 test('default options are used when none are provided', () => {
-  for (const options of [
-    undefined,
-    detection.DEFAULT_DETECTION_REPORT_OPTIONS,
-  ]) {
+  for (const options of [undefined, DEFAULT_DETECTION_REPORT_OPTIONS]) {
     const report = getReport(makePost(), options);
     expect(report.isBotThreshold).toBe(0.75);
     expect(
@@ -797,7 +803,7 @@ describe('additional checks', () => {
     expect(triggered(bio, 'scam-keywords-bio')).toBe(false);
     expect(
       triggered(bio, 'scam-keywords-bio', {
-        ...detection.DEFAULT_DETECTION_REPORT_OPTIONS,
+        ...DEFAULT_DETECTION_REPORT_OPTIONS,
         scamKeywords: ['secret sauce'],
       })
     ).toBe(true);
@@ -826,7 +832,7 @@ describe('additional checks', () => {
 
   test('duplicate-text depends on the supplied count', () => {
     const options = (duplicateTextCount: number): DetectionOptions => ({
-      ...detection.DEFAULT_DETECTION_REPORT_OPTIONS,
+      ...DEFAULT_DETECTION_REPORT_OPTIONS,
       duplicateTextCount,
     });
     expect(triggered(makePost(), 'duplicate-text', options(1))).toBe(false);
@@ -862,13 +868,11 @@ describe('additional checks', () => {
   });
 
   test('every check key has a definition and a default weight', () => {
-    expect(detection.CHECK_KEYS.length).toBeGreaterThan(20);
-    for (const key of detection.CHECK_KEYS) {
-      expect(Number.isFinite(detection.DEFAULT_WEIGHTS[key])).toBe(true);
+    expect(CHECK_KEYS.length).toBeGreaterThan(20);
+    for (const key of CHECK_KEYS) {
+      expect(Number.isFinite(DEFAULT_WEIGHTS[key])).toBe(true);
     }
-    const ids = detection.CHECK_KEYS.map(
-      (k) => detection.CHECK_DEFINITIONS[k].id
-    );
+    const ids = CHECK_KEYS.map((k) => CHECK_DEFINITIONS[k].id);
     expect(new Set(ids).size).toBe(ids.length);
   });
 
@@ -912,7 +916,7 @@ describe('profile promotion and account history checks', () => {
     expect(check(getReport(post), 'onlyfans-model').triggered).toBe(false);
 
     const report = getReport(post, {
-      ...detection.DEFAULT_DETECTION_REPORT_OPTIONS,
+      ...DEFAULT_DETECTION_REPORT_OPTIONS,
       expandedLinks: { 'https://t.co/abc123': 'https://onlyfans.com/x' },
     });
     expect(check(report, 'onlyfans-model').triggered).toBe(true);

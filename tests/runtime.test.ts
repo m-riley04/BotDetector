@@ -1,7 +1,7 @@
 import { isContentRequest } from '../src/common/messages';
 import { DEFAULT_SETTINGS, sanitizeSettings } from '../src/common/settings';
 import { ReportCache } from '../src/detection/cache';
-import * as detection from '../src/detection/detection';
+import { DEFAULT_WEIGHTS } from '../src/detection/checks';
 import {
   DuplicateTextTracker,
   normalizePostText,
@@ -27,8 +27,8 @@ describe('buildDetectionOptions', () => {
       ...DEFAULT_SETTINGS,
       threshold: 0.5,
     });
-    expect(options.weights).toStrictEqual(detection.DEFAULT_WEIGHTS);
-    expect(options.isBotThreshold).toBe(0.5);
+    expect(options.weights).toStrictEqual(DEFAULT_WEIGHTS);
+    expect(options.botThreshold).toBe(0.5);
     expect(options.duplicateTextCount).toBe(1);
   });
 
@@ -42,9 +42,7 @@ describe('buildDetectionOptions', () => {
     );
     expect(options.weights.blueCheck).toBe(0);
     expect(options.weights.noBanner).toBe(0.5);
-    expect(options.weights.noDescription).toBe(
-      detection.DEFAULT_WEIGHTS.noDescription
-    );
+    expect(options.weights.noDescription).toBe(DEFAULT_WEIGHTS.noDescription);
     expect(options.duplicateTextCount).toBe(3);
   });
 
@@ -58,7 +56,7 @@ describe('buildDetectionOptions', () => {
 
   test('does not mutate the shared default weights', () => {
     buildDetectionOptions(sanitizeSettings({ disabledChecks: ['blueCheck'] }));
-    expect(detection.DEFAULT_WEIGHTS.blueCheck).toBe(0.3);
+    expect(DEFAULT_WEIGHTS.blueCheck).toBe(0.3);
   });
 });
 

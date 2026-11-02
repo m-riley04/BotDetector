@@ -1,9 +1,7 @@
 import type { Settings } from '../common/settings';
+import { CHECK_KEYS, DEFAULT_WEIGHTS, type CheckWeights } from './checks';
 import {
-  CHECK_KEYS,
   DEFAULT_DETECTION_REPORT_OPTIONS,
-  DEFAULT_WEIGHTS,
-  type CheckWeights,
   type GetDetectionReportOptions,
 } from './detection';
 import { DEFAULT_SCAM_KEYWORDS } from './signals';
@@ -30,7 +28,7 @@ export function buildDetectionOptions(
   return {
     ...DEFAULT_DETECTION_REPORT_OPTIONS,
     weights: copyWeights,
-    isBotThreshold: settings.threshold,
+    botThreshold: settings.threshold,
     scamKeywords: [...DEFAULT_SCAM_KEYWORDS, ...settings.scamKeywords],
     duplicateTextCount,
     expandedLinks,

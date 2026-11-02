@@ -4,7 +4,7 @@ import {
   CHECK_DEFINITIONS,
   CheckKey,
   DEFAULT_WEIGHTS,
-} from '../../detection/detection';
+} from '../../detection/checks';
 import { useSlider } from './useSlider';
 
 interface EditableCheckRowProps {

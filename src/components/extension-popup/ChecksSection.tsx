@@ -1,6 +1,6 @@
 import { combineLines } from '../../common/helpers';
 import { parseKeywordList, Settings } from '../../common/settings';
-import { CHECK_KEYS } from '../../detection/detection';
+import { CHECK_KEYS } from '../../detection/checks';
 import { EditableCheckRow } from './EditableCheckRow';
 import type { ReplaceSettings, UpdateSettings } from './ExtensionPopup';
 import { TextList } from './TextList';

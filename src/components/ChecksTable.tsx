@@ -1,9 +1,9 @@
 import { useMemo } from 'preact/compat';
 import { toSignedWholePercent, toWholePercent } from '../common/helpers';
-import type { BotCheck, BotDetectionReport } from '../detection/models';
+import type { BotDetectionReport, Check } from '../detection/models';
 
 interface CheckRowOptions {
-  check: BotCheck;
+  check: Check;
   currentRunningTotal: number;
 }
 
