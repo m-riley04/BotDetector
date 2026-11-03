@@ -38,6 +38,7 @@ export interface CheckContext {
 export interface CheckEntity {
   id: string;
   label: string;
+  reasoning?: string;
   defaultWeight: number;
 }
 
@@ -49,45 +50,46 @@ export interface CheckEntity {
  * The final score is the sum of the triggered weights clamped to 0-1, compared to the threshold.
  * Negative weights are "trust" signals that reduce the score.
  */
-export interface CheckDefinition extends CheckEntity {
-  reasoning?: string;
+export interface CheckLeaf extends CheckEntity {
+  kind: 'check';
   test: (ctx: CheckContext) => boolean;
 }
 
-export type CheckGroupLogicalOperation = 'NONE' | 'FIRST' | 'AND' | 'OR';
+export type CheckGroupMode = 'SUM' | 'FIRST' | 'MAX' | 'ALL' | 'ANY';
 
 /**
  * Represents a group of similar checks
  */
-export interface CheckGroupDefinition extends CheckEntity {
-  /**
-   * The logical operation to use across the checks in the group.
-   * - `NONE`: doesn't use any logical op. Basically just for grouping.
-   * - `FIRST`: iterates through the checks and applies the first weight that passes
-   * - `AND`: TODO:
-   * - `OR`: TODO:
-   */
-  logicalOperation: CheckGroupLogicalOperation;
+export interface CheckGroup extends CheckEntity {
+  kind: 'group';
 
   /**
-   * IN-ORDER group of checks
+   * The mode
+   * - `ALL`:
+   * - `ANY`:
+   * - `FIRST`: iterates through the checks and applies the first weight that passes
+   * - `SUM`:
+   * - `MAX`:
    */
-  checks: CheckDefinition[];
+  mode: CheckGroupMode;
+
+  /**
+   * IN-ORDER array of check nodes
+   */
+  children?: CheckNode[];
 }
+
+export type CheckNode = CheckLeaf | CheckGroup;
 
 /**
  * A single weighted check. Every check is always present in the report;
  * `contribution` is the weight when triggered, otherwise 0.
  */
-export interface Check {
-  id: string;
-  label: string;
-  weight: number;
+export interface CheckResult {
+  node: CheckNode;
+  children?: CheckResult[];
   triggered: boolean;
-
-  /**
-   * The weight when triggered.
-   */
+  weight: number;
   contribution: number;
 }
 
@@ -96,7 +98,7 @@ export interface Check {
  */
 export interface BotDetectionReport {
   chance: number;
-  checks: Check[];
+  checks: CheckResult[];
   user?: Post['user'];
   isBot: boolean;
   isBotThreshold: number;

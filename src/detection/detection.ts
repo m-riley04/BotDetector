@@ -4,12 +4,9 @@ import {
   CHECK_KEYS,
   CheckWeights,
   DEFAULT_WEIGHTS,
-  isDefinition,
-  isDefinitionGroup,
-  makeCheck,
-  makeGroupCheck,
+  evaluateCheckNode,
 } from './checks';
-import { BotDetectionReport, Check, CheckContext } from './models';
+import { BotDetectionReport, CheckContext, CheckResult } from './models';
 import {
   DEFAULT_SCAM_KEYWORDS,
   collectProfileLinks,
@@ -95,25 +92,11 @@ export function getDetectionReport(
   const { weights, botThreshold: isBotThreshold } = options;
   const ctx = buildCheckContext(post, options);
 
-  const checks: Check[] = CHECK_KEYS.map((key) => {
+  const checks: CheckResult[] = CHECK_KEYS.map((key) => {
     const def = CHECK_DEFINITIONS[key];
 
     // get which type of check entity
-    if (isDefinitionGroup(def)) {
-      return makeGroupCheck(def, ctx);
-    }
-
-    if (isDefinition(def)) {
-      return makeCheck(def.id, def.label, weights[key], def.test(ctx));
-    }
-
-    return {
-      id: 'unknown',
-      label: "You shouldn't be seeing this.",
-      triggered: false,
-      weight: 0,
-      contribution: 0,
-    };
+    return evaluateCheckNode(def, ctx, weights);
   });
 
   const chance = Math.min(

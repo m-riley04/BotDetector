@@ -1,9 +1,9 @@
 import { useMemo } from 'preact/compat';
 import { toSignedWholePercent, toWholePercent } from '../common/helpers';
-import type { BotDetectionReport, Check } from '../detection/models';
+import type { BotDetectionReport, CheckResult } from '../detection/models';
 
 interface CheckRowOptions {
-  check: Check;
+  check: CheckResult;
   currentRunningTotal: number;
 }
 
@@ -14,9 +14,10 @@ function CheckRow({ check, currentRunningTotal }: CheckRowOptions) {
       ? 'trust'
       : 'risk';
   return (
-    <tr key={check.id} class={tone}>
-      <td>{`${check.triggered ? '✔' : '✘'} ${check.label}`}</td>
+    <tr key={check.node.id} class={tone}>
+      <td>{`${check.triggered ? '✔' : '✘'} ${check.node.label}`}</td>
       <td>{toWholePercent(check.weight)}</td>
+      <td title={check.node.reasoning}>i</td>
       <td>
         {check.triggered ? toSignedWholePercent(check.contribution) : '-'}
       </td>
@@ -61,12 +62,14 @@ export function ChecksTable({
         <tr class="head">
           <td>Check</td>
           <td>Weight</td>
+          <td />
           <td>Added</td>
           <td>Total</td>
         </tr>
         <CheckRows report={filteredReport} />
         <tr class="final">
           <td>Final (kept between 0% and 100%)</td>
+          <td />
           <td />
           <td />
           <td>{toWholePercent(filteredReport.chance)}</td>
