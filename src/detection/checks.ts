@@ -46,7 +46,7 @@ export const CHECK_DEFINITIONS = {
     label: 'Paid blue checkmark (non-business)',
     reasoning:
       'Some verification marks (ahem Twitter) have become pay-to-win, effectively erasing their efficacy. In fact, bots can use these pay-to-win methods to gain the illusion of credibility.',
-    defaultWeight: 0.3, // Blue checks aren't worth anything anymore.
+    defaultWeight: 0.25,
     test: ({ user }) => isVerifiedOrPlus(user) && !isOfficialProfile(user),
   },
   quotedCheckmark: {
@@ -58,70 +58,79 @@ export const CHECK_DEFINITIONS = {
     defaultWeight: 0.05, // people get rage-baited, so lower
     test: ({ post }) => didQuoteCheckmark(post),
   },
-  newAccount: {
-    id: 'new-account',
+  accountCreationDate: {
     kind: 'group',
-    label: 'Newly-created account',
-    defaultWeight: 0.2,
-    mode: 'FIRST',
+    id: 'account-creation-date',
+    label: 'Account creation date anomalies',
+    defaultWeight: 0,
+    mode: 'SUM',
     children: [
       {
-        id: 'new-account-days',
+        id: 'post-ai-account',
         kind: 'check',
-        label: 'Account made within the past week',
-        defaultWeight: 0.65,
-        test: ({ ageDays }) => ageDays !== undefined && ageDays < 7,
+        label: 'Account was created after 2023-01-01',
+        reasoning:
+          'Accounts made past the widespread introduction of LLMs have to be treated with slightly more caution.',
+        defaultWeight: 0.05,
+        test: ({ user, ageDays }) =>
+          ageDays !== undefined &&
+          (user.about?.createdAt ?? new Date(0)) > new Date('2023-01-01'),
       },
       {
-        id: 'new-account-weeks',
         kind: 'check',
-        label: 'Account made within the past 14 days',
-        defaultWeight: 0.55,
-        test: ({ ageDays }) => ageDays !== undefined && ageDays < 14,
+        id: 'account-first-last-day',
+        label: 'Account created on the first or last day of the month',
+        reasoning:
+          'Bot farms could have a monthly script to create new accounts that run all at once. Very much could be a coincidence though.',
+        defaultWeight: 0.02, // strange and potentially indicative of bot behavior, but not conclusive whatsoever
+        test: ({ user, ageDays }) =>
+          ageDays !== undefined && isAccountCreationOnFirstOrLastDay(user),
       },
       {
-        id: 'new-account-month',
-        kind: 'check',
-        label: 'Account younger than 30 days',
-        defaultWeight: 0.35,
-        test: ({ ageDays }) => ageDays !== undefined && ageDays < 30,
-      },
-      {
-        id: 'new-account-quarter',
-        kind: 'check',
-        label: 'Account younger than 90 days',
-        defaultWeight: 0.2,
-        test: ({ ageDays }) => ageDays !== undefined && ageDays < 90,
-      },
-      {
-        id: 'new-account-year',
-        kind: 'check',
-        label: 'Account made within the past year',
-        defaultWeight: 0.1,
-        test: ({ ageDays }) => ageDays !== undefined && ageDays < 365,
+        id: 'new-account',
+        kind: 'group',
+        label: 'Newly-created account',
+        defaultWeight: 0,
+        mode: 'FIRST',
+        children: [
+          {
+            id: 'new-account-days',
+            kind: 'check',
+            label: 'Account made within the past week',
+            defaultWeight: 0.65,
+            test: ({ ageDays }) => ageDays !== undefined && ageDays < 7,
+          },
+          {
+            id: 'new-account-weeks',
+            kind: 'check',
+            label: 'Account made within the past 14 days',
+            defaultWeight: 0.55,
+            test: ({ ageDays }) => ageDays !== undefined && ageDays < 14,
+          },
+          {
+            id: 'new-account-month',
+            kind: 'check',
+            label: 'Account younger than 30 days',
+            defaultWeight: 0.35,
+            test: ({ ageDays }) => ageDays !== undefined && ageDays < 30,
+          },
+          {
+            id: 'new-account-quarter',
+            kind: 'check',
+            label: 'Account younger than 90 days',
+            defaultWeight: 0.2,
+            test: ({ ageDays }) => ageDays !== undefined && ageDays < 90,
+          },
+          {
+            id: 'new-account-year',
+            kind: 'check',
+            label: 'Account made within the past year',
+            defaultWeight: 0.1,
+            test: ({ ageDays }) => ageDays !== undefined && ageDays < 365,
+          },
+        ],
       },
     ],
-  },
-  postAiAccount: {
-    id: 'post-ai-account',
-    kind: 'check',
-    label: 'Account was created after 2023-01-01',
-    reasoning:
-      'Accounts made past the widespread introduction of LLMs have to be treated with slightly more caution.',
-    defaultWeight: 0.05,
-    test: ({ user, ageDays }) =>
-      ageDays !== undefined &&
-      (user.about?.createdAt ?? new Date(0)) > new Date('2023-01-01'),
-  },
-  accountCreationDate: {
-    id: 'account-creation-date',
-    kind: 'check',
-    label: 'Account created on the first or last day of the month',
-    reasoning:
-      'Bot farms could have a monthly script to create new accounts that run all at once. Very much could be a coincidence though.',
-    defaultWeight: 0.02, // strange and potentially indicative of bot behavior, but not conclusive whatsoever
-    test: ({ user, ageDays }) =>
-      ageDays !== undefined && isAccountCreationOnFirstOrLastDay(user),
   },
   highTweetRate: {
     id: 'high-tweet-rate',
@@ -131,54 +140,54 @@ export const CHECK_DEFINITIONS = {
     test: ({ ageDays, statuses }) =>
       ageDays !== undefined && isNumber(statuses) && statuses / ageDays > 100,
   },
-  lowFollowersRatio: {
-    id: 'low-followers-ratio',
-    kind: 'check',
-    label: 'Follows many more accounts than follow it',
-    reasoning:
-      "Some bot accounts are solely made for the purpose of boosting others' followings",
-    defaultWeight: 0.1,
-    test: ({ followers, following }) =>
-      isNumber(followers) &&
-      isNumber(following) &&
-      following >= 100 &&
-      followers / following < 0.1,
-  },
-  lowFollowerFollowingRatio: {
-    id: 'low-followers-following-ratio',
-    kind: 'check',
-    label: 'Small follower-following ratio',
-    reasoning:
-      "Botnets follow each other and like each other's posts. Having around the same amount of followers and following is a common pattern.",
-    defaultWeight: 0.1, // bot-nets follow and like each other
-    test: ({ followers, following }) =>
-      isNumber(followers) &&
-      isNumber(following) &&
-      following >= 100 &&
-      followers / following >= 0.9 &&
-      followers / following <= 1.1,
-  },
-  lopsidedFollowing: {
-    kind: 'check',
-    id: 'lopsided-following',
-    label: 'Thousands of followers but follows almost nobody',
-    reasoning:
-      'Might catch some false positives, but some bots use this to try and seem more credible.',
-    defaultWeight: 0.05,
-    test: ({ user, followers, following }) =>
-      !isOfficialProfile(user) &&
-      isNumber(followers) &&
-      isNumber(following) &&
-      hasLopsidedFollowing(followers, following),
-  },
-  autoGeneratedHandle: {
-    kind: 'check',
-    id: 'auto-handle',
-    label: 'Handle ends or begins with 5+ digits',
-    reasoning:
-      'A long string of random numbers is odd for real people. >5 digits rules out full years and shortened years.',
-    defaultWeight: 0.2,
-    test: ({ user }) => /(\d{5,}$)|(^\d{5,}.*)/.test(user.username ?? ''),
+  followerFollowingAnomalies: {
+    kind: 'group',
+    id: 'follower-following-anomalies',
+    label: 'Followers/following anomalies',
+    defaultWeight: 0,
+    mode: 'SUM',
+    children: [
+      {
+        id: 'low-followers-ratio',
+        kind: 'check',
+        label: 'Follows many more accounts than follow it',
+        reasoning:
+          "Some bot accounts are solely made for the purpose of boosting others' followings",
+        defaultWeight: 0.1,
+        test: ({ followers, following }) =>
+          isNumber(followers) &&
+          isNumber(following) &&
+          following >= 100 &&
+          followers / following < 0.1,
+      },
+      {
+        id: 'low-followers-following-ratio',
+        kind: 'check',
+        label: 'Small follower-following ratio',
+        reasoning:
+          "Botnets follow each other and like each other's posts. Having around the same amount of followers and following is a common pattern.",
+        defaultWeight: 0.1, // bot-nets follow and like each other
+        test: ({ followers, following }) =>
+          isNumber(followers) &&
+          isNumber(following) &&
+          following >= 100 &&
+          followers / following >= 0.9 &&
+          followers / following <= 1.1,
+      },
+      {
+        kind: 'check',
+        id: 'lopsided-following',
+        label: 'Thousands of followers but follows almost nobody',
+        reasoning:
+          'Might catch some false positives, but some bots use this to try and seem more credible.',
+        defaultWeight: 0.05,
+        test: ({ user, followers, following }) =>
+          !isOfficialProfile(user) &&
+          isNumber(followers) &&
+          isNumber(following) &&
+          hasLopsidedFollowing(followers, following),
+      },
+    ],
   },
   botHandleFormat: {
     kind: 'check',
@@ -189,42 +198,81 @@ export const CHECK_DEFINITIONS = {
     defaultWeight: 0.25,
     test: ({ user }) => /(^[A-Z].*[A-Z].*\d{2,}$)/.test(user.username ?? ''),
   },
-  onlyFansModel: {
+  autoGeneratedHandle: {
     kind: 'check',
-    id: 'onlyfans-model',
-    label: 'OnlyFans account',
+    id: 'auto-handle',
+    label: 'Handle ends or begins with 5+ digits',
     reasoning:
-      "Sex sells, and sex scams. Catches scam bots the best (as opposed to astroturf bots). Isn't exclusive to OnlyFans but also other camgirl-like accounts.",
-    defaultWeight: 0.25, // why is it always onlyfans accounts
-    test: ({ user, profileLinks }) => looksLikeOnlyFans(user, profileLinks),
+      'A long string of random numbers is odd for real people. >5 digits rules out full years and shortened years.',
+    defaultWeight: 0.2,
+    test: ({ user }) => /(\d{5,}$)|(^\d{5,}.*)/.test(user.username ?? ''),
   },
-  excessivePromo: {
-    kind: 'check',
-    id: 'excessive-promo',
-    label:
-      'Location or bio points at something (usually a link with arrows, "more here", "nearby") instead of naming a place',
-    reasoning:
-      'Excessive promotion (to the point of utilizing labels incorrectly) is a classic sign from bots.',
-    defaultWeight: 0.1, // accounts that excessively promote content in their profile
-    test: ({ user }) =>
-      hasPromoLocation(user.location) || hasPromoBio(user.bio),
-  },
-  baitPersona: {
-    kind: 'check',
-    id: 'bait-persona',
-    label: 'Bio reads like a lure ("goth baddie", "exclusive pics", "text me")',
-    reasoning: 'Very common in scam bots.',
-    defaultWeight: 0.1,
-    test: ({ user }) => hasBaitPersona(user.bio, user.location),
-  },
-  cryptoPromo: {
-    kind: 'check',
-    id: 'crypto-promo',
-    label: 'Crypto talk in the bio, name or post (coins, sats, cashtags)',
-    reasoning: 'Scammers are gonna scam.',
-    defaultWeight: 0.1,
-    test: ({ user, post }) =>
-      hasCryptoPromo(user.bio, user.displayName, post.content.text),
+  scamFlags: {
+    kind: 'group',
+    id: 'scam-flags',
+    label: 'Common flags of a scam account',
+    defaultWeight: 0,
+    mode: 'SUM',
+    children: [
+      {
+        kind: 'check',
+        id: 'onlyfans-model',
+        label: 'OnlyFans account',
+        reasoning:
+          "Sex sells, and sex scams. Catches scam bots the best (as opposed to astroturf bots). Isn't exclusive to OnlyFans but also other camgirl-like accounts.",
+        defaultWeight: 0.25, // why is it always onlyfans accounts
+        test: ({ user, profileLinks }) => looksLikeOnlyFans(user, profileLinks),
+      },
+      {
+        kind: 'check',
+        id: 'excessive-promo',
+        label: 'Location or bio points at something',
+        reasoning:
+          'Excessive promotion (to the point of utilizing labels incorrectly) is a classic sign from bots. Usually pointing at a link with arrows, "more here", "nearby" etc. instead of naming a place',
+        defaultWeight: 0.1,
+        test: ({ user }) =>
+          hasPromoLocation(user.location) || hasPromoBio(user.bio),
+      },
+      {
+        kind: 'check',
+        id: 'bait-persona',
+        label:
+          'Bio reads like a lure ("goth baddie", "exclusive pics", "text me")',
+        reasoning: 'Very common in scam bots.',
+        defaultWeight: 0.1,
+        test: ({ user }) => hasBaitPersona(user.bio, user.location),
+      },
+      {
+        kind: 'check',
+        id: 'crypto-promo',
+        label: 'Crypto talk in the bio, name or post (coins, sats, cashtags)',
+        reasoning: 'Scammers are gonna scam.',
+        defaultWeight: 0.1,
+        test: ({ user, post }) =>
+          hasCryptoPromo(user.bio, user.displayName, post.content.text),
+      },
+      {
+        kind: 'check',
+        id: 'spam-links',
+        label:
+          'Profile has link shorteners, Telegram/WhatsApp contacts, or crypto wallets',
+        defaultWeight: 0.15,
+        test: ({ user, profileLinks }) =>
+          hasSpamLinks(user.bio, user.location, user.url, user.displayName) ||
+          linksToDomain(profileLinks, ADULT_PROMO_DOMAINS),
+      },
+      {
+        kind: 'check',
+        id: 'scam-keywords-bio',
+        label: 'Bio contains scam or spam keywords',
+        defaultWeight: 0.1,
+        test: ({ user, scamKeywords }) =>
+          containsKeyword(
+            `${user.bio ?? ''} ${user.displayName ?? ''}`,
+            scamKeywords /* TODO: is this a fine enough check? */
+          ),
+      },
+    ],
   },
   recentUsernameChange: {
     kind: 'check',
@@ -238,37 +286,6 @@ export const CHECK_DEFINITIONS = {
       (usernameChanges.count >= 3 ||
         (usernameChanges.lastChangedMs !== undefined &&
           now - usernameChanges.lastChangedMs < YEAR_DAYS * dayMs)),
-  },
-  aiCharactersBio: {
-    kind: 'check',
-    id: 'ai-characters-bio',
-    label: 'Bio contains typographic characters (em dash, ellipsis, arrows)',
-    reasoning:
-      "While LLMs typically use these, and physical keyboards don't come with them, cellphone keyboards do use them. It's a weaker check.",
-    defaultWeight: 0.03,
-    test: ({ user }) => hasAiCharacters(user.bio),
-  },
-  noDescription: {
-    kind: 'check',
-    id: 'no-description',
-    label: 'Empty profile description/bio',
-    defaultWeight: 0.05,
-    test: ({ user }) => !user.bio?.trim(),
-  },
-  noBanner: {
-    kind: 'check',
-    id: 'no-banner',
-    label: 'No profile banner',
-    defaultWeight: 0.05,
-    test: ({ user }) => !user.profileElements?.bannerUrl,
-  },
-  defaultProfileImage: {
-    kind: 'check',
-    id: 'default-profile-image',
-    label: 'Default profile picture',
-    defaultWeight: 0.1,
-    test: ({ user }) =>
-      (user.profileElements?.imageUrl ?? '').includes('default_profile'),
   },
   displayNameSpam: {
     kind: 'check',
@@ -287,66 +304,111 @@ export const CHECK_DEFINITIONS = {
     defaultWeight: 0.05,
     test: ({ user }) => looksRandomHandle(user.username),
   },
-  handleNameMismatch: {
+  aiCharactersBio: {
     kind: 'check',
-    id: 'handle-name-mismatch',
-    label: 'Handle has nothing in common with the display name',
+    id: 'ai-characters-bio',
+    label: 'Bio contains typographic characters (em dash, ellipsis, arrows)',
     reasoning:
-      'A much weaker check, but typically names match in one way or another.',
+      "While LLMs typically use these, and physical keyboards don't come with them, cellphone keyboards do use them. It's a weaker check.",
     defaultWeight: 0.03,
-    test: ({ user }) => handleMismatchesName(user.displayName, user.username),
+    test: ({ user }) => hasAiCharacters(user.bio),
   },
-  engagementMismatch: {
-    kind: 'check',
-    id: 'engagement-mismatch',
-    label: 'Posts a lot but never likes anything, or likes at an extreme rate',
-    reasoning:
-      'Bots are best for 2 things: swaying opinion (astroturfing) and boosting others (following/likes/engagements). They CAN do both, but',
-    defaultWeight: 0.08,
-    test: ({ likes, statuses, ageDays }) =>
-      isNumber(likes) &&
-      ((isNumber(statuses) && statuses >= 1000 && likes < 10) ||
-        (ageDays !== undefined && likes / ageDays > 500)),
+  mismatches: {
+    kind: 'group',
+    id: 'mismatches',
+    label: 'Mismatches between common elements',
+    defaultWeight: 0,
+    mode: 'SUM',
+    children: [
+      {
+        kind: 'check',
+        id: 'engagement-mismatch',
+        label:
+          'Posts a lot but never likes anything, or likes at an extreme rate',
+        reasoning:
+          'Bots are best for 2 things: swaying opinion (astroturfing) and boosting others (following/likes/engagements). They CAN do both, but',
+        defaultWeight: 0.08,
+        test: ({ likes, statuses, ageDays }) =>
+          isNumber(likes) &&
+          ((isNumber(statuses) && statuses >= 1000 && likes < 10) ||
+            (ageDays !== undefined && likes / ageDays > 500)),
+      },
+      {
+        kind: 'check',
+        id: 'handle-name-mismatch',
+        label: 'Handle has nothing in common with the display name',
+        reasoning:
+          'A much weaker check, but typically names match in one way or another.',
+        defaultWeight: 0.03,
+        test: ({ user }) =>
+          handleMismatchesName(user.displayName, user.username),
+      },
+      {
+        kind: 'check',
+        id: 'language-mismatch',
+        label: 'Post language differs from the bio language',
+        defaultWeight: 0.02,
+        test: ({ post }) => hasLanguageMismatch(post),
+      },
+    ],
   },
-  noMedia: {
-    kind: 'check',
-    id: 'no-media',
-    label: 'Active account that has never posted media',
-    reasoning: "For bots, it's easier to post text",
-    defaultWeight: 0.03,
-    test: ({ user, statuses }) =>
-      user.stats.postStats.media === 0 &&
-      isNumber(statuses) &&
-      statuses >= 1000,
-  },
-  spamLinks: {
-    kind: 'check',
-    id: 'spam-links',
-    label:
-      'Profile has link shorteners, Telegram/WhatsApp contacts, or crypto wallets',
-    defaultWeight: 0.15,
-    test: ({ user, profileLinks }) =>
-      hasSpamLinks(user.bio, user.location, user.url, user.displayName) ||
-      linksToDomain(profileLinks, ADULT_PROMO_DOMAINS),
-  },
-  scamKeywordsBio: {
-    kind: 'check',
-    id: 'scam-keywords-bio',
-    label: 'Bio contains scam or spam keywords',
-    defaultWeight: 0.1,
-    test: ({ user, scamKeywords }) =>
-      containsKeyword(
-        `${user.bio ?? ''} ${user.displayName ?? ''}`,
-        scamKeywords /* TODO: is this a fine enough check? */
-      ),
+  missingCommonProfileFields: {
+    kind: 'group',
+    id: 'missing-common-profile-fields',
+    label: 'Missing common profile fields',
+    reasoning: 'Real users usually fill out most of the common',
+    defaultWeight: 0,
+    mode: 'SUM',
+    children: [
+      {
+        kind: 'check',
+        id: 'default-profile-image',
+        label: 'Default profile picture',
+        defaultWeight: 0.1,
+        test: ({ user }) =>
+          (user.profileElements?.imageUrl ?? '').includes('default_profile'),
+      },
+      {
+        kind: 'check',
+        id: 'no-description',
+        label: 'Empty profile description/bio',
+        defaultWeight: 0.05,
+        test: ({ user }) => !user.bio?.trim(),
+      },
+      {
+        kind: 'check',
+        id: 'no-banner',
+        label: 'No profile banner',
+        defaultWeight: 0.05,
+        test: ({ user }) => !user.profileElements?.bannerUrl,
+      },
+      {
+        kind: 'check',
+        id: 'no-media',
+        label: 'Active account that has never posted media',
+        reasoning: "For bots, it's easier to post text",
+        defaultWeight: 0.03,
+        test: ({ user, statuses }) =>
+          user.stats.postStats.media === 0 &&
+          isNumber(statuses) &&
+          statuses >= 1000,
+      },
+    ],
   },
   fancyText: {
     kind: 'group',
     id: 'fancy-text',
     label: 'Fancy text',
-    defaultWeight: 0.1,
+    defaultWeight: 0,
     mode: 'SUM',
     children: [
+      {
+        kind: 'check',
+        id: 'fancy-text-in-post',
+        label: 'Post text contains fancy UTF text',
+        defaultWeight: 0.15,
+        test: ({ post }) => isFancyText(post.content.text ?? ''),
+      },
       {
         kind: 'check',
         id: 'fancy-text-in-name',
@@ -368,29 +430,7 @@ export const CHECK_DEFINITIONS = {
         defaultWeight: 0.1,
         test: ({ user }) => isFancyText(user.location ?? ''),
       },
-      {
-        kind: 'check',
-        id: 'fancy-text-in-post',
-        label: 'Post text contains fancy UTF text',
-        defaultWeight: 0.15,
-        test: ({ post }) => isFancyText(post.content.text ?? ''),
-      },
     ],
-  },
-  genericReply: {
-    kind: 'check',
-    id: 'generic-reply',
-    label: 'Reply is a very short generic phrase',
-    defaultWeight: 0.05,
-    test: ({ post }) => isGenericReply(post),
-  },
-  mentionHashtagStuffing: {
-    kind: 'check',
-    id: 'mention-hashtag-stuffing',
-    label: 'Post stuffs in many mentions or hashtags',
-    reasoning: 'Scam bots like to bulk-tag a bunch of people/topics',
-    defaultWeight: 0.15,
-    test: ({ post }) => hasMentionHashtagStuffing(post),
   },
   duplicateText: {
     kind: 'check',
@@ -400,12 +440,20 @@ export const CHECK_DEFINITIONS = {
     defaultWeight: 0.2,
     test: ({ duplicateTextCount }) => duplicateTextCount >= 2,
   },
-  languageMismatch: {
+  mentionHashtagStuffing: {
     kind: 'check',
-    id: 'language-mismatch',
-    label: 'Post language differs from the bio language',
-    defaultWeight: 0.02,
-    test: ({ post }) => hasLanguageMismatch(post),
+    id: 'mention-hashtag-stuffing',
+    label: 'Post stuffs in many mentions or hashtags',
+    reasoning: 'Scam bots like to bulk-tag a bunch of people/topics',
+    defaultWeight: 0.15,
+    test: ({ post }) => hasMentionHashtagStuffing(post),
+  },
+  genericReply: {
+    kind: 'check',
+    id: 'generic-reply',
+    label: 'Reply is a very short generic phrase',
+    defaultWeight: 0.05,
+    test: ({ post }) => isGenericReply(post),
   },
 
   // region trust signal checks
@@ -494,7 +542,7 @@ export function evaluateCheckNode(
   return {
     node,
     triggered: (hit?.length ?? 0) > 0,
-    weight: 0,
+    weight: contribution,
     contribution,
     children,
   };

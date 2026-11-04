@@ -118,12 +118,17 @@ dialog {
       sans-serif;
   }
 
-  td {
+  td,
+  th {
     padding: 3px 8px;
 
     &:not(:first-child) {
       text-align: right;
     }
+  }
+
+  th {
+    text-align: left;
   }
 
   tr {
@@ -142,8 +147,18 @@ dialog {
       color: var(--text-color);
     }
 
+    &.secondary-trust {
+      background: color-mix(in srgb, var(--trust-color) 60%, transparent);
+      color: var(--text-color);
+    }
+
     &.risk {
       background: var(--risk-color);
+      color: var(--text-color);
+    }
+
+    &.secondary-risk {
+      background: color-mix(in srgb, var(--risk-color) 60%, transparent);
       color: var(--text-color);
     }
 
