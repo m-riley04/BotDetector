@@ -15,7 +15,7 @@
       "strict_min_version": "142.0"
     }
   },
-  "homepage_url": "https://rileymeyerkorth.com",
+  "homepage_url": "https://botdetector.app",
   "short_name": "BD",
   "background": {
     "scripts": ["src/background.js"]
