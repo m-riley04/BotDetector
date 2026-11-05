@@ -61,7 +61,7 @@ browser.runtime.onMessage.addListener((message: unknown) => {
   })();
 });
 
-// Keyboard shortcuts from manifest.json `commands`. Users can rebind them in about:addons → ⚙ → Manage Extension Shortcuts.
+// region keybinds
 browser.commands.onCommand.addListener((command) => {
   if (command !== 'rescan') return;
 

@@ -109,8 +109,8 @@ export function collectProfileLinks(
     }
   };
 
-  add(user.url);
-  for (const entry of user.links?.urls ?? []) {
+  add(user?.url);
+  for (const entry of user?.links?.urls ?? []) {
     add(entry);
   }
   return links;
@@ -126,7 +126,7 @@ export function looksLikeOnlyFans(
   knownOnlyFansLinks: readonly string[] = KNOWN_ONLYFANS_LINKS,
   adultPromoDomains: readonly string[] = ADULT_PROMO_DOMAINS
 ): boolean {
-  const text = `${user.bio ?? ''} ${user.displayName ?? ''}`;
+  const text = `${user?.bio ?? ''} ${user?.displayName ?? ''}`;
   const deLeeted = text.replace(/[01345$@]/g, (char) => LEET_MAP[char] ?? char);
   const lower = text.toLowerCase();
 
@@ -210,11 +210,11 @@ export interface UsernameChanges {
 export function getUsernameChanges(
   user: PostUser
 ): UsernameChanges | undefined {
-  const lastChanged = user.about?.lastUsernameChange;
+  const lastChanged = user?.about?.lastUsernameChange;
   const lastChangedMs =
     lastChanged instanceof Date ? lastChanged.getTime() : toNumber(lastChanged);
   const count =
-    toNumber(user.about?.usernameChanges) ?? (lastChangedMs ? 1 : 0);
+    toNumber(user?.about?.usernameChanges) ?? (lastChangedMs ? 1 : 0);
   return count > 0 || (lastChangedMs !== undefined && lastChangedMs > 0)
     ? { count, lastChangedMs }
     : undefined;
@@ -360,7 +360,7 @@ const IGNORED_LANGUAGES = new Set(['', 'und', 'qme', 'qht', 'zxx', 'art']);
  */
 export function hasLanguageMismatch(post: Post): boolean {
   const postLanguage = post.language;
-  const bioLanguage = post.user.bioLanguage;
+  const bioLanguage = post.user?.bioLanguage;
   if (!isString(postLanguage) || !isString(bioLanguage)) {
     return false;
   }

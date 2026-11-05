@@ -1,4 +1,4 @@
-import { Post } from '../social-media/models';
+import { Post, UserProfile } from '../social-media/models';
 import { getUsernameChanges } from './signals';
 
 /**
@@ -21,10 +21,10 @@ export interface CheckContext {
   ageDays: number | undefined;
 
   // Shortcuts for the stats most checks read.
-  statuses: Post['user']['stats']['postStats']['posts'];
-  likes: Post['user']['stats']['postStats']['likesGiven'];
-  followers: Post['user']['stats']['followers'];
-  following: Post['user']['stats']['following'];
+  statuses: UserProfile['stats']['postStats']['posts'];
+  likes: UserProfile['stats']['postStats']['likesGiven'];
+  followers: UserProfile['stats']['followers'];
+  following: UserProfile['stats']['following'];
 
   // Derived once because they're non-trivial or shared by several checks.
   profileLinks: string[];

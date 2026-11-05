@@ -53,7 +53,7 @@ function buildCheckContext(
   const { dayMs } = options;
   const now = Date.now();
 
-  const createdMs = user.about.createdAt.getTime();
+  const createdMs = user?.about.createdAt.getTime() ?? 0;
   const ageDays = Number.isNaN(createdMs)
     ? undefined
     : Math.max((now - createdMs) / dayMs, 1);
@@ -64,10 +64,10 @@ function buildCheckContext(
     now,
     dayMs,
     ageDays,
-    statuses: user.stats.postStats.posts,
-    likes: user.stats.postStats.likesGiven,
-    followers: user.stats.followers,
-    following: user.stats.following,
+    statuses: user?.stats.postStats.posts,
+    likes: user?.stats.postStats.likesGiven,
+    followers: user?.stats.followers,
+    following: user?.stats.following,
     profileLinks: collectProfileLinks(user, options.expandedLinks),
     usernameChanges: getUsernameChanges(user),
     scamKeywords: options.scamKeywords ?? [],

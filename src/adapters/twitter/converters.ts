@@ -1,5 +1,5 @@
 import { isRecord, isString } from '../../common/helpers';
-import { Post } from '../../social-media/models';
+import { Post, UserProfile } from '../../social-media/models';
 import type { Tweet } from './models';
 
 export function isTwitterTweet(value: unknown): value is Tweet {
@@ -12,7 +12,7 @@ export function isTwitterTweet(value: unknown): value is Tweet {
 }
 
 type GenericProfilePictureShape = NonNullable<
-  Post['user']['profileElements']
+  UserProfile['profileElements']
 >['imageShape'];
 function convertTwitterProfilePictureShapeToGeneric(
   shape: Tweet['user']['profile_image_shape'] | undefined
