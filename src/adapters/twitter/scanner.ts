@@ -1,17 +1,19 @@
 import { BOT_ELEMENT } from '../../common/constants';
 import { isRecord, isString } from '../../common/helpers';
-import { isContentRequest, PageStats } from '../../common/messages';
 import { parseReactPropsResponse } from '../../common/parsing';
-import { SocialMediaScanner } from '../../common/scanner';
+import {
+  BOT_ATTRIBUTE,
+  HIDDEN_ATTRIBUTE,
+  REVEALED_ATTRIBUTE,
+  SocialMediaScanner,
+} from '../../common/scanner';
 import {
   applyListAction,
   getListStatus,
   ListAction,
   loadSettings,
-  sanitizeSettings,
   saveSettings,
   Settings,
-  SETTINGS_KEY,
 } from '../../common/settings';
 import { LOG_PREFIX } from '../../constants';
 import { ReportCache } from '../../detection/cache';
@@ -37,15 +39,8 @@ import { Post } from '../../social-media/models';
 import { tcoLinkResolver } from '../twitter/links';
 import { convertTweetToGenericPost, isTwitterTweet } from './converters';
 
-const HIDDEN_ATTRIBUTE = 'data-botdetector-hidden';
-// marks every post flagged as a likely bot, whether it is hidden or badged
-const BOT_ATTRIBUTE = 'data-botdetector-bot';
-// a hidden post the user chose to reveal; it stays visible with a badge
-const REVEALED_ATTRIBUTE = 'data-botdetector-revealed';
-
 export class TwitterScanner extends SocialMediaScanner {
   override readonly domains = ['*://x.com/*', '*://*.x.com/*'];
-  private settings: Settings;
 
   private reportCache = new ReportCache();
   private duplicateTracker = new DuplicateTextTracker();
@@ -64,12 +59,8 @@ export class TwitterScanner extends SocialMediaScanner {
   private temp: Post | undefined;
 
   constructor(settings: Settings) {
-    super();
+    super(settings);
 
-    this.settings = settings;
-  }
-
-  setSettings(settings: Settings) {
     this.settings = settings;
   }
 
@@ -190,31 +181,12 @@ export class TwitterScanner extends SocialMediaScanner {
       console.log(`${LOG_PREFIX} Cleared all bot elements.`);
   };
 
-  initializeListeners = () => {
+  override initializeListeners = () => {
     // init bridge
     loadReactPropsBridge(reactBridge, this.scan);
 
     // Listener for the react props responses from the injected script
     window.addEventListener(REACT_PROPS_RESPONSE, this.onReactPropsResponse);
-
-    // answers requests from the popup and the background script
-    browser.runtime.onMessage.addListener((message: unknown) => {
-      console.log('browser runtime message');
-      if (!isContentRequest(message)) return undefined;
-      if (message.type === 'show-hidden') this.revealHiddenTweets();
-      if (message.type === 'rescan') this.rescan();
-      return Promise.resolve(this.getStats());
-    });
-
-    // re-apply the badges whenever the popup changes a setting
-    browser.storage.onChanged.addListener((changes, area) => {
-      if (area !== 'local' || !(SETTINGS_KEY in changes)) return;
-
-      this.settings = sanitizeSettings(changes[SETTINGS_KEY].newValue);
-      this.reportCache.clear();
-      this.clear();
-      this.scan();
-    });
   };
 
   private onReactPropsResponse = (event: Event) => {
@@ -345,7 +317,7 @@ export class TwitterScanner extends SocialMediaScanner {
   }
 
   // shows every hidden post again, with a badge so it's clear why it was hidden
-  private revealHiddenTweets(): void {
+  revealHiddenTweets = () => {
     document
       .querySelectorAll<HTMLElement>(`[${HIDDEN_ATTRIBUTE}]`)
       .forEach((tweet) => {
@@ -359,15 +331,5 @@ export class TwitterScanner extends SocialMediaScanner {
           this.modifyTweet(tweet, postData, report);
         }
       });
-  }
-
-  private getStats(): PageStats {
-    const count = (selector: string) =>
-      document.querySelectorAll(selector).length;
-    return {
-      hidden: count(`[${HIDDEN_ATTRIBUTE}]`),
-      flagged: count(`[${BOT_ATTRIBUTE}]`),
-      badges: count(BOT_ELEMENT),
-    };
-  }
+  };
 }
