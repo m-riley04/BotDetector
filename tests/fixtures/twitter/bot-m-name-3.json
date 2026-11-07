@@ -1,0 +1,149 @@
+{
+  "_expect_checks": ["onlyfans-model"],
+  "_note": "Synthetic fixture: a real account posting 'cosplays' (adult content). Had a lot of the signals, but was not being marked for those signals whatsoever. One of many named 'Kuro' or similar.",
+  "bookmark_count": 0,
+  "bookmarked": false,
+  "conversation_id_str": "2117259211088261410",
+  "display_text_range": [13, 139],
+  "entities": {
+    "user_mentions": [
+      {
+        "id_str": "1938049060813824000",
+        "indices": [0, 12],
+        "name": "⋆˚｡⋆✧˚ 𝑮𝒊𝒏𝒈𝒆𝒓 ˚✧⋆｡˚⋆",
+        "screen_name": "gingerxowns"
+      }
+    ]
+  },
+  "favorite_count": 0,
+  "favorited": false,
+  "full_text": "@gingerxowns Damn girl that kind of dedicated nursing has me wondering if I should start offering the same treatment when my man feels off.",
+  "id_str": "2117345574978515375",
+  "in_reply_to_status_id_str": "2117259211088261410",
+  "is_quote_status": false,
+  "lang": "en",
+  "quote_count": 0,
+  "reply_count": 0,
+  "retweet_count": 0,
+  "retweeted": false,
+  "edit_control": {
+    "edit_tweet_ids": ["2117345574978515375"],
+    "editable_until_msecs": "1793653098000",
+    "edits_remaining": "5",
+    "is_edit_eligible": false
+  },
+  "is_translatable": false,
+  "has_birdwatch_notes": false,
+  "has_super_follower": false,
+  "quick_promote_eligibility": {
+    "eligibility": "IneligibleNotVerified"
+  },
+  "grok_analysis_button": true,
+  "cashtag_attachments": [],
+  "grok_annotations": {},
+  "user": {
+    "name": "Mia Knight",
+    "screen_name": "KnightMia4454",
+    "id_str": "2043087235415789569",
+    "favourites_count": 44,
+    "profile_banner_url": "https://pbs.twimg.com/profile_banners/2043087235415789569/1793635155",
+    "location": "",
+    "notifications": false,
+    "possibly_sensitive": false,
+    "entities": {
+      "description": {},
+      "url": {
+        "urls": [
+          {
+            "display_url": "onlyfans.com/littlekitty69_…",
+            "expanded_url": "https://onlyfans.com/littlekitty69_paid/trial/rnbd4swo6ietlpgbgfqfkqmduq5yinuy",
+            "indices": [0, 23],
+            "url": "https://t.co/4Fr3msleJg"
+          }
+        ]
+      }
+    },
+    "profile_description_language": "en",
+    "profile_image_shape": "Circle",
+    "profile_interstitial_type": "",
+    "is_translator": false,
+    "translator_type": "none",
+    "followers_count": 0,
+    "friends_count": 4,
+    "media_count": 1,
+    "statuses_count": 5,
+    "url": "https://t.co/4Fr3msleJg",
+    "is_blue_verified": false,
+    "super_follow_eligible": false,
+    "super_followed_by": false,
+    "super_following": false,
+    "verified": false,
+    "protected": false,
+    "profile_image_url_https": "https://pbs.twimg.com/profile_images/2117285243447128065/1e9Ejs08_normal.jpg",
+    "can_media_tag": true,
+    "follow_request_sent": false,
+    "description": "Plush figure served hot 😏 Daily heat, toy pounding & vids that soak the sheets completely 💦",
+    "blocked_by": false,
+    "blocking": false,
+    "followed_by": false,
+    "following": false,
+    "live_following": false,
+    "muting": false,
+    "has_graduated_access": true,
+    "created_at": "2026-04-11T22:02:33.000Z",
+    "parody_commentary_fan_label": "None"
+  },
+  "in_reply_to_user": {
+    "name": "⋆˚｡⋆✧˚ 𝑮𝒊𝒏𝒈𝒆𝒓 ˚✧⋆｡˚⋆",
+    "screen_name": "gingerxowns",
+    "id_str": "1938049060813824000",
+    "favourites_count": 8987,
+    "profile_banner_url": "https://pbs.twimg.com/profile_banners/1938049060813824000/1786806728",
+    "location": "findom fanatics only —",
+    "notifications": false,
+    "pinned_tweet_ids_str": ["2102769328097824886"],
+    "possibly_sensitive": false,
+    "entities": {
+      "description": {},
+      "url": {
+        "urls": [
+          {
+            "display_url": "linktr.ee/goddess.ginger…",
+            "expanded_url": "https://linktr.ee/goddess.ginger468",
+            "indices": [0, 23],
+            "url": "https://t.co/ErAVAbQutK"
+          }
+        ]
+      }
+    },
+    "profile_description_language": "en",
+    "profile_image_shape": "Circle",
+    "profile_interstitial_type": "",
+    "is_translator": false,
+    "translator_type": "none",
+    "followers_count": 493,
+    "friends_count": 150,
+    "media_count": 445,
+    "statuses_count": 3290,
+    "url": "https://t.co/ErAVAbQutK",
+    "is_blue_verified": false,
+    "super_follow_eligible": false,
+    "super_followed_by": false,
+    "super_following": false,
+    "verified": false,
+    "protected": false,
+    "profile_image_url_https": "https://pbs.twimg.com/profile_images/2088642570783969280/aL3qCS-I_normal.jpg",
+    "can_media_tag": true,
+    "follow_request_sent": false,
+    "description": "sweet talker • money lover • shitposter\n\n(f)in your thoughts and on your bank statement",
+    "blocked_by": false,
+    "blocking": false,
+    "followed_by": false,
+    "following": false,
+    "live_following": false,
+    "muting": false,
+    "has_graduated_access": true,
+    "created_at": "2025-06-26T01:38:06.000Z",
+    "parody_commentary_fan_label": "None"
+  }
+}

@@ -6,6 +6,7 @@ import { getColorFromChance } from '../src/components/helpers';
 import type { BotDetectionReport } from '../src/detection/models';
 import * as visuals from '../src/detection/visuals';
 import { Post } from '../src/social-media/models';
+import { leafResult } from './check-helpers';
 
 const makePost = (fields: Record<string, unknown>) => fields as unknown as Post;
 
@@ -15,20 +16,8 @@ function makeReport(
   return {
     chance: 0.72,
     checks: [
-      {
-        id: 'username',
-        label: 'Username pattern',
-        weight: 0.2,
-        triggered: true,
-        contribution: 0.2,
-      },
-      {
-        id: 'verified',
-        label: 'Verified account',
-        weight: 0.1,
-        triggered: false,
-        contribution: 0,
-      },
+      leafResult('username', 'Username pattern', 0.2, true),
+      leafResult('verified', 'Verified account', 0.1, false),
     ],
     isBot: true,
     isBotThreshold: 0.7,
@@ -50,7 +39,7 @@ const button = (label: string) =>
     (b) => b.textContent === label
   ) as HTMLButtonElement;
 const cellTexts = (row: Element) =>
-  Array.from(row.querySelectorAll('td')).map((cell) => cell.textContent);
+  Array.from(row.querySelectorAll('th, td')).map((cell) => cell.textContent);
 
 // Lets pending promises and Preact's effect/state flushes settle.
 const settle = () => new Promise((resolve) => setTimeout(resolve));
@@ -158,27 +147,9 @@ test('showReportModal renders check contributions and threshold details', async 
       chance: 0.9999,
       isBot: false,
       checks: [
-        {
-          id: 'first',
-          label: 'First check',
-          weight: 0.6,
-          triggered: true,
-          contribution: 0.6,
-        },
-        {
-          id: 'second',
-          label: 'Second check',
-          weight: 0.6,
-          triggered: true,
-          contribution: 0.6,
-        },
-        {
-          id: 'third',
-          label: 'Third check',
-          weight: 0.1,
-          triggered: false,
-          contribution: 0,
-        },
+        leafResult('first', 'First check', 0.6, true),
+        leafResult('second', 'Second check', 0.6, true),
+        leafResult('third', 'Third check', 0.1, false),
       ],
     })
   );
@@ -186,10 +157,10 @@ test('showReportModal renders check contributions and threshold details', async 
   expect(q('h3')?.textContent).toBe('Bot Chance: 99.99% | Probably not a bot');
   const rows = Array.from(modal()?.querySelectorAll('tr') ?? []);
   expect(rows.map(cellTexts)).toStrictEqual([
-    ['Check', 'Weight', 'Added', 'Total'],
-    ['✔ First check', '60%', '+60%', '60%'],
-    ['✔ Second check', '60%', '+60%', '100%'],
-    ['Final (kept between 0% and 100%)', '', '', '99.99%'],
+    ['Check', 'Weight', '', 'Added', 'Total'],
+    ['✔ First check', '60%', '', '+60%', '60%'],
+    ['✔ Second check', '60%', '', '+60%', '100%'],
+    ['Final (kept between 0% and 100%)', '', '', '', '99.99%'],
   ]);
 
   await click(button('Show all checks'));
@@ -197,6 +168,7 @@ test('showReportModal renders check contributions and threshold details', async 
   expect(allRows.map(cellTexts)).toContainEqual([
     '✘ Third check',
     '10%',
+    '',
     '-',
     '100%',
   ]);
@@ -317,20 +289,8 @@ test('trust signals are shown as negative contributions', async () => {
     makeReport({
       chance: 0.1,
       checks: [
-        {
-          id: 'a',
-          label: 'Bad',
-          weight: 0.3,
-          triggered: true,
-          contribution: 0.3,
-        },
-        {
-          id: 'b',
-          label: 'Trusted',
-          weight: -0.2,
-          triggered: true,
-          contribution: -0.2,
-        },
+        leafResult('a', 'Bad', 0.3, true),
+        leafResult('b', 'Trusted', -0.2, true),
       ],
     })
   );
@@ -338,6 +298,7 @@ test('trust signals are shown as negative contributions', async () => {
   expect(cellTexts(rows[2])).toStrictEqual([
     '✔ Trusted',
     '-20%',
+    '',
     '-20%',
     '10%',
   ]);

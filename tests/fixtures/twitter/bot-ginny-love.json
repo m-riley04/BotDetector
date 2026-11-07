@@ -1,5 +1,5 @@
 {
-  "_expect_checks": ["new-account", "no-description"],
+  "_expect_checks": ["new-account-quarter", "no-description"],
   "_note": "Synthetic fixture: a real account posting adult content. Had a lot of the signals, but was not being marked for those signals whatsoever. One of many named 'Ginny' or similar.",
   "bookmark_count": 0,
   "bookmarked": false,

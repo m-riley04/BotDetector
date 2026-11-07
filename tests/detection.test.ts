@@ -1,10 +1,19 @@
 import { convertTweetToGenericPost } from '../src/adapters/twitter/converters';
 import type { Tweet } from '../src/adapters/twitter/models';
-import * as detection from '../src/detection/detection';
+import {
+  ALL_CHECK_NODES,
+  CheckWeights,
+  DEFAULT_WEIGHTS,
+} from '../src/detection/checks';
+import {
+  DEFAULT_DETECTION_REPORT_OPTIONS,
+  getDetectionReport,
+} from '../src/detection/detection';
 import type { BotDetectionReport } from '../src/detection/models';
 import type { Post } from '../src/social-media/models';
+import { findCheck, flattenChecks } from './check-helpers';
 
-type DetectionOptions = typeof detection.DEFAULT_DETECTION_REPORT_OPTIONS;
+type DetectionOptions = typeof DEFAULT_DETECTION_REPORT_OPTIONS;
 
 const fixedNow = Date.parse('2025-01-15T12:00:00.000Z');
 const dayMs = 24 * 60 * 60 * 1000;
@@ -55,7 +64,7 @@ function getReport(post: Post, options?: DetectionOptions): BotDetectionReport {
   const originalNow = Date.now;
   Date.now = () => fixedNow;
   try {
-    const report = detection.getDetectionReport(post, options);
+    const report = getDetectionReport(post, options);
     if (!report) throw new Error('expected a detection report');
     return report;
   } finally {
@@ -64,9 +73,18 @@ function getReport(post: Post, options?: DetectionOptions): BotDetectionReport {
 }
 
 function check(report: BotDetectionReport, id: string) {
-  const result = report.checks.find((item) => item.id === id);
+  const result = findCheck(report, id);
   if (!result) throw new Error(`expected check "${id}" to exist`);
   return result;
+}
+
+/**
+ * A check's default weight. Read from the definitions so tests don't repeat the numbers.
+ */
+function defaultWeight(id: string): number {
+  const weight = DEFAULT_WEIGHTS[id];
+  if (weight === undefined) throw new Error(`no default weight for "${id}"`);
+  return weight;
 }
 
 function customOptions(
@@ -74,17 +92,17 @@ function customOptions(
   isBotThreshold = 0.75
 ): DetectionOptions {
   const zeroed = Object.fromEntries(
-    detection.CHECK_KEYS.map((key) => [key, 0])
-  ) as detection.CheckWeights;
+    Object.keys(DEFAULT_WEIGHTS).map((id) => [id, 0])
+  ) as CheckWeights;
   return {
-    weights: { ...zeroed, ...weights },
-    isBotThreshold,
+    weights: { ...zeroed, ...weights } as CheckWeights,
+    botThreshold: isBotThreshold,
     dayMs,
   };
 }
 
 test('getDetectionReport returns undefined without a post', () => {
-  expect(detection.getDetectionReport(undefined)).toBe(undefined);
+  expect(getDetectionReport(undefined)).toBe(undefined);
 });
 
 test('a typical older account has zero risk and includes all checks', () => {
@@ -93,46 +111,10 @@ test('a typical older account has zero risk and includes all checks', () => {
   expect(report.chance).toBe(0);
   expect(report.isBot).toBe(false);
   expect(report.isBotThreshold).toBe(0.75);
-  expect(report.checks.map(({ id }) => id)).toStrictEqual([
-    'blue-check',
-    'quoted-checkmark',
-    'new-account',
-    'post-ai-account',
-    'account-creation-date',
-    'high-tweet-rate',
-    'low-followers-ratio',
-    'low-followers-following-ratio',
-    'auto-handle',
-    'onlyfans-model',
-    'excessive-promo',
-    'bait-persona',
-    'crypto-promo',
-    'lopsided-following',
-    'recent-username-change',
-    'ai-characters-bio',
-    'no-description',
-    'no-banner',
-    'default-profile-image',
-    'display-name-spam',
-    'random-handle',
-    'handle-name-mismatch',
-    'engagement-mismatch',
-    'no-media',
-    'spam-links',
-    'scam-keywords-bio',
-    'fancy-text-in-name',
-    'fancy-text-in-bio',
-    'fancy-text-in-location',
-    'fancy-text-in-post',
-    'generic-reply',
-    'mention-hashtag-stuffing',
-    'duplicate-text',
-    'language-mismatch',
-    'protected-account',
-    'established-account',
-    'official-verified',
-    'government-account',
-  ]);
+  // Derived from the definitions, so adding or reordering checks doesn't need a test edit.
+  expect(flattenChecks(report.checks).map(({ node }) => node.id)).toStrictEqual(
+    ALL_CHECK_NODES.map(({ id }) => id)
+  );
   expect(
     report.checks.every((item) => !item.triggered && item.contribution === 0)
   ).toBeTruthy();
@@ -150,7 +132,7 @@ test('invalid account dates and missing counts do not trigger age or rate checks
 
   expect(report.chance).toBe(0);
   for (const id of [
-    'new-account',
+    'new-account-quarter',
     'post-ai-account',
     'account-creation-date',
     'high-tweet-rate',
@@ -188,7 +170,9 @@ test('missing source statistics do not become zero-count bot signals', () => {
 test('a non-business verified account triggers the blue-check score', () => {
   const verified = getReport(makePost({ is_blue_verified: true }));
   expect(check(verified, 'blue-check').triggered).toBe(true);
-  expect(check(verified, 'blue-check').contribution).toBe(0.3);
+  expect(check(verified, 'blue-check').contribution).toBe(
+    defaultWeight('blue-check')
+  );
 
   const business = getReport(
     makePost({ verified: true, verified_type: 'Business' })
@@ -209,15 +193,15 @@ test('quote-checkmark only triggers for verified non-business quoted users', () 
   expect(check(businessReport, 'quoted-checkmark').triggered).toBe(false);
 });
 
-test('new-account, post-AI, and calendar-date checks honor their boundaries', () => {
+test('new-account-quarter, post-AI, and calendar-date checks honor their boundaries', () => {
   const at89Days = new Date(fixedNow - 89 * dayMs).toISOString();
   const at90Days = new Date(fixedNow - 90 * dayMs).toISOString();
   expect(
-    check(getReport(makePost({ created_at: at89Days })), 'new-account')
+    check(getReport(makePost({ created_at: at89Days })), 'new-account-quarter')
       .triggered
   ).toBe(true);
   expect(
-    check(getReport(makePost({ created_at: at90Days })), 'new-account')
+    check(getReport(makePost({ created_at: at90Days })), 'new-account-quarter')
       .triggered
   ).toBe(false);
 
@@ -251,6 +235,23 @@ test('new-account, post-AI, and calendar-date checks honor their boundaries', ()
   ).toBe(false);
 });
 
+test('new-account counts only the most specific age bracket that matches', () => {
+  // a 3-day-old account matches every bracket, but FIRST mode only counts the first child
+  const report = getReport(
+    makePost({ created_at: new Date(fixedNow - 3 * dayMs).toISOString() })
+  );
+  for (const id of [
+    'new-account-days',
+    'new-account-weeks',
+    'new-account-year',
+  ]) {
+    expect(check(report, id).triggered).toBe(true);
+  }
+  expect(check(report, 'new-account').contribution).toBe(
+    defaultWeight('new-account-days')
+  );
+});
+
 test('high-post-rate check requires more than 100 posts per day', () => {
   const created_at = new Date(fixedNow - 10 * dayMs).toISOString();
 
@@ -270,8 +271,8 @@ test('high-post-rate check requires more than 100 posts per day', () => {
 
 test('follower-ratio checks honor their boundaries and separate weights', () => {
   const options = customOptions({
-    lowFollowersRatio: 0.01,
-    lowFollowerFollowingRatio: 0.04,
+    'low-followers-ratio': 0.01,
+    'low-followers-following-ratio': 0.04,
   });
 
   const lowRatio = getReport(
@@ -337,9 +338,9 @@ test('auto-handle, empty-description, and missing-banner checks are evaluated', 
     })
   );
 
-  expect(check(report, 'auto-handle').contribution).toBe(0.15);
-  expect(check(report, 'no-description').contribution).toBe(0.05);
-  expect(check(report, 'no-banner').contribution).toBe(0.05);
+  for (const id of ['auto-handle', 'no-description', 'no-banner']) {
+    expect(check(report, id).contribution).toBe(defaultWeight(id));
+  }
 });
 
 test('chance sums triggered weights, caps at one, and uses an inclusive threshold', () => {
@@ -352,10 +353,10 @@ test('chance sums triggered weights, caps at one, and uses an inclusive threshol
     }),
     customOptions(
       {
-        blueCheck: 0.4,
-        autoGeneratedHandle: 0.4,
-        noDescription: 0.3,
-        noBanner: 0.1,
+        'blue-check': 0.4,
+        'auto-handle': 0.4,
+        'no-description': 0.3,
+        'no-banner': 0.1,
       },
       1
     )
@@ -366,7 +367,7 @@ test('chance sums triggered weights, caps at one, and uses an inclusive threshol
 
   const belowThreshold = getReport(
     makePost({ is_blue_verified: true }),
-    customOptions({ blueCheck: 0.5 }, 0.5001)
+    customOptions({ 'blue-check': 0.5 }, 0.5001)
   );
   expect(belowThreshold.chance).toBe(0.5);
   expect(belowThreshold.isBot).toBe(false);
@@ -377,37 +378,37 @@ test('chance equals the threshold counts as a bot, and extreme thresholds behave
 
   const atThreshold = getReport(
     verified,
-    customOptions({ blueCheck: 0.5 }, 0.5)
+    customOptions({ 'blue-check': 0.5 }, 0.5)
   );
   expect(atThreshold.chance).toBe(0.5);
   expect(atThreshold.isBot).toBe(true);
 
   expect(getReport(makePost(), customOptions({}, 0)).isBot).toBe(true);
 
-  const maxed = getReport(verified, customOptions({ blueCheck: 2 }, 1.01));
+  const maxed = getReport(verified, customOptions({ 'blue-check': 2 }, 1.01));
   expect(maxed.chance).toBe(1);
   expect(maxed.isBot).toBe(false);
 });
 
 test('default options are used when none are provided', () => {
-  for (const options of [
-    undefined,
-    detection.DEFAULT_DETECTION_REPORT_OPTIONS,
-  ]) {
+  for (const options of [undefined, DEFAULT_DETECTION_REPORT_OPTIONS]) {
     const report = getReport(makePost(), options);
     expect(report.isBotThreshold).toBe(0.75);
-    expect(
-      report.checks.every(
-        (item) => Number.isFinite(item.weight) && item.weight !== 0
-      )
-    ).toBeTruthy();
+    // groups have no weight of their own, so only leaves are checked
+    const leaves = flattenChecks(report.checks).filter(
+      ({ node }) => node.kind === 'check'
+    );
+    for (const { node, weight } of leaves) {
+      expect(weight).toBe(defaultWeight(node.id));
+      expect(Number.isFinite(weight) && weight !== 0).toBe(true);
+    }
   }
 });
 
 test('a triggered check with a zero weight adds nothing to the score', () => {
   const report = getReport(
     makePost({ is_blue_verified: true }),
-    customOptions({ blueCheck: 0 })
+    customOptions({ 'blue-check': 0 })
   );
 
   expect(check(report, 'blue-check').triggered).toBe(true);
@@ -446,9 +447,8 @@ test('report invariants hold for a range of accounts', () => {
     expect(report.chance).toBe(Math.min(Math.max(sum, 0), 1));
     expect(report.chance >= 0 && report.chance <= 1).toBeTruthy();
     expect(report.isBot).toBe(report.chance >= report.isBotThreshold);
-    expect(new Set(report.checks.map((item) => item.id)).size).toBe(
-      report.checks.length
-    );
+    const all = flattenChecks(report.checks);
+    expect(new Set(all.map((item) => item.node.id)).size).toBe(all.length);
   }
 });
 
@@ -491,9 +491,9 @@ test('verification flags are read from either verified or blue-verified', () => 
   expect(check(professional, 'blue-check').triggered).toBe(false);
 });
 
-test('account-creation-date handles leap years and month lengths', () => {
+test('account-first-last-day handles leap years and month lengths', () => {
   const triggered = (created_at: string) =>
-    check(getReport(makePost({ created_at })), 'account-creation-date')
+    check(getReport(makePost({ created_at })), 'account-first-last-day')
       .triggered;
 
   expect(triggered('2024-02-29T12:00:00.000Z')).toBe(true);
@@ -508,7 +508,7 @@ test('account-creation-date handles leap years and month lengths', () => {
 test('very new or future-dated accounts are treated as one day old', () => {
   const future = new Date(fixedNow + 5 * dayMs).toISOString();
   const futureReport = getReport(makePost({ created_at: future }));
-  expect(check(futureReport, 'new-account').triggered).toBe(true);
+  expect(check(futureReport, 'new-account-quarter').triggered).toBe(true);
 
   const now = new Date(fixedNow).toISOString();
   const rate = (statuses_count: number) =>
@@ -532,15 +532,16 @@ test('low-followers-ratio handles zero followers and requires 100 following', ()
   expect(lowRatio(0, 0)).toBe(false);
 });
 
-test('auto-handle only matches long digit runs at the end of the handle', () => {
+test('auto-handle only matches long digit runs at the end or beginning of the handle', () => {
   const triggered = (screen_name: string | undefined) =>
     check(getReport(makePost({ screen_name })), 'auto-handle').triggered;
 
   expect(triggered('user12345')).toBe(true);
   expect(triggered('user123456789')).toBe(true);
+  expect(triggered('12345_user')).toBe(true);
+  expect(triggered('8675309ml')).toBe(true);
   expect(triggered('12345')).toBe(true);
   expect(triggered('user12345x')).toBe(false);
-  expect(triggered('12345_user')).toBe(false);
   expect(triggered('plain_user')).toBe(false);
   expect(triggered(undefined)).toBe(false);
 });
@@ -596,7 +597,9 @@ test('onlyfans-model matches the keyword case-insensitively and uses its weight'
   ]) {
     const report = getReport(makePost({ description }));
     expect(check(report, 'onlyfans-model').triggered).toBe(true);
-    expect(check(report, 'onlyfans-model').contribution).toBe(0.2);
+    expect(check(report, 'onlyfans-model').contribution).toBe(
+      defaultWeight('onlyfans-model')
+    );
   }
 
   for (const description of ['I love football', 'only fans of the team?']) {
@@ -792,7 +795,7 @@ describe('additional checks', () => {
     expect(triggered(bio, 'scam-keywords-bio')).toBe(false);
     expect(
       triggered(bio, 'scam-keywords-bio', {
-        ...detection.DEFAULT_DETECTION_REPORT_OPTIONS,
+        ...DEFAULT_DETECTION_REPORT_OPTIONS,
         scamKeywords: ['secret sauce'],
       })
     ).toBe(true);
@@ -807,7 +810,7 @@ describe('additional checks', () => {
     ).toBe(true);
     expect(
       triggered(
-        postWith({ full_text: '#a #b #c #d #e' }),
+        postWith({ full_text: '#a #b #c #d #e #c #d #e' }),
         'mention-hashtag-stuffing'
       )
     ).toBe(true);
@@ -821,7 +824,7 @@ describe('additional checks', () => {
 
   test('duplicate-text depends on the supplied count', () => {
     const options = (duplicateTextCount: number): DetectionOptions => ({
-      ...detection.DEFAULT_DETECTION_REPORT_OPTIONS,
+      ...DEFAULT_DETECTION_REPORT_OPTIONS,
       duplicateTextCount,
     });
     expect(triggered(makePost(), 'duplicate-text', options(1))).toBe(false);
@@ -853,17 +856,18 @@ describe('additional checks', () => {
     expect(check(business, 'government-account').triggered).toBe(false);
 
     const lowered = getReport(makePost({ is_blue_verified: true, ...old }));
-    expect(lowered.chance).toBeCloseTo(0.2);
+    expect(lowered.chance).toBeCloseTo(
+      defaultWeight('blue-check') + defaultWeight('established-account')
+    );
   });
 
-  test('every check key has a definition and a default weight', () => {
-    expect(detection.CHECK_KEYS.length).toBeGreaterThan(20);
-    for (const key of detection.CHECK_KEYS) {
-      expect(Number.isFinite(detection.DEFAULT_WEIGHTS[key])).toBe(true);
+  test('every check has a unique id and every leaf has a default weight', () => {
+    const leaves = ALL_CHECK_NODES.filter((node) => node.kind === 'check');
+    expect(leaves.length).toBeGreaterThan(20);
+    for (const { id } of leaves) {
+      expect(Number.isFinite(DEFAULT_WEIGHTS[id])).toBe(true);
     }
-    const ids = detection.CHECK_KEYS.map(
-      (k) => detection.CHECK_DEFINITIONS[k].id
-    );
+    const ids = ALL_CHECK_NODES.map(({ id }) => id);
     expect(new Set(ids).size).toBe(ids.length);
   });
 
@@ -907,7 +911,7 @@ describe('profile promotion and account history checks', () => {
     expect(check(getReport(post), 'onlyfans-model').triggered).toBe(false);
 
     const report = getReport(post, {
-      ...detection.DEFAULT_DETECTION_REPORT_OPTIONS,
+      ...DEFAULT_DETECTION_REPORT_OPTIONS,
       expandedLinks: { 'https://t.co/abc123': 'https://onlyfans.com/x' },
     });
     expect(check(report, 'onlyfans-model').triggered).toBe(true);

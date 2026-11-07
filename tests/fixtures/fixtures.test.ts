@@ -1,3 +1,4 @@
+import { findCheck } from '../check-helpers';
 import { files, loadFixture, scoreFixture } from './fixtures-helpers';
 
 test('the fixture corpus has both bots and humans', () => {
@@ -18,7 +19,7 @@ describe.each(files)('%s', (name) => {
     // Fixtures may list the obvious signals that must fire instead of reaching the threshold.
     if (expectedChecks) {
       test.each(expectedChecks)('triggers %s', (id) => {
-        expect(report.checks.find((c) => c.id === id)?.triggered).toBe(true);
+        expect(findCheck(report, id)?.triggered).toBe(true);
       });
     } else {
       test('is flagged as a bot', () => {

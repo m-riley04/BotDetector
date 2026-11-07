@@ -17,7 +17,7 @@ export interface Fixture {
   expectedChecks?: string[];
 }
 
-// Raw post objects in the same format as the "Copy post JSON" button.
+// Post objects in the same format as the "Copy post JSON" button (raw tweets also work).
 // To add a real example, paste the copied JSON into tests/fixtures/twitter/bot-*.json or human-*.json.
 export const directory = join(__dirname, 'twitter'); // TODO: make this dynamic
 export const files = readdirSync(directory).filter((name) =>
@@ -27,12 +27,16 @@ export const files = readdirSync(directory).filter((name) =>
 const fixedNow = Date.parse('2026-10-18T22:00:00.000Z');
 
 export function loadFixture(name: string): Fixture {
-  const raw: unknown = JSON.parse(readFileSync(join(directory, name), 'utf8'));
-  if (!isTwitterTweet(raw)) {
+  const file: unknown = JSON.parse(readFileSync(join(directory, name), 'utf8'));
+  // Older copies are the raw tweet; newer ones are the converted post with the raw tweet under `raw`.
+  const tweet = isRecord(file) && 'raw' in file ? file.raw : file;
+  if (!isRecord(file) || !isTwitterTweet(tweet)) {
     throw new Error(`invalid Twitter post fixture: ${name}`);
   }
+  // `_expect_checks` and friends are added by hand at the top level of either format.
+  const raw = { ...tweet, ...file };
 
-  const post = convertTweetToGenericPost(raw);
+  const post = convertTweetToGenericPost(tweet);
   if (!post) throw new Error(`could not convert Twitter post fixture: ${name}`);
 
   return {

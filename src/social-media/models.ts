@@ -32,6 +32,11 @@ interface UserLabels {
   isSensitive?: boolean;
 
   /**
+   * Marked as an adult (18+)
+   */
+  isMarkedAdult?: boolean;
+
+  /**
    * Proper verification from admins
    */
   isVerified?: boolean;
@@ -60,7 +65,7 @@ interface UserProfileAbout {
   createdAt: Date;
 }
 
-interface UserProfile {
+export interface UserProfile {
   id: string;
 
   /**
@@ -111,11 +116,11 @@ interface PostStatistics {
 
 export interface Post {
   id: string;
-  user: UserProfile;
+  user?: UserProfile;
   content: Content;
   statistics?: PostStatistics;
   createdAt: Date;
-  language: string;
+  language?: string;
   link?: string;
   updatedAt?: Date;
   inReplyToPostId?: string;
