@@ -508,11 +508,48 @@ export const CHECK_DEFINITIONS = {
 export type CheckKey = keyof typeof CHECK_DEFINITIONS;
 export type CheckWeights = Record<string, number>;
 
+/**
+ * Top-level check keys, in report order.
+ */
 export const CHECK_KEYS = Object.keys(CHECK_DEFINITIONS) as CheckKey[];
 
+/**
+ * The top-level nodes of the check tree, in report order.
+ */
+export const ROOT_CHECK_NODES: readonly CheckNode[] = CHECK_KEYS.map(
+  (key) => CHECK_DEFINITIONS[key]
+);
+
+/**
+ * Lists every node depth-first: each group comes before its children.
+ */
+export function flattenCheckNodes(nodes: readonly CheckNode[]): CheckNode[] {
+  return nodes.flatMap((node) => [
+    node,
+    ...(node.kind === 'group' ? flattenCheckNodes(node.children ?? []) : []),
+  ]);
+}
+
+/**
+ * Every check and group in the tree, depth-first in report order.
+ */
+export const ALL_CHECK_NODES: readonly CheckNode[] =
+  flattenCheckNodes(ROOT_CHECK_NODES);
+
+export const CHECK_NODES_BY_ID: ReadonlyMap<string, CheckNode> = new Map(
+  ALL_CHECK_NODES.map((node) => [node.id, node])
+);
+
+/**
+ * Default weight of every leaf check, keyed by check id (e.g. `no-banner`).
+ * Groups have no weight of their own: their contribution comes from their children.
+ */
 export const DEFAULT_WEIGHTS: Readonly<CheckWeights> = Object.fromEntries(
-  CHECK_KEYS.map((key) => [key, CHECK_DEFINITIONS[key].defaultWeight])
-) as CheckWeights;
+  ALL_CHECK_NODES.filter((node) => node.kind === 'check').map((node) => [
+    node.id,
+    node.defaultWeight,
+  ])
+);
 
 export function evaluateCheckNode(
   node: CheckNode,

@@ -1,6 +1,8 @@
+import { Fragment } from 'preact';
 import { combineLines } from '../../common/helpers';
 import { parseKeywordList, Settings } from '../../common/settings';
-import { CHECK_KEYS } from '../../detection/checks';
+import { ROOT_CHECK_NODES } from '../../detection/checks';
+import type { CheckNode } from '../../detection/models';
 import { EditableCheckRow } from './EditableCheckRow';
 import type { ReplaceSettings, UpdateSettings } from './ExtensionPopup';
 import { TextList } from './TextList';
@@ -10,6 +12,48 @@ interface ChecksSectionProps {
   version: number;
   update: UpdateSettings;
   replace: ReplaceSettings;
+}
+
+/**
+ * One row per check, with each group's children nested under it.
+ */
+function CheckRows({
+  nodes,
+  settings,
+  update,
+  depth = 0,
+  parentOff = false,
+}: {
+  nodes: readonly CheckNode[];
+  settings: Settings;
+  update: UpdateSettings;
+  depth?: number;
+  parentOff?: boolean;
+}) {
+  return (
+    <>
+      {nodes.map((node) => (
+        <Fragment key={node.id}>
+          <EditableCheckRow
+            node={node}
+            depth={depth}
+            parentOff={parentOff}
+            settings={settings}
+            onChange={update}
+          />
+          {node.kind === 'group' && (
+            <CheckRows
+              nodes={node.children ?? []}
+              settings={settings}
+              update={update}
+              depth={depth + 1}
+              parentOff={parentOff || settings.disabledChecks.includes(node.id)}
+            />
+          )}
+        </Fragment>
+      ))}
+    </>
+  );
 }
 
 export function ChecksSection({
@@ -26,14 +70,11 @@ export function ChecksSection({
         score.
       </p>
       <div id="checks">
-        {CHECK_KEYS.map((key) => (
-          <EditableCheckRow
-            key={key}
-            checkKey={key}
-            settings={settings}
-            onChange={update}
-          />
-        ))}
+        <CheckRows
+          nodes={ROOT_CHECK_NODES}
+          settings={settings}
+          update={update}
+        />
       </div>
       <div class="field">
         <label for="scam-keywords">Extra scam keywords</label>

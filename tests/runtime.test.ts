@@ -35,14 +35,16 @@ describe('buildDetectionOptions', () => {
   test('applies disabled checks and weight overrides', () => {
     const options = buildDetectionOptions(
       sanitizeSettings({
-        disabledChecks: ['blueCheck'],
-        checkWeights: { noBanner: 0.5, blueCheck: 0.9 },
+        disabledChecks: ['blue-check'],
+        checkWeights: { 'no-banner': 0.5, 'blue-check': 0.9 },
       }),
       3
     );
-    expect(options.weights.blueCheck).toBe(0);
-    expect(options.weights.noBanner).toBe(0.5);
-    expect(options.weights.noDescription).toBe(DEFAULT_WEIGHTS.noDescription);
+    expect(options.weights['blue-check']).toBe(0);
+    expect(options.weights['no-banner']).toBe(0.5);
+    expect(options.weights['no-description']).toBe(
+      DEFAULT_WEIGHTS['no-description']
+    );
     expect(options.duplicateTextCount).toBe(3);
   });
 
@@ -54,9 +56,36 @@ describe('buildDetectionOptions', () => {
     expect(options.scamKeywords).toContain('my custom word');
   });
 
+  test('disabling a group zeroes every check inside it', () => {
+    const options = buildDetectionOptions(
+      sanitizeSettings({
+        disabledChecks: ['new-account'],
+        checkWeights: { 'new-account-days': 0.9 },
+      })
+    );
+    for (const id of ['new-account-days', 'new-account-year']) {
+      expect(options.weights[id]).toBe(0);
+    }
+    expect(options.weights['post-ai-account']).toBe(
+      DEFAULT_WEIGHTS['post-ai-account']
+    );
+  });
+
+  test('settings saved by v1.0.0 with camelCase keys still apply', () => {
+    const options = buildDetectionOptions(
+      sanitizeSettings({
+        disabledChecks: ['blueCheck'],
+        checkWeights: { noBanner: 0.5 },
+      })
+    );
+    expect(options.weights['blue-check']).toBe(0);
+    expect(options.weights['no-banner']).toBe(0.5);
+  });
+
   test('does not mutate the shared default weights', () => {
-    buildDetectionOptions(sanitizeSettings({ disabledChecks: ['blueCheck'] }));
-    expect(DEFAULT_WEIGHTS.blueCheck).toBe(0.3);
+    const before = { ...DEFAULT_WEIGHTS };
+    buildDetectionOptions(sanitizeSettings({ disabledChecks: ['blue-check'] }));
+    expect(DEFAULT_WEIGHTS).toStrictEqual(before);
   });
 });
 

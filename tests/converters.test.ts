@@ -91,7 +91,7 @@ test('converts partial tweets and preserves generic detection fields', () => {
       // },
     },
   });
-  expect(post?.user.about.createdAt).toEqual(
+  expect(post?.user?.about.createdAt).toEqual(
     new Date('2022-11-18T14:29:51.000Z')
   );
 });
@@ -107,8 +107,8 @@ test('missing optional tweet fields do not prevent conversion', () => {
   expect(post?.content.media).toBeUndefined();
   expect(post?.statistics?.likes).toBe(0);
   expect(post?.statistics?.views).toBeUndefined();
-  expect(post?.user.stats.followers).toBeUndefined();
-  expect(Number.isNaN(post?.user.about.createdAt.getTime())).toBe(true);
+  expect(post?.user?.stats.followers).toBeUndefined();
+  expect(Number.isNaN(post?.user?.about.createdAt.getTime())).toBe(true);
 });
 
 test('uses extended media when normal entities do not include it', () => {
@@ -145,7 +145,7 @@ test('converts legacy verified and government accounts separately', () => {
     },
   });
 
-  expect(post?.user.labels.isVerified).toBe(true);
-  expect(post?.user.labels.isPlus).toBeUndefined();
-  expect(post?.user.labels.isGovernment).toBe(true);
+  expect(post?.user?.labels.isVerified).toBe(true);
+  expect(post?.user?.labels.isPlus).toBeUndefined();
+  expect(post?.user?.labels.isGovernment).toBe(true);
 });
