@@ -1,6 +1,5 @@
 import { BOT_ELEMENT } from '../../common/constants';
-import { isRecord, isString } from '../../common/helpers';
-import { parseReactPropsResponse } from '../../common/parsing';
+import { isRecord } from '../../common/helpers';
 import {
   BOT_ATTRIBUTE,
   HIDDEN_ATTRIBUTE,
@@ -26,14 +25,12 @@ import {
   reactBridge,
   requestReactProps,
 } from '../../react/bridge';
-import {
-  REACT_ID_ATTRIBUTE,
-  REACT_PROPS_REQUEST,
-  REACT_PROPS_RESPONSE,
-} from '../../react/constants';
 import { ReactPropsResponse } from '../../react/models';
 import { Post } from '../../social-media/models';
 import { convertTweetToGenericPost, isTwitterTweet } from './converters';
+
+// one timeline cell per tweet; post data and reports are keyed by this element
+const TWEET_CELL_SELECTOR = 'div[data-testid="cellInnerDiv"]';
 
 export class TwitterScanner extends SocialMediaScanner {
   override readonly domains = ['*://x.com/*', '*://*.x.com/*'];
@@ -93,46 +90,67 @@ export class TwitterScanner extends SocialMediaScanner {
     if (!this.settings.enabled) return;
 
     const tweets = Array.from(
-      document.querySelectorAll<HTMLDivElement>(
-        'div[data-testid="cellInnerDiv"]'
-      )
+      document.querySelectorAll<HTMLDivElement>(TWEET_CELL_SELECTOR)
     );
 
-    tweets.forEach((tweet) => {
-      // the response is dispatched synchronously, so `temp` is this tweet's data (if it was requested)
-      this.temp = undefined;
-      requestReactProps(
-        reactBridge,
-        tweet,
-        REACT_ID_ATTRIBUTE,
-        REACT_PROPS_REQUEST
-      );
-      if (this.temp) this.postDataByElement.set(tweet, this.temp);
+    const loads: Promise<unknown>[] = [];
+    for (const tweet of tweets) {
+      if (this.isModified(tweet)) continue;
 
-      // don't modify an already-modified tweet element
-      if (
-        tweet.querySelector(BOT_ELEMENT) ||
-        tweet.hasAttribute(HIDDEN_ATTRIBUTE)
-      )
-        return;
-
-      const postData = this.postDataByElement.get(tweet);
-      if (!postData) {
-        if (this.settings.debug)
-          console.warn(
-            `${LOG_PREFIX} No detection report cached for tweet: skipping.`
-          );
-        return;
+      const known = this.postDataByElement.get(tweet);
+      if (known) {
+        this.scanPost(known, tweet);
+        continue;
       }
 
-      this.scanPost(postData, tweet);
-    });
+      // data arrives later (possibly out of order), and is handled for exactly this element
+      loads.push(
+        this.loadPost(tweet).then((post) => {
+          // settings or the page may have changed while waiting
+          if (post && this.settings.enabled && !this.isModified(tweet)) {
+            this.scanPost(post, tweet);
+          }
+        })
+      );
+    }
 
-    this.expandProfileLinks();
+    // profile links come from post data, so wait until it has arrived
+    void Promise.all(loads).then(() => this.expandProfileLinks());
   };
 
   /**
-   * Throws away every cached report and scans the page from scratch.
+   * Fetches and converts a tweet element's data, remembering it for later scans.
+   * @returns The post, or undefined if none is available yet; a later scan will ask again.
+   */
+  private async loadPost(tweet: HTMLElement): Promise<Post | undefined> {
+    const response = await requestReactProps(reactBridge, tweet);
+    if (!response) {
+      if (this.settings.debug)
+        console.warn(`${LOG_PREFIX} No React props response for a tweet.`);
+      return undefined;
+    }
+
+    const post = this.getPostDataFromReactResponse(response);
+    if (!post) return undefined; // e.g. a "Show more" cell, or not rendered yet
+
+    if (this.settings.debug)
+      console.log(`${LOG_PREFIX} Received post data for ${response.id}:`, post);
+    this.postDataByElement.set(tweet, post);
+    return post;
+  }
+
+  /**
+   * True when the element already has a badge or is hidden, so it shouldn't be modified again.
+   */
+  private isModified(tweet: HTMLElement): boolean {
+    return (
+      tweet.querySelector(BOT_ELEMENT) !== null ||
+      tweet.hasAttribute(HIDDEN_ATTRIBUTE)
+    );
+  }
+
+  /**
+   * Throws away every cached report and post, and scans the page from scratch.
    * Triggered by the "rescan" keyboard command (see manifest.json `commands`), relayed by the background script.
    */
   override rescan = () => {
@@ -140,8 +158,8 @@ export class TwitterScanner extends SocialMediaScanner {
       console.log(`${LOG_PREFIX} Manual scan triggered.`);
     this.reportCache.clear();
     this.duplicateTracker.clear();
+    this.postDataByElement = new WeakMap();
     this.clear();
-    this.temp = undefined;
     this.scan();
   };
 
@@ -156,62 +174,18 @@ export class TwitterScanner extends SocialMediaScanner {
         el.removeAttribute(REVEALED_ATTRIBUTE);
       });
 
-    this.temp = undefined;
-
-    reactBridge.clearAddedTags();
-
     if (this.settings.debug)
       console.log(`${LOG_PREFIX} Cleared all bot elements.`);
   };
 
   override initializeListeners = () => {
-    // init bridge
+    // injects the page script, listens for its responses, and scans once it's ready
     loadReactPropsBridge(reactBridge, this.scan);
-
-    // Listener for the react props responses from the injected script
-    window.addEventListener(REACT_PROPS_RESPONSE, this.onReactPropsResponse);
-  };
-
-  private onReactPropsResponse = (event: Event) => {
-    const detail = (event as CustomEvent<string>).detail;
-    if (!isString(detail)) return;
-
-    try {
-      const response = parseReactPropsResponse(JSON.parse(detail) as unknown);
-      if (!response) {
-        // TODO: make a dedicated logger
-        if (this.settings.debug)
-          console.error(
-            `${LOG_PREFIX} Received an invalid React props response.`
-          );
-        return;
-      }
-
-      const tweetProps = this.getPostDataFromReactResponse(response);
-      if (!tweetProps) {
-        if (this.settings.debug)
-          console.warn(`${LOG_PREFIX} No tweet props found for ${response.id}`);
-        return;
-      }
-
-      if (this.settings.debug)
-        console.log(
-          `${LOG_PREFIX} Received tweet props for ${response.id}:`,
-          tweetProps
-        );
-      this.temp = tweetProps;
-    } catch (error) {
-      if (this.settings.debug)
-        console.error(
-          `${LOG_PREFIX} Could not read React props from a tweet.`,
-          error
-        );
-    }
   };
 
   private expandProfileLinks(): void {
     const urls = Array.from(
-      document.querySelectorAll<HTMLElement>('article[data-testid="tweet"]')
+      document.querySelectorAll<HTMLElement>(TWEET_CELL_SELECTOR)
     )
       .map((tweet) => this.postDataByElement.get(tweet)?.user?.url)
       .filter((url) => this.linkExpander.needs(url));

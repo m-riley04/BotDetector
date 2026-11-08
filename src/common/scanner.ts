@@ -34,11 +34,6 @@ export abstract class SocialMediaScanner {
    */
   protected postDataByElement = new WeakMap<HTMLElement, Post>();
 
-  // Temporary storage for the latest tweet data received from the React props bridge
-  // TODO: this is bad imo. Fix it.
-  // it works today because `dispatchEvent` runs synchronously.
-  protected temp: Post | undefined;
-
   constructor(settings: Settings) {
     this.settings = settings;
   }

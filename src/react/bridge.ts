@@ -1,35 +1,106 @@
+import { isString } from '../common/helpers';
+import { parseReactPropsResponse } from '../common/parsing';
+import {
+  REACT_ID_ATTRIBUTE,
+  REACT_PROPS_REQUEST,
+  REACT_PROPS_RESPONSE,
+} from './constants';
+import type { ReactPropsResponse } from './models';
+
 /**
- * ReactBridge class for managing communication with React components and their props.
+ * How long to wait for the injected script before giving up on a request.
+ * Today it answers synchronously, so this only matters if that changes or the page script misbehaves.
+ */
+const DEFAULT_TIMEOUT_MS = 2000;
+
+/**
+ * Talks to the injected page script (inject.ts), which reads React props the content script can't see.
+ *
+ * Each request tags the element with a fresh id and waits for the response carrying that same id,
+ * so responses can arrive late or out of order and still reach the right element.
  */
 class ReactBridge {
-  private reactBridgeReady = false;
-  private nextReactId = 0;
-  private requestedReactProps = new WeakSet<HTMLElement>();
+  private ready = false;
 
-  public isReady(): boolean {
-    return this.reactBridgeReady;
+  /**
+   * Never reset, so an id still sitting on an old element can't be mistaken for a new request.
+   */
+  private nextId = 0;
+
+  /**
+   * Requests still waiting for an answer, keyed by id.
+   * Every entry is removed when it settles (response or timeout), so this can't leak elements.
+   */
+  private pending = new Map<
+    string,
+    (response: ReactPropsResponse | undefined) => void
+  >();
+
+  /**
+   * At most one request per element at a time: a second scan reuses the first request.
+   */
+  private inFlight = new WeakMap<
+    HTMLElement,
+    Promise<ReactPropsResponse | undefined>
+  >();
+
+  isReady(): boolean {
+    return this.ready;
   }
 
-  public markReady(): void {
-    this.reactBridgeReady = true;
+  markReady(): void {
+    this.ready = true;
   }
 
-  public getNextReactId(): string {
-    return String(++this.nextReactId);
+  /**
+   * Asks the page script for an element's React props.
+   * @returns The response, or undefined if the bridge isn't loaded, the response was invalid, or it timed out.
+   *   Nothing is remembered on failure, so the caller can simply ask again on a later scan.
+   */
+  request(
+    element: HTMLElement,
+    timeoutMs: number = DEFAULT_TIMEOUT_MS
+  ): Promise<ReactPropsResponse | undefined> {
+    if (!this.ready) return Promise.resolve(undefined);
+
+    const existing = this.inFlight.get(element);
+    if (existing) return existing;
+
+    const id = String(++this.nextId);
+    const promise = new Promise<ReactPropsResponse | undefined>((resolve) => {
+      const timer = setTimeout(() => settle(undefined), timeoutMs);
+      const settle = (response: ReactPropsResponse | undefined) => {
+        clearTimeout(timer);
+        this.pending.delete(id);
+        this.inFlight.delete(element);
+        resolve(response);
+      };
+      this.pending.set(id, settle);
+    });
+    this.inFlight.set(element, promise);
+
+    // register before dispatching: the page script may answer synchronously, inside dispatchEvent
+    element.setAttribute(REACT_ID_ATTRIBUTE, id);
+    window.dispatchEvent(new CustomEvent(REACT_PROPS_REQUEST, { detail: id }));
+    return promise;
   }
 
-  public hasRequestedProps(postElement: HTMLElement): boolean {
-    return this.requestedReactProps.has(postElement);
-  }
+  /**
+   * Routes a response event from the page script to the request with the same id.
+   * Responses for unknown ids (already timed out) are ignored.
+   */
+  handleResponse = (event: Event): void => {
+    const detail = (event as CustomEvent<unknown>).detail;
+    if (!isString(detail)) return;
 
-  public markRequested(postElement: HTMLElement): void {
-    this.requestedReactProps.add(postElement);
-  }
-
-  public clearAddedTags(): void {
-    this.requestedReactProps = new WeakSet<HTMLElement>();
-    this.nextReactId = 0;
-  }
+    let response: ReactPropsResponse | undefined;
+    try {
+      response = parseReactPropsResponse(JSON.parse(detail) as unknown);
+    } catch {
+      return; // not valid JSON; the request will time out
+    }
+    if (response) this.pending.get(response.id)?.(response);
+  };
 }
 
 /**
@@ -38,14 +109,15 @@ class ReactBridge {
 export const reactBridge = new ReactBridge();
 
 /**
- * Loads the React props bridge by injecting a script into the document.
- * This function injects a script into the document to enable communication with React components and retrieve their props.
- * @param onLoadCallback The callback function to be executed once the React props bridge is loaded.
+ * Injects the page script and starts listening for its responses.
+ * @param onLoadCallback Runs once the page script is ready to answer requests.
  */
 export function loadReactPropsBridge(
   bridge: ReactBridge,
   onLoadCallback?: () => void
 ): void {
+  window.addEventListener(REACT_PROPS_RESPONSE, bridge.handleResponse);
+
   const script = document.createElement('script');
   script.src = browser.runtime.getURL('src/inject.js');
   script.onload = () => {
@@ -62,20 +134,11 @@ export function loadReactPropsBridge(
 
 /**
  * Requests the React props for a given post element.
- * @param postElement The post element for which to request React props.
- * @returns Nothing. This sends the (synchronous) dispatch event.
+ * @returns The response, or undefined if none arrived (see ReactBridge.request).
  */
 export function requestReactProps(
   bridge: ReactBridge,
-  postElement: HTMLElement,
-  reactIdAttribute: string,
-  reactPropsRequestId: string
-): void {
-  if (!bridge.isReady() || bridge.hasRequestedProps(postElement)) return;
-
-  const id = bridge.getNextReactId();
-  postElement.setAttribute(reactIdAttribute, id);
-  bridge.markRequested(postElement);
-
-  window.dispatchEvent(new CustomEvent(reactPropsRequestId, { detail: id }));
+  postElement: HTMLElement
+): Promise<ReactPropsResponse | undefined> {
+  return bridge.request(postElement);
 }
