@@ -1,0 +1,15 @@
+#!/bin/sh
+
+pnpm lint
+if [ $? -ne 0 ]; then
+    echo "Error: Lint checks failed. Commit aborted."
+    exit 1
+fi
+
+pnpm format
+if [ $? -ne 0 ]; then
+    echo "Error: Formatting checks failed. Commit aborted."
+    exit 1
+fi
+
+exit 0
