@@ -75,7 +75,7 @@ test('applyListOverride adds an explanatory manual check', () => {
   const allowed = applyListOverride(base, 'allowed');
   expect(allowed.isBot).toBe(false);
   expect(allowed.chance).toBe(0);
-  expect(allowed.checks.at(-1)?.id).toBe('manual-allowlist');
+  expect(allowed.checks.at(-1)?.node.id).toBe('manual-allowlist');
   expect(allowed.checks.at(-1)?.contribution).toBe(-1);
 
   const blocked = applyListOverride(
@@ -84,6 +84,6 @@ test('applyListOverride adds an explanatory manual check', () => {
   );
   expect(blocked.isBot).toBe(true);
   expect(blocked.chance).toBe(1);
-  expect(blocked.checks.at(-1)?.id).toBe('manual-blocklist');
+  expect(blocked.checks.at(-1)?.node.id).toBe('manual-blocklist');
   expect(base.checks).toHaveLength(0);
 });

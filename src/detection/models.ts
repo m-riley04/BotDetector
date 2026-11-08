@@ -1,14 +1,95 @@
-import { Post } from '../social-media/models';
+import { Post, UserProfile } from '../social-media/models';
+import { getUsernameChanges } from './signals';
+
+/**
+ * Everything a check's `test` needs to decide whether it fires for one post.
+ * Built once per post by `buildCheckContext`, then shared by every check.
+ */
+export interface CheckContext {
+  post: Post;
+  user: Post['user'];
+
+  /**
+   * Timestamp the report is computed at, so every check agrees on "now".
+   */
+  now: number;
+  dayMs: number;
+
+  /**
+   * Account age in days (at least 1), or undefined if createdAt is invalid.
+   */
+  ageDays: number | undefined;
+
+  // Shortcuts for the stats most checks read.
+  statuses: UserProfile['stats']['postStats']['posts'];
+  likes: UserProfile['stats']['postStats']['likesGiven'];
+  followers: UserProfile['stats']['followers'];
+  following: UserProfile['stats']['following'];
+
+  // Derived once because they're non-trivial or shared by several checks.
+  profileLinks: string[];
+  usernameChanges: ReturnType<typeof getUsernameChanges>;
+
+  // Options with their defaults already applied.
+  scamKeywords: readonly string[];
+  duplicateTextCount: number;
+}
+
+export interface CheckEntity {
+  id: string;
+  label: string;
+  reasoning?: string;
+  defaultWeight: number;
+}
+
+/**
+ * One bot-detection check: its metadata, its default weight, and the predicate
+ * that decides whether it fires.
+ *
+ * Weights are additive evidence, not probabilities: they do not need to sum to 1.
+ * The final score is the sum of the triggered weights clamped to 0-1, compared to the threshold.
+ * Negative weights are "trust" signals that reduce the score.
+ */
+export interface CheckLeaf extends CheckEntity {
+  kind: 'check';
+  test: (ctx: CheckContext) => boolean;
+}
+
+export type CheckGroupMode = 'SUM' | 'FIRST' | 'MAX' | 'ALL' | 'ANY';
+
+/**
+ * Represents a group of similar checks
+ */
+export interface CheckGroup extends CheckEntity {
+  kind: 'group';
+
+  /**
+   * The mode
+   * - `ALL`:
+   * - `ANY`:
+   * - `FIRST`: iterates through the checks and applies the first weight that passes
+   * - `SUM`:
+   * - `MAX`:
+   */
+  mode: CheckGroupMode;
+
+  /**
+   * IN-ORDER array of check nodes
+   */
+  children?: CheckNode[];
+}
+
+export type CheckNode = CheckLeaf | CheckGroup;
 
 /**
  * A single weighted check. Every check is always present in the report;
  * `contribution` is the weight when triggered, otherwise 0.
  */
-export interface BotCheck {
-  id: string;
-  label: string;
-  weight: number;
+export interface CheckResult {
+  node: CheckNode;
+  children?: CheckResult[];
   triggered: boolean;
+  weight: number;
   contribution: number;
 }
 
@@ -17,7 +98,7 @@ export interface BotCheck {
  */
 export interface BotDetectionReport {
   chance: number;
-  checks: BotCheck[];
+  checks: CheckResult[];
   user?: Post['user'];
   isBot: boolean;
   isBotThreshold: number;

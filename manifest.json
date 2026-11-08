@@ -5,7 +5,7 @@
   "version": "1.0.0",
   "description": "A bot detection extension for identifying trolls, bots, and astroturfing accounts",
   "permissions": ["storage", "clipboardWrite"],
-  "host_permissions": ["https://t.co/*"],
+  "host_permissions": ["https://t.co/*", "https://reddit.com/*"],
   "browser_specific_settings": {
     "gecko": {
       "id": "botdetector@rileymeyerkorth.com",
@@ -15,7 +15,7 @@
       "strict_min_version": "142.0"
     }
   },
-  "homepage_url": "https://rileymeyerkorth.com",
+  "homepage_url": "https://botdetector.app",
   "short_name": "BD",
   "background": {
     "scripts": ["src/background.js"]
@@ -26,13 +26,23 @@
   },
   "content_scripts": [
     {
-      "matches": ["*://x.com/*", "*://*.x.com/*"],
+      "matches": [
+        "*://x.com/*",
+        "*://*.x.com/*",
+        "*://reddit.com/*",
+        "*://*.reddit.com/*"
+      ],
       "js": ["src/content.js"]
     }
   ],
   "web_accessible_resources": [
     {
-      "matches": ["*://x.com/*", "*://*.x.com/*"],
+      "matches": [
+        "*://x.com/*",
+        "*://*.x.com/*",
+        "*://reddit.com/*",
+        "*://*.reddit.com/*"
+      ],
       "resources": ["src/inject.js"]
     }
   ],
@@ -44,6 +54,7 @@
       }
     },
     "_execute_action": {
+      "description": "Open the popup menu",
       "suggested_key": {
         "default": "Alt+K"
       }

@@ -1,5 +1,5 @@
 import type { ListStatus, Settings } from '../common/settings';
-import type { BotDetectionReport } from './models';
+import type { BotDetectionReport, CheckLeaf } from './models';
 
 /**
  * What to do with a tweet once it has been analyzed.
@@ -34,19 +34,21 @@ export function applyListOverride(
 ): BotDetectionReport {
   if (status === 'none') return report;
   const blocked = status === 'blocked';
+  const weight = blocked ? 1 : -1;
+  const node: CheckLeaf = {
+    kind: 'check',
+    id: blocked ? 'manual-blocklist' : 'manual-allowlist',
+    label: blocked ? 'On your blocklist' : 'On your allowlist',
+    defaultWeight: weight,
+    test: () => true,
+  };
   return {
     ...report,
     chance: blocked ? 1 : 0,
     isBot: blocked,
     checks: [
       ...report.checks,
-      {
-        id: blocked ? 'manual-blocklist' : 'manual-allowlist',
-        label: blocked ? 'On your blocklist' : 'On your allowlist',
-        weight: blocked ? 1 : -1,
-        triggered: true,
-        contribution: blocked ? 1 : -1,
-      },
+      { node, weight, triggered: true, contribution: weight },
     ],
   };
 }

@@ -113,8 +113,12 @@ test('check overrides are sanitized and weights are clamped', () => {
     checkWeights: { blueCheck: 5, noBanner: -9, newAccount: 'x', 'bad key': 1 },
     scamKeywords: [' Free Money ', '', 'x'.repeat(80), 'free money'],
   });
-  expect(result.disabledChecks).toStrictEqual(['blueCheck']);
-  expect(result.checkWeights).toStrictEqual({ blueCheck: 1, noBanner: -1 });
+  // v1.0.0 camelCase keys are migrated to check ids
+  expect(result.disabledChecks).toStrictEqual(['blue-check']);
+  expect(result.checkWeights).toStrictEqual({
+    'blue-check': 1,
+    'no-banner': -1,
+  });
   expect(result.scamKeywords).toStrictEqual(['free money']);
 });
 
@@ -151,7 +155,7 @@ test('exportSettings and parseImportedSettings round-trip', () => {
   const original = settings.sanitizeSettings({
     threshold: 0.5,
     allowlist: ['a'],
-    disabledChecks: ['noBanner'],
+    disabledChecks: ['no-banner'],
   });
   expect(
     settings.parseImportedSettings(settings.exportSettings(original))
