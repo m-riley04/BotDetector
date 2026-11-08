@@ -1,3 +1,9 @@
+import { tcoLinkResolver } from '../adapters/twitter/links';
+import { ReportCache } from '../detection/cache';
+import { DuplicateTextTracker } from '../detection/duplicates';
+import { LinkExpander } from '../detection/linkExpander';
+import { BotDetectionReport } from '../detection/models';
+import { Post } from '../social-media/models';
 import { BOT_ELEMENT } from './constants';
 import { PageStats } from './messages';
 import { Settings } from './settings';
@@ -11,6 +17,27 @@ export const REVEALED_ATTRIBUTE = 'data-botdetector-revealed';
 export abstract class SocialMediaScanner {
   abstract readonly domains: string[];
   protected settings: Settings;
+  protected reportCache = new ReportCache();
+  protected duplicateTracker = new DuplicateTextTracker();
+  protected linkExpander = new LinkExpander(
+    (request) => browser.runtime.sendMessage(request),
+    tcoLinkResolver
+  );
+
+  /**
+   * Map between the real DOM element and the report for it
+   */
+  protected reportByElement = new WeakMap<HTMLElement, BotDetectionReport>();
+
+  /**
+   * Map between the real root DOM element and the post data it contained
+   */
+  protected postDataByElement = new WeakMap<HTMLElement, Post>();
+
+  // Temporary storage for the latest tweet data received from the React props bridge
+  // TODO: this is bad imo. Fix it.
+  // it works today because `dispatchEvent` runs synchronously.
+  protected temp: Post | undefined;
 
   constructor(settings: Settings) {
     this.settings = settings;

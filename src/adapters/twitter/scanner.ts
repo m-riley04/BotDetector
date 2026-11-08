@@ -16,10 +16,7 @@ import {
   Settings,
 } from '../../common/settings';
 import { LOG_PREFIX } from '../../constants';
-import { ReportCache } from '../../detection/cache';
 import { getDetectionReport } from '../../detection/detection';
-import { DuplicateTextTracker } from '../../detection/duplicates';
-import { LinkExpander } from '../../detection/linkExpander';
 import { BotDetectionReport } from '../../detection/models';
 import { buildDetectionOptions } from '../../detection/options';
 import { applyListOverride, getTweetAction } from '../../detection/visibility';
@@ -36,27 +33,10 @@ import {
 } from '../../react/constants';
 import { ReactPropsResponse } from '../../react/models';
 import { Post } from '../../social-media/models';
-import { tcoLinkResolver } from '../twitter/links';
 import { convertTweetToGenericPost, isTwitterTweet } from './converters';
 
 export class TwitterScanner extends SocialMediaScanner {
   override readonly domains = ['*://x.com/*', '*://*.x.com/*'];
-
-  private reportCache = new ReportCache();
-  private duplicateTracker = new DuplicateTextTracker();
-  private linkExpander = new LinkExpander(
-    (request) => browser.runtime.sendMessage(request),
-    tcoLinkResolver
-  );
-  private reportByElement = new WeakMap<HTMLElement, BotDetectionReport>();
-
-  // The props bridge only answers once per tweet element, so remember each element's data
-  private postDataByElement = new WeakMap<HTMLElement, Post>();
-
-  // Temporary storage for the latest tweet data received from the React props bridge
-  // TODO: this is bad imo. Fix it.
-  // it works today because `dispatchEvent` runs synchronously.
-  private temp: Post | undefined;
 
   constructor(settings: Settings) {
     super(settings);
