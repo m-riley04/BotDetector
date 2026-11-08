@@ -44,6 +44,51 @@ export class TwitterScanner extends SocialMediaScanner {
     this.settings = settings;
   }
 
+  override scanPost = (post: Post, element: HTMLElement) => {
+    let rawReport = this.reportCache.get(post);
+    if (!rawReport) {
+      rawReport = getDetectionReport(
+        post,
+        buildDetectionOptions(
+          this.settings,
+          this.duplicateTracker.record(post),
+          this.linkExpander.links
+        )
+      );
+      if (rawReport) this.reportCache.set(post, rawReport);
+    }
+    if (!rawReport) {
+      if (this.settings.debug)
+        console.warn(
+          `${LOG_PREFIX} No detection report available for tweet: skipping.`
+        );
+      return;
+    }
+
+    const listStatus = getListStatus(post.user?.username, this.settings);
+    const report = applyListOverride(rawReport, listStatus);
+    const sortedReport: BotDetectionReport = { ...report };
+
+    sortedReport.checks.sort((a, b) => {
+      // sort by trigger first-and-foremost
+      if (a.triggered !== b.triggered) {
+        return a.triggered ? -1 : 1;
+      }
+
+      // then within triggered checks, sort by weight
+      if (a.weight !== b.weight) return a.weight > b.weight ? -1 : 1;
+      return 0;
+    });
+    this.reportByElement.set(element, sortedReport);
+
+    const action = getTweetAction(sortedReport, this.settings, listStatus);
+    if (action !== 'none' && sortedReport.isBot) {
+      element.setAttribute(BOT_ATTRIBUTE, 'true');
+    }
+    if (action === 'hide') this.hideTweet(element);
+    else if (action === 'badge') this.modifyTweet(element, post, sortedReport);
+  };
+
   override scan = () => {
     if (!this.settings.enabled) return;
 
@@ -80,49 +125,7 @@ export class TwitterScanner extends SocialMediaScanner {
         return;
       }
 
-      let rawReport = this.reportCache.get(postData);
-      if (!rawReport) {
-        rawReport = getDetectionReport(
-          postData,
-          buildDetectionOptions(
-            this.settings,
-            this.duplicateTracker.record(postData),
-            this.linkExpander.links
-          )
-        );
-        if (rawReport) this.reportCache.set(postData, rawReport);
-      }
-      if (!rawReport) {
-        if (this.settings.debug)
-          console.warn(
-            `${LOG_PREFIX} No detection report available for tweet: skipping.`
-          );
-        return;
-      }
-
-      const listStatus = getListStatus(postData.user?.username, this.settings);
-      const report = applyListOverride(rawReport, listStatus);
-      const sortedReport: BotDetectionReport = { ...report };
-
-      sortedReport.checks.sort((a, b) => {
-        // sort by trigger first-and-foremost
-        if (a.triggered !== b.triggered) {
-          return a.triggered ? -1 : 1;
-        }
-
-        // then within triggered checks, sort by weight
-        if (a.weight !== b.weight) return a.weight > b.weight ? -1 : 1;
-        return 0;
-      });
-      this.reportByElement.set(tweet, sortedReport);
-
-      const action = getTweetAction(sortedReport, this.settings, listStatus);
-      if (action !== 'none' && sortedReport.isBot) {
-        tweet.setAttribute(BOT_ATTRIBUTE, 'true');
-      }
-      if (action === 'hide') this.hideTweet(tweet);
-      else if (action === 'badge')
-        this.modifyTweet(tweet, postData, sortedReport);
+      this.scanPost(postData, tweet);
     });
 
     this.expandProfileLinks();

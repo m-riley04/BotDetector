@@ -45,6 +45,8 @@ export abstract class SocialMediaScanner {
 
   abstract scan: () => void;
 
+  abstract scanPost: (post: Post, element: HTMLElement) => void;
+
   abstract rescan: () => void;
 
   abstract clear: () => void;
