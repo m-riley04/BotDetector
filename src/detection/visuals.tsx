@@ -61,3 +61,15 @@ export function createBotElement(
   );
   return host;
 }
+
+/**
+ * Creates a placeholder badge shown while a post's data is still loading.
+ * It uses the same tag as the real badge, so a post with a placeholder counts as already handled.
+ * @returns An HTML element to replace with createBotElement once the report is ready.
+ */
+export function createLoadingBotElement(): HTMLElement {
+  const host = document.createElement(BOT_ELEMENT);
+  host.setAttribute('aria-label', 'Bot detection: checking');
+  mountInShadow(host, () => <PostBadge />, STYLES);
+  return host;
+}

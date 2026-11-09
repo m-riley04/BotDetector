@@ -19,7 +19,10 @@ import { getDetectionReport } from '../../detection/detection';
 import { BotDetectionReport } from '../../detection/models';
 import { buildDetectionOptions } from '../../detection/options';
 import { applyListOverride, getTweetAction } from '../../detection/visibility';
-import { createBotElement } from '../../detection/visuals';
+import {
+  createBotElement,
+  createLoadingBotElement,
+} from '../../detection/visuals';
 import {
   loadReactPropsBridge,
   reactBridge,
@@ -93,7 +96,7 @@ export class TwitterScanner extends SocialMediaScanner {
       document.querySelectorAll<HTMLDivElement>(TWEET_CELL_SELECTOR)
     );
 
-    const loads: Promise<unknown>[] = [];
+    const loads: Promise<void>[] = [];
     for (const tweet of tweets) {
       if (this.isModified(tweet)) continue;
 
@@ -103,15 +106,9 @@ export class TwitterScanner extends SocialMediaScanner {
         continue;
       }
 
-      // data arrives later (possibly out of order), and is handled for exactly this element
-      loads.push(
-        this.loadPost(tweet).then((post) => {
-          // settings or the page may have changed while waiting
-          if (post && this.settings.enabled && !this.isModified(tweet)) {
-            this.scanPost(post, tweet);
-          }
-        })
-      );
+      // only real posts get a placeholder; other cells ("Show more", "Who to follow") have no article
+      if (!tweet.querySelector('article')) continue;
+      loads.push(this.loadWithPlaceholder(tweet));
     }
 
     // profile links come from post data, so wait until it has arrived
@@ -119,10 +116,35 @@ export class TwitterScanner extends SocialMediaScanner {
   };
 
   /**
+   * Shows a loading badge right away, then replaces it with the real result once the post's data arrives.
+   * The placeholder also marks the element as handled, so overlapping scans don't load it twice.
+   */
+  private async loadWithPlaceholder(tweet: HTMLElement): Promise<void> {
+    const placeholder = createLoadingBotElement();
+    tweet.insertBefore(placeholder, tweet.firstChild);
+
+    const post = await this.loadPost(tweet);
+
+    // clear() removed the placeholder while we waited (e.g. settings changed), so a newer scan owns this element now
+    if (!placeholder.isConnected) return;
+    placeholder.remove();
+
+    // no data yet: with the placeholder gone, the next scan will try again
+    if (!post || !this.settings.enabled) return;
+
+    // same task as the removal, so the browser never paints the gap between the two badges
+    this.scanPost(post, tweet);
+  }
+
+  /**
    * Fetches and converts a tweet element's data, remembering it for later scans.
    * @returns The post, or undefined if none is available yet; a later scan will ask again.
    */
   private async loadPost(tweet: HTMLElement): Promise<Post | undefined> {
+    // show the loading badge for a brief moment
+    // TODO: this could be gone, but it's better to show during rescans
+    await new Promise((r) => setTimeout(r, 10));
+
     const response = await requestReactProps(reactBridge, tweet);
     if (!response) {
       if (this.settings.debug)

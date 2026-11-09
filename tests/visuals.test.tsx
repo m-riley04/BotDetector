@@ -107,6 +107,17 @@ test('createBotElement displays the chance and opens the report modal', async ()
   expect(buttons()[1]).toBe('Copy post JSON');
 });
 
+test('the loading badge shows progress and has no details button', () => {
+  const element = visuals.createLoadingBotElement();
+  expect(element.tagName.toLowerCase()).toBe('div-botdetector');
+  expect(element.getAttribute('aria-label')).toBe('Bot detection: checking');
+
+  const root = element.shadowRoot as ShadowRoot;
+  expect(root.querySelector('.badge')?.getAttribute('aria-busy')).toBe('true');
+  expect(root.querySelector('p')?.textContent).toBe('Checking…');
+  expect(root.querySelector('button')).toBeNull();
+});
+
 test('the details panel copies the complete post as formatted JSON', async () => {
   const post = makePost({
     id: 'post-456',
